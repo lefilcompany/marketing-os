@@ -21,7 +21,11 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
 import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authenticated/aplicacoes'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAplicacoesSlugRouteImport } from './routes/_authenticated/aplicacoes.$slug'
+import { Route as AuthenticatedAdminEmpresasRouteImport } from './routes/_authenticated/admin.empresas'
+import { Route as AuthenticatedAdminComunicadosRouteImport } from './routes/_authenticated/admin.comunicados'
+import { Route as AuthenticatedAdminAplicacoesRouteImport } from './routes/_authenticated/admin.aplicacoes'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -85,17 +89,41 @@ const AuthenticatedAplicacoesRoute = AuthenticatedAplicacoesRouteImport.update({
   path: '/aplicacoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAplicacoesSlugRoute =
   AuthenticatedAplicacoesSlugRouteImport.update({
     id: '/$slug',
     path: '/$slug',
     getParentRoute: () => AuthenticatedAplicacoesRoute,
   } as any)
+const AuthenticatedAdminEmpresasRoute =
+  AuthenticatedAdminEmpresasRouteImport.update({
+    id: '/empresas',
+    path: '/empresas',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminComunicadosRoute =
+  AuthenticatedAdminComunicadosRouteImport.update({
+    id: '/comunicados',
+    path: '/comunicados',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAplicacoesRoute =
+  AuthenticatedAdminAplicacoesRouteImport.update({
+    id: '/aplicacoes',
+    path: '/aplicacoes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/aplicacoes': typeof AuthenticatedAplicacoesRouteWithChildren
   '/atividades': typeof AuthenticatedAtividadesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -104,12 +132,16 @@ export interface FileRoutesByFullPath {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/solicitacoes': typeof AuthenticatedSolicitacoesRoute
+  '/admin/aplicacoes': typeof AuthenticatedAdminAplicacoesRoute
+  '/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
+  '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/aplicacoes': typeof AuthenticatedAplicacoesRouteWithChildren
   '/atividades': typeof AuthenticatedAtividadesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -118,6 +150,9 @@ export interface FileRoutesByTo {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/solicitacoes': typeof AuthenticatedSolicitacoesRoute
+  '/admin/aplicacoes': typeof AuthenticatedAdminAplicacoesRoute
+  '/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
+  '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
 }
 export interface FileRoutesById {
@@ -126,6 +161,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/aplicacoes': typeof AuthenticatedAplicacoesRouteWithChildren
   '/_authenticated/atividades': typeof AuthenticatedAtividadesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -134,6 +170,9 @@ export interface FileRoutesById {
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/solicitacoes': typeof AuthenticatedSolicitacoesRoute
+  '/_authenticated/admin/aplicacoes': typeof AuthenticatedAdminAplicacoesRoute
+  '/_authenticated/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
+  '/_authenticated/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/_authenticated/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
 }
 export interface FileRouteTypes {
@@ -142,6 +181,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/admin'
     | '/aplicacoes'
     | '/atividades'
     | '/configuracoes'
@@ -150,12 +190,16 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/perfil'
     | '/solicitacoes'
+    | '/admin/aplicacoes'
+    | '/admin/comunicados'
+    | '/admin/empresas'
     | '/aplicacoes/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/admin'
     | '/aplicacoes'
     | '/atividades'
     | '/configuracoes'
@@ -164,6 +208,9 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/perfil'
     | '/solicitacoes'
+    | '/admin/aplicacoes'
+    | '/admin/comunicados'
+    | '/admin/empresas'
     | '/aplicacoes/$slug'
   id:
     | '__root__'
@@ -171,6 +218,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/admin'
     | '/_authenticated/aplicacoes'
     | '/_authenticated/atividades'
     | '/_authenticated/configuracoes'
@@ -179,6 +227,9 @@ export interface FileRouteTypes {
     | '/_authenticated/notificacoes'
     | '/_authenticated/perfil'
     | '/_authenticated/solicitacoes'
+    | '/_authenticated/admin/aplicacoes'
+    | '/_authenticated/admin/comunicados'
+    | '/_authenticated/admin/empresas'
     | '/_authenticated/aplicacoes/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -275,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAplicacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/aplicacoes/$slug': {
       id: '/_authenticated/aplicacoes/$slug'
       path: '/$slug'
@@ -282,8 +340,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAplicacoesSlugRouteImport
       parentRoute: typeof AuthenticatedAplicacoesRoute
     }
+    '/_authenticated/admin/empresas': {
+      id: '/_authenticated/admin/empresas'
+      path: '/empresas'
+      fullPath: '/admin/empresas'
+      preLoaderRoute: typeof AuthenticatedAdminEmpresasRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/comunicados': {
+      id: '/_authenticated/admin/comunicados'
+      path: '/comunicados'
+      fullPath: '/admin/comunicados'
+      preLoaderRoute: typeof AuthenticatedAdminComunicadosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/aplicacoes': {
+      id: '/_authenticated/admin/aplicacoes'
+      path: '/aplicacoes'
+      fullPath: '/admin/aplicacoes'
+      preLoaderRoute: typeof AuthenticatedAdminAplicacoesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
+
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAplicacoesRoute: typeof AuthenticatedAdminAplicacoesRoute
+  AuthenticatedAdminComunicadosRoute: typeof AuthenticatedAdminComunicadosRoute
+  AuthenticatedAdminEmpresasRoute: typeof AuthenticatedAdminEmpresasRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAplicacoesRoute: AuthenticatedAdminAplicacoesRoute,
+  AuthenticatedAdminComunicadosRoute: AuthenticatedAdminComunicadosRoute,
+  AuthenticatedAdminEmpresasRoute: AuthenticatedAdminEmpresasRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedAplicacoesRouteChildren {
   AuthenticatedAplicacoesSlugRoute: typeof AuthenticatedAplicacoesSlugRoute
@@ -300,6 +394,7 @@ const AuthenticatedAplicacoesRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAplicacoesRoute: typeof AuthenticatedAplicacoesRouteWithChildren
   AuthenticatedAtividadesRoute: typeof AuthenticatedAtividadesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
@@ -311,6 +406,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAplicacoesRoute: AuthenticatedAplicacoesRouteWithChildren,
   AuthenticatedAtividadesRoute: AuthenticatedAtividadesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
