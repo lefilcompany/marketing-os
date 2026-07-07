@@ -103,10 +103,10 @@ function AppDetail() {
               <div>
                 <h3 className="font-semibold text-sm mt-4">Principais funcionalidades</h3>
                 <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
-                  {features.map((f: string, i: number) => (
+                  {(features as unknown as string[]).map((f, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <div className="h-1.5 w-1.5 rounded-full mt-2 shrink-0" style={{ background: app.accent_color }} />
-                      {f}
+                      <div className="h-1.5 w-1.5 rounded-full mt-2 shrink-0" style={{ background: app.accent_color ?? undefined }} />
+                      {String(f)}
                     </li>
                   ))}
                 </ul>
