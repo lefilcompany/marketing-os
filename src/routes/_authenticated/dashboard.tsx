@@ -31,39 +31,41 @@ function Dashboard() {
   const list = (apps.data?.apps ?? []).slice(0, 4);
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="relative h-[calc(100vh-4rem)] overflow-hidden">
       {/* Ambient background */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
+        <div className="absolute -top-32 -left-32 h-[420px] w-[420px] rounded-full blur-3xl opacity-40"
              style={{ background: "radial-gradient(circle, var(--brand-creator), transparent 60%)" }} />
-        <div className="absolute top-20 -right-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
+        <div className="absolute top-20 -right-32 h-[420px] w-[420px] rounded-full blur-3xl opacity-40"
              style={{ background: "radial-gradient(circle, var(--brand-deepersona), transparent 60%)" }} />
-        <div className="absolute -bottom-40 left-1/3 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
+        <div className="absolute -bottom-32 left-1/3 h-[420px] w-[420px] rounded-full blur-3xl opacity-40"
              style={{ background: "radial-gradient(circle, var(--brand-lekpi), transparent 60%)" }} />
       </div>
 
-      <div className="mx-auto max-w-6xl px-6 py-16 lg:py-24 space-y-14">
-        <header className="space-y-3 text-center">
-          <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">Marketing OS · LeFil</p>
-          <h1 className="font-display text-4xl lg:text-5xl font-semibold tracking-tight">
-            Olá, {firstName}.
-          </h1>
-          <p className="text-muted-foreground max-w-lg mx-auto">
-            Sua central de plataformas de marketing. Escolha uma para começar.
-          </p>
-        </header>
+      <div className="mx-auto h-full max-w-6xl px-6">
+        <div className="flex h-full flex-col items-center justify-center gap-10 lg:flex-row lg:justify-between">
+          <header className="space-y-2 text-left lg:max-w-xs">
+            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Marketing OS · LeFil</p>
+            <h1 className="font-display text-2xl font-semibold tracking-tight lg:text-3xl">
+              Olá, {firstName}.
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Sua central de plataformas de marketing. Escolha uma para começar.
+            </p>
+          </header>
 
-        <section className="grid gap-6 sm:grid-cols-2">
-          {apps.isLoading && [0,1,2,3].map(i => <Skeleton key={i} className="aspect-square rounded-3xl" />)}
-          {!apps.isLoading && list.length === 0 && (
-            <div className="sm:col-span-2 rounded-3xl border border-dashed p-14 text-center text-muted-foreground">
-              Nenhuma aplicação liberada para este workspace ainda.
-            </div>
-          )}
-          {list.map((app: any) => (
-            <PlatformTile key={app.id} app={app} orgId={currentOrgId!} />
-          ))}
-        </section>
+          <section className="grid grid-cols-2 gap-4">
+            {apps.isLoading && [0,1,2,3].map(i => <Skeleton key={i} className="h-40 w-40 rounded-2xl" />)}
+            {!apps.isLoading && list.length === 0 && (
+              <div className="col-span-2 rounded-2xl border border-dashed p-10 text-center text-sm text-muted-foreground">
+                Nenhuma aplicação liberada para este workspace ainda.
+              </div>
+            )}
+            {list.map((app: any) => (
+              <PlatformTile key={app.id} app={app} orgId={currentOrgId!} />
+            ))}
+          </section>
+        </div>
       </div>
     </div>
   );
@@ -91,23 +93,23 @@ function PlatformTile({ app, orgId }: { app: any; orgId: string }) {
     <button
       type="button"
       onClick={() => (disabled ? nav({ to: "/aplicacoes/$slug", params: { slug: app.slug } }) : open.mutate())}
-      className="group relative aspect-square w-full overflow-hidden rounded-3xl text-left transition-all duration-500 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group relative h-40 w-40 overflow-hidden rounded-2xl text-left transition-all duration-500 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       style={{
         background: `linear-gradient(135deg, color-mix(in oklab, ${color} 22%, transparent), color-mix(in oklab, ${color} 4%, transparent))`,
-        boxShadow: `0 20px 60px -20px color-mix(in oklab, ${color} 45%, transparent), inset 0 1px 0 0 rgba(255,255,255,0.15)`,
+        boxShadow: `0 16px 48px -16px color-mix(in oklab, ${color} 45%, transparent), inset 0 1px 0 0 rgba(255,255,255,0.15)`,
       }}
     >
       {/* Glass layer */}
       <div className="absolute inset-0 backdrop-blur-2xl" style={{ background: "rgba(255,255,255,0.04)" }} />
       {/* Border */}
-      <div className="absolute inset-0 rounded-3xl border border-white/15" />
+      <div className="absolute inset-0 rounded-2xl border border-white/15" />
 
       {/* Top highlight reflection */}
-      <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-3xl opacity-70"
+      <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-2xl opacity-70"
            style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.18), transparent)" }} />
 
       {/* Color glow */}
-      <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full blur-3xl opacity-60 transition-opacity duration-500 group-hover:opacity-90"
+      <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full blur-3xl opacity-60 transition-opacity duration-500 group-hover:opacity-90"
            style={{ background: color }} />
 
       {/* Sheen sweep on hover */}
@@ -115,32 +117,32 @@ function PlatformTile({ app, orgId }: { app: any; orgId: string }) {
            style={{ background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%)" }} />
 
       {/* Content */}
-      <div className="relative z-10 flex h-full flex-col justify-between p-7 lg:p-9">
+      <div className="relative z-10 flex h-full flex-col justify-between p-5">
         <div className="flex items-start justify-between">
           <div
-            className="grid h-14 w-14 place-items-center rounded-2xl border border-white/20 backdrop-blur-xl"
+            className="grid h-10 w-10 place-items-center rounded-xl border border-white/20 backdrop-blur-xl"
             style={{ background: `color-mix(in oklab, ${color} 35%, rgba(255,255,255,0.08))` }}
           >
-            <Icon className="h-6 w-6 text-white drop-shadow" />
+            <Icon className="h-4 w-4 text-white drop-shadow" />
           </div>
-          <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 backdrop-blur-md">
-            <Circle className="h-1.5 w-1.5 fill-current" style={{ color: statusColor(app.status) }} />
-            <span className="text-[10px] uppercase tracking-wider text-white/80">{statusLabel(app.status)}</span>
+          <div className="flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 backdrop-blur-md">
+            <Circle className="h-1 w-1 fill-current" style={{ color: statusColor(app.status) }} />
+            <span className="text-[9px] uppercase tracking-wider text-white/80">{statusLabel(app.status)}</span>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="font-display text-2xl lg:text-3xl font-semibold text-white">{app.name}</h3>
-          <p className="text-sm text-white/70 line-clamp-2 max-w-xs">{app.short_description}</p>
-          <div className="pt-3 flex items-center gap-2 text-sm font-medium text-white">
-            <span>{app.canAccess ? "Abrir plataforma" : "Ver detalhes"}</span>
-            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        <div className="space-y-1">
+          <h3 className="font-display text-lg font-semibold text-white">{app.name}</h3>
+          <p className="text-xs text-white/70 line-clamp-2">{app.short_description}</p>
+          <div className="pt-1 flex items-center gap-1.5 text-xs font-medium text-white">
+            <span>{app.canAccess ? "Abrir" : "Detalhes"}</span>
+            <ArrowUpRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </div>
         </div>
       </div>
 
       {/* Bottom mirror reflection */}
-      <div className="pointer-events-none absolute inset-x-4 -bottom-2 h-8 rounded-full blur-2xl opacity-50"
+      <div className="pointer-events-none absolute inset-x-3 -bottom-2 h-6 rounded-full blur-2xl opacity-50"
            style={{ background: color }} />
     </button>
   );
