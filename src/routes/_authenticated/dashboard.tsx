@@ -54,8 +54,8 @@ function Dashboard() {
             </p>
           </header>
 
-          <section className="grid grid-cols-2 gap-4">
-            {apps.isLoading && [0,1,2,3].map(i => <Skeleton key={i} className="h-40 w-40 rounded-2xl" />)}
+          <section className="grid grid-cols-2 gap-5">
+            {apps.isLoading && [0,1,2,3].map(i => <Skeleton key={i} className="h-52 w-52 rounded-2xl" />)}
             {!apps.isLoading && list.length === 0 && (
               <div className="col-span-2 rounded-2xl border border-dashed p-10 text-center text-sm text-muted-foreground">
                 Nenhuma aplicação liberada para este workspace ainda.
