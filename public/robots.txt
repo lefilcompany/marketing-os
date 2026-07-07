@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /auth
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /aplicacoes
+Disallow: /atividades
+Disallow: /notificacoes
+Disallow: /equipe
+Disallow: /solicitacoes
+Disallow: /admin
+Disallow: /configuracoes
+Disallow: /perfil
+Allow: /
