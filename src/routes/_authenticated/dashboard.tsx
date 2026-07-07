@@ -90,61 +90,61 @@ function PlatformTile({ app, orgId }: { app: any; orgId: string }) {
   const disabled = !app.canAccess || open.isPending;
 
   return (
-      <button
-        type="button"
-        onClick={() => (disabled ? nav({ to: "/aplicacoes/$slug", params: { slug: app.slug } }) : open.mutate())}
-        className="group relative h-52 w-52 overflow-hidden rounded-2xl text-left transition-all duration-500 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        style={{
-          background: `linear-gradient(135deg, color-mix(in oklab, ${color} 22%, transparent), color-mix(in oklab, ${color} 4%, transparent))`,
-          boxShadow: `0 16px 48px -16px color-mix(in oklab, ${color} 45%, transparent), inset 0 1px 0 0 rgba(255,255,255,0.15)`,
-        }}
-      >
-        {/* Glass layer */}
-        <div className="absolute inset-0 backdrop-blur-2xl" style={{ background: "rgba(255,255,255,0.04)" }} />
-        {/* Border */}
-        <div className="absolute inset-0 rounded-2xl border border-white/15" />
+    <button
+      type="button"
+      onClick={() => (disabled ? nav({ to: "/aplicacoes/$slug", params: { slug: app.slug } }) : open.mutate())}
+      className="group relative h-52 w-52 overflow-hidden rounded-2xl text-left transition-all duration-500 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      style={{
+        background: `linear-gradient(135deg, color-mix(in oklab, ${color} 22%, transparent), color-mix(in oklab, ${color} 4%, transparent))`,
+        boxShadow: `0 16px 48px -16px color-mix(in oklab, ${color} 45%, transparent), inset 0 1px 0 0 rgba(255,255,255,0.15)`,
+      }}
+    >
+      {/* Glass layer */}
+      <div className="absolute inset-0 backdrop-blur-2xl" style={{ background: "rgba(255,255,255,0.04)" }} />
+      {/* Border */}
+      <div className="absolute inset-0 rounded-2xl border border-white/15" />
 
-        {/* Top highlight reflection */}
-        <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-2xl opacity-70"
-             style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.18), transparent)" }} />
+      {/* Top highlight reflection */}
+      <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-2xl opacity-70"
+           style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.18), transparent)" }} />
 
-        {/* Color glow */}
-        <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full blur-3xl opacity-60 transition-opacity duration-500 group-hover:opacity-90"
-             style={{ background: color }} />
+      {/* Color glow */}
+      <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full blur-3xl opacity-60 transition-opacity duration-500 group-hover:opacity-90"
+           style={{ background: color }} />
 
-        {/* Sheen sweep on hover */}
-        <div className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-1000 ease-out group-hover:translate-x-full"
-             style={{ background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%)" }} />
+      {/* Sheen sweep on hover */}
+      <div className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-1000 ease-out group-hover:translate-x-full"
+           style={{ background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%)" }} />
 
-        {/* Content */}
-        <div className="relative z-10 flex h-full flex-col justify-between p-6">
-          <div className="flex items-start justify-between">
-            <div
-              className="grid h-12 w-12 place-items-center rounded-xl border border-white/20 backdrop-blur-xl"
-              style={{ background: `color-mix(in oklab, ${color} 35%, rgba(255,255,255,0.08))` }}
-            >
-              <Icon className="h-5 w-5 text-white drop-shadow" />
-            </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2 py-1 backdrop-blur-md">
-              <Circle className="h-1 w-1 fill-current" style={{ color: statusColor(app.status) }} />
-              <span className="text-[10px] uppercase tracking-wider text-white/80">{statusLabel(app.status)}</span>
-            </div>
+      {/* Content */}
+      <div className="relative z-10 flex h-full flex-col justify-between p-6">
+        <div className="flex items-start justify-between">
+          <div
+            className="grid h-12 w-12 place-items-center rounded-xl border border-white/20 backdrop-blur-xl"
+            style={{ background: `color-mix(in oklab, ${color} 35%, rgba(255,255,255,0.08))` }}
+          >
+            <Icon className="h-5 w-5 text-white drop-shadow" />
           </div>
-
-          <div className="space-y-1.5">
-            <h3 className="font-display text-xl font-semibold text-white">{app.name}</h3>
-            <p className="text-sm text-white/70 line-clamp-2">{app.short_description}</p>
-            <div className="pt-1 flex items-center gap-1.5 text-sm font-medium text-white">
-              <span>{app.canAccess ? "Abrir" : "Detalhes"}</span>
-              <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </div>
+          <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2 py-1 backdrop-blur-md">
+            <Circle className="h-1 w-1 fill-current" style={{ color: statusColor(app.status) }} />
+            <span className="text-[10px] uppercase tracking-wider text-white/80">{statusLabel(app.status)}</span>
           </div>
         </div>
 
-        {/* Bottom mirror reflection */}
-        <div className="pointer-events-none absolute inset-x-4 -bottom-2 h-6 rounded-full blur-2xl opacity-50"
-             style={{ background: color }} />
-      </button>
+        <div className="space-y-1.5">
+          <h3 className="font-display text-xl font-semibold text-white">{app.name}</h3>
+          <p className="text-sm text-white/70 line-clamp-2">{app.short_description}</p>
+          <div className="pt-1 flex items-center gap-1.5 text-sm font-medium text-white">
+            <span>{app.canAccess ? "Abrir" : "Detalhes"}</span>
+            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom mirror reflection */}
+      <div className="pointer-events-none absolute inset-x-4 -bottom-2 h-6 rounded-full blur-2xl opacity-50"
+           style={{ background: color }} />
+    </button>
   );
 }
 
