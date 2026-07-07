@@ -34,16 +34,16 @@ function Dashboard() {
     <div className="relative h-[calc(100vh-4rem)] overflow-hidden">
       {/* Ambient background */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-32 -left-32 h-[420px] w-[420px] rounded-full blur-3xl opacity-40"
+        <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
              style={{ background: "radial-gradient(circle, var(--brand-creator), transparent 60%)" }} />
-        <div className="absolute top-20 -right-32 h-[420px] w-[420px] rounded-full blur-3xl opacity-40"
+        <div className="absolute top-20 -right-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
              style={{ background: "radial-gradient(circle, var(--brand-deepersona), transparent 60%)" }} />
-        <div className="absolute -bottom-32 left-1/3 h-[420px] w-[420px] rounded-full blur-3xl opacity-40"
+        <div className="absolute -bottom-40 left-1/3 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
              style={{ background: "radial-gradient(circle, var(--brand-lekpi), transparent 60%)" }} />
       </div>
 
       <div className="mx-auto h-full max-w-6xl px-6">
-        <div className="flex h-full flex-col items-center justify-center gap-10 lg:flex-row lg:justify-between">
+        <div className="flex h-full flex-col items-center justify-center gap-12 lg:flex-row lg:justify-between">
           <header className="space-y-2 text-left lg:max-w-xs">
             <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Marketing OS · LeFil</p>
             <h1 className="font-display text-2xl font-semibold tracking-tight lg:text-3xl">
@@ -54,8 +54,8 @@ function Dashboard() {
             </p>
           </header>
 
-          <section className="grid grid-cols-2 gap-5">
-            {apps.isLoading && [0,1,2,3].map(i => <Skeleton key={i} className="h-52 w-52 rounded-2xl" />)}
+          <section className="grid grid-cols-2 gap-6">
+            {apps.isLoading && [0,1,2,3].map(i => <Skeleton key={i} className="h-72 w-72 rounded-2xl" />)}
             {!apps.isLoading && list.length === 0 && (
               <div className="col-span-2 rounded-2xl border border-dashed p-10 text-center text-sm text-muted-foreground">
                 Nenhuma aplicação liberada para este workspace ainda.
@@ -93,10 +93,10 @@ function PlatformTile({ app, orgId }: { app: any; orgId: string }) {
     <button
       type="button"
       onClick={() => (disabled ? nav({ to: "/aplicacoes/$slug", params: { slug: app.slug } }) : open.mutate())}
-      className="group relative h-52 w-52 overflow-hidden rounded-2xl text-left transition-all duration-500 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group relative h-72 w-72 overflow-hidden rounded-2xl text-left transition-all duration-500 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       style={{
         background: `linear-gradient(135deg, color-mix(in oklab, ${color} 22%, transparent), color-mix(in oklab, ${color} 4%, transparent))`,
-        boxShadow: `0 16px 48px -16px color-mix(in oklab, ${color} 45%, transparent), inset 0 1px 0 0 rgba(255,255,255,0.15)`,
+        boxShadow: `0 20px 60px -20px color-mix(in oklab, ${color} 45%, transparent), inset 0 1px 0 0 rgba(255,255,255,0.15)`,
       }}
     >
       {/* Glass layer */}
@@ -109,7 +109,7 @@ function PlatformTile({ app, orgId }: { app: any; orgId: string }) {
            style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.18), transparent)" }} />
 
       {/* Color glow */}
-      <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full blur-3xl opacity-60 transition-opacity duration-500 group-hover:opacity-90"
+      <div className="absolute -top-28 -right-28 h-56 w-56 rounded-full blur-3xl opacity-60 transition-opacity duration-500 group-hover:opacity-90"
            style={{ background: color }} />
 
       {/* Sheen sweep on hover */}
@@ -117,24 +117,24 @@ function PlatformTile({ app, orgId }: { app: any; orgId: string }) {
            style={{ background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%)" }} />
 
       {/* Content */}
-      <div className="relative z-10 flex h-full flex-col justify-between p-6">
+      <div className="relative z-10 flex h-full flex-col justify-between p-7">
         <div className="flex items-start justify-between">
           <div
-            className="grid h-12 w-12 place-items-center rounded-xl border border-white/20 backdrop-blur-xl"
+            className="grid h-14 w-14 place-items-center rounded-2xl border border-white/20 backdrop-blur-xl"
             style={{ background: `color-mix(in oklab, ${color} 35%, rgba(255,255,255,0.08))` }}
           >
-            <Icon className="h-5 w-5 text-white drop-shadow" />
+            <Icon className="h-6 w-6 text-white drop-shadow" />
           </div>
-          <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2 py-1 backdrop-blur-md">
-            <Circle className="h-1 w-1 fill-current" style={{ color: statusColor(app.status) }} />
+          <div className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 backdrop-blur-md">
+            <Circle className="h-1.5 w-1.5 fill-current" style={{ color: statusColor(app.status) }} />
             <span className="text-[10px] uppercase tracking-wider text-white/80">{statusLabel(app.status)}</span>
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <h3 className="font-display text-xl font-semibold text-white">{app.name}</h3>
+        <div className="space-y-2">
+          <h3 className="font-display text-2xl font-semibold text-white">{app.name}</h3>
           <p className="text-sm text-white/70 line-clamp-2">{app.short_description}</p>
-          <div className="pt-1 flex items-center gap-1.5 text-sm font-medium text-white">
+          <div className="pt-1 flex items-center gap-2 text-sm font-medium text-white">
             <span>{app.canAccess ? "Abrir" : "Detalhes"}</span>
             <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </div>
@@ -142,7 +142,7 @@ function PlatformTile({ app, orgId }: { app: any; orgId: string }) {
       </div>
 
       {/* Bottom mirror reflection */}
-      <div className="pointer-events-none absolute inset-x-4 -bottom-2 h-6 rounded-full blur-2xl opacity-50"
+      <div className="pointer-events-none absolute inset-x-4 -bottom-2 h-8 rounded-full blur-2xl opacity-50"
            style={{ background: color }} />
     </button>
   );
