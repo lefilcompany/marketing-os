@@ -116,6 +116,24 @@ function AppSidebar({ canAdmin, isSuperadmin }: { canAdmin: boolean; isSuperadmi
           </SidebarGroupContent>
         </SidebarGroup>
 
+        <SidebarGroup>
+          <SidebarGroupLabel>Módulos</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {modules.map((it) => (
+                <SidebarMenuItem key={it.to}>
+                  <SidebarMenuButton asChild isActive={pathname === it.to}>
+                    <Link to={it.to}>
+                      <it.icon className="h-4 w-4" style={{ color: it.color }} />
+                      <span>{it.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {canAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel>Gestão</SidebarGroupLabel>
