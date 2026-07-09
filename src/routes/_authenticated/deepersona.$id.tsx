@@ -571,6 +571,8 @@ function InsightsView({
         </div>
       )}
 
+      <InsightTasksPanel insights={insights} />
+
       <InsightToTaskDialog
         open={!!target}
         onOpenChange={(v) => !v && setTarget(null)}
@@ -582,6 +584,88 @@ function InsightsView({
     </div>
   );
 }
+
+function InsightTasksPanel({ insights }: { insights: Insight[] }) {
+  const ids = insights.map((i) => i.task_id).filter((v): v is string => !!v);
+  const tasksQ = useQuery({
+    queryKey: ["insight-tasks", ids.sort().join(",")],
+    queryFn: () => listTasksByIds({ data: { ids } }),
+    enabled: ids.length > 0,
+  });
+
+  if (ids.length === 0) return null;
+
+  const items = tasksQ.data?.items ?? [];
+  const statusLabel: Record<string, string> = {
+    todo: "A fazer",
+    doing: "Em curso",
+    done: "Concluída",
+    blocked: "Bloqueada",
+  };
+
+  return (
+    <div className="surface-card p-5 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <FolderKanban className="h-4 w-4 text-muted-foreground" />
+          <h3 className="font-display font-semibold">Tarefas geradas destes insights</h3>
+        </div>
+        <Badge variant="secondary" className="text-[10px]">{ids.length}</Badge>
+      </div>
+
+      {tasksQ.isLoading ? (
+        <Skeleton className="h-16 w-full" />
+      ) : items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhuma tarefa encontrada.</p>
+      ) : (
+        <ul className="divide-y divide-white/5">
+          {items.map((t) => {
+            const insight = insights.find((i) => i.task_id === t.id);
+            return (
+              <li key={t.id} className="py-3 flex items-start gap-3">
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="font-medium truncate">{t.title}</p>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                    {t.project_name && (
+                      <span className="inline-flex items-center gap-1">
+                        <FolderKanban className="h-3 w-3" />
+                        {t.project_name}
+                      </span>
+                    )}
+                    <Badge variant="outline" className="text-[10px] h-5">
+                      {statusLabel[t.status] ?? t.status}
+                    </Badge>
+                    {t.due_at && (
+                      <span className="inline-flex items-center gap-1">
+                        <CalendarClock className="h-3 w-3" />
+                        {new Date(t.due_at).toLocaleDateString("pt-BR")}
+                      </span>
+                    )}
+                    {insight && (
+                      <span className="truncate max-w-[240px] italic">
+                        · de "{insight.title}"
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Button asChild variant="ghost" size="sm" className="gap-1 h-8">
+                  <Link
+                    to="/soma"
+                    search={t.project_id ? { project: t.project_id, task: t.id } : { task: t.id }}
+                  >
+                    Abrir
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 
 function InsightToTaskDialog({
   open,
