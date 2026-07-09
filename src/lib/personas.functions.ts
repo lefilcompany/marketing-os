@@ -277,7 +277,7 @@ const InsightsSchema = z.object({
     kind: z.enum(["oportunidade", "risco", "hipotese", "descoberta"]),
     confidence: z.enum(["baixa", "media", "alta"]),
     next_action: z.string(),
-  })).min(4).max(6),
+  })),
 });
 
 export const generateInsights = createServerFn({ method: "POST" })
