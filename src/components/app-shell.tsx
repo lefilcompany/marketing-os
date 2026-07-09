@@ -295,7 +295,7 @@ function MobileNav({ canAdmin }: { canAdmin: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const items = [
     { to: "/dashboard", label: "Início", icon: LayoutDashboard },
-    { to: "/aplicacoes", label: "Apps", icon: Grid3x3 },
+    { to: "/creator", label: "Creator", icon: Sparkles },
     { to: "/notificacoes", label: "Alertas", icon: Bell },
     { to: canAdmin ? "/equipe" : "/perfil", label: canAdmin ? "Equipe" : "Perfil", icon: canAdmin ? Users : UserIcon },
   ];
