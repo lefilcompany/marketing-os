@@ -11,7 +11,7 @@ import {
 } from "@/lib/segments.functions";
 import { listResearchSources } from "@/lib/research.functions";
 import { listCsdItems } from "@/lib/csd.functions";
-import { createPersona, generatePersonaBase } from "@/lib/personas.functions";
+import { createPersona, generatePersonaBase, generateICP } from "@/lib/personas.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -157,19 +157,20 @@ function SegmentacaoPage() {
         },
       });
 
-      // 2) Dispara a geração da base em background — o editor recarrega sozinho.
+      // 2) Dispara a geração da base + ICP em background — o editor recarrega sozinho.
       if (briefing.length >= 4) {
         try { sessionStorage.setItem(`deepersona:generating:${p.item.id}`, "1"); } catch { /* noop */ }
         generatePersonaBase({ data: { id: p.item.id, briefing } })
+          .then(() => generateICP({ data: { id: p.item.id } }))
           .then(() => {
             try { sessionStorage.removeItem(`deepersona:generating:${p.item.id}`); } catch { /* noop */ }
             qc.invalidateQueries({ queryKey: ["persona", p.item.id] });
             qc.invalidateQueries({ queryKey: ["personas", currentOrgId] });
-            toast.success(`Base da persona "${seg.name}" pronta`);
+            toast.success(`Persona "${seg.name}" pronta com base + ICP`);
           })
           .catch((e: Error) => {
             try { sessionStorage.removeItem(`deepersona:generating:${p.item.id}`); } catch { /* noop */ }
-            toast.error(`Falha ao gerar base: ${e.message}`);
+            toast.error(`Falha ao gerar: ${e.message}`);
           });
       }
 
