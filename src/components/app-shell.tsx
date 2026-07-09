@@ -67,7 +67,7 @@ export function AppShell({ children, profile, memberships, isSuperadmin }: Props
   );
 }
 
-function AppSidebar({ canAdmin, isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean }) {
+function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
