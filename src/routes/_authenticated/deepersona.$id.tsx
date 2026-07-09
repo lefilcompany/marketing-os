@@ -217,36 +217,48 @@ function PersonaDetail() {
 
         <StageBar stageIdx={stageIdx} color={mod.color} />
 
-        <Tabs defaultValue="base" className="w-full">
-          <TabsList className="grid grid-cols-4 max-w-xl">
-            <TabsTrigger value="base"><Users className="h-3.5 w-3.5 mr-1.5" />Base</TabsTrigger>
-            <TabsTrigger value="icp"><Target className="h-3.5 w-3.5 mr-1.5" />ICP</TabsTrigger>
-            <TabsTrigger value="journey"><MapIcon className="h-3.5 w-3.5 mr-1.5" />Jornada</TabsTrigger>
-            <TabsTrigger value="insights"><Lightbulb className="h-3.5 w-3.5 mr-1.5" />Insights</TabsTrigger>
-          </TabsList>
+        {isGenerating && <GeneratingBanner color={mod.color} />}
 
-          <TabsContent value="base" className="mt-6">
-            <BaseEditor persona={persona} onGenerate={(b) => genBase.mutate(b)} pending={genBase.isPending} />
-          </TabsContent>
+        <fieldset
+          disabled={isGenerating}
+          className={
+            isGenerating
+              ? "pointer-events-none opacity-60 select-none"
+              : undefined
+          }
+          aria-busy={isGenerating}
+        >
+          <Tabs defaultValue="base" className="w-full">
+            <TabsList className="grid grid-cols-4 max-w-xl">
+              <TabsTrigger value="base"><Users className="h-3.5 w-3.5 mr-1.5" />Base</TabsTrigger>
+              <TabsTrigger value="icp"><Target className="h-3.5 w-3.5 mr-1.5" />ICP</TabsTrigger>
+              <TabsTrigger value="journey"><MapIcon className="h-3.5 w-3.5 mr-1.5" />Jornada</TabsTrigger>
+              <TabsTrigger value="insights"><Lightbulb className="h-3.5 w-3.5 mr-1.5" />Insights</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="icp" className="mt-6">
-            <ICPView icp={icp} onGenerate={() => genICP.mutate()} pending={genICP.isPending} />
-          </TabsContent>
+            <TabsContent value="base" className="mt-6">
+              <BaseEditor persona={persona} onGenerate={(b) => genBase.mutate(b)} pending={genBase.isPending || isGenerating} />
+            </TabsContent>
 
-          <TabsContent value="journey" className="mt-6">
-            <JourneyView journey={journey} color={mod.color} onGenerate={() => genJourney.mutate()} pending={genJourney.isPending} />
-          </TabsContent>
+            <TabsContent value="icp" className="mt-6">
+              <ICPView icp={icp} onGenerate={() => genICP.mutate()} pending={genICP.isPending} />
+            </TabsContent>
 
-          <TabsContent value="insights" className="mt-6">
-            <InsightsView
-              insights={insights}
-              personaId={persona.id}
-              organizationId={persona.organization_id}
-              onGenerate={() => genInsights.mutate()}
-              pending={genInsights.isPending}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="journey" className="mt-6">
+              <JourneyView journey={journey} color={mod.color} onGenerate={() => genJourney.mutate()} pending={genJourney.isPending} />
+            </TabsContent>
+
+            <TabsContent value="insights" className="mt-6">
+              <InsightsView
+                insights={insights}
+                personaId={persona.id}
+                organizationId={persona.organization_id}
+                onGenerate={() => genInsights.mutate()}
+                pending={genInsights.isPending}
+              />
+            </TabsContent>
+          </Tabs>
+        </fieldset>
       </div>
     </div>
   );
