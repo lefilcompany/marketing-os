@@ -15,9 +15,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  LayoutDashboard, Grid3x3, Activity, Bell, Users, Inbox,
-  Settings, HelpCircle, Shield, ChevronDown, LogOut, User as UserIcon,
-  Sparkles, Search, Menu,
+  LayoutDashboard, Home, BookMarked, Users,
+  Settings, Shield, ChevronDown, LogOut, User as UserIcon,
+  Sparkles, Search, Menu, Bell,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
