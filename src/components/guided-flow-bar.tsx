@@ -11,9 +11,9 @@ import { ChevronLeft, ChevronRight, X, Route as RouteIcon } from "lucide-react";
  */
 export function GuidedFlowBar() {
   const nav = useNavigate();
-  const search = useRouterState({ select: (s) => s.location.search }) as
-    | Record<string, unknown>
-    | undefined;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const searchRaw = useRouterState({ select: (s) => s.location.search });
+  const search = searchRaw as unknown as Record<string, unknown> | undefined;
 
   const params = useMemo(() => {
     const flowId =
@@ -48,8 +48,7 @@ export function GuidedFlowBar() {
   };
 
   const exit = () => {
-    // Sai do modo guiado — mantém rota atual mas remove os search params.
-    nav({ to: location.pathname, search: {} as never, replace: true });
+    nav({ to: pathname, search: {} as never, replace: true });
   };
 
   return (
