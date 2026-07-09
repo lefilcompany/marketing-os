@@ -53,6 +53,9 @@ import {
   Compass,
   ListPlus,
   CheckCircle2,
+  FolderKanban,
+  ArrowUpRight,
+  CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
 
