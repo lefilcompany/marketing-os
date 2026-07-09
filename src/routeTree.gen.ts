@@ -32,6 +32,7 @@ import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authenticated/aplicacoes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedLekpisTemplatesRouteImport } from './routes/_authenticated/lekpis.templates'
+import { Route as AuthenticatedDeepersonaCsdRouteImport } from './routes/_authenticated/deepersona.csd'
 import { Route as AuthenticatedDeepersonaIdRouteImport } from './routes/_authenticated/deepersona.$id'
 import { Route as AuthenticatedAplicacoesSlugRouteImport } from './routes/_authenticated/aplicacoes.$slug'
 import { Route as AuthenticatedAdminEmpresasRouteImport } from './routes/_authenticated/admin.empresas'
@@ -157,6 +158,12 @@ const AuthenticatedLekpisTemplatesRoute =
     path: '/templates',
     getParentRoute: () => AuthenticatedLekpisRoute,
   } as any)
+const AuthenticatedDeepersonaCsdRoute =
+  AuthenticatedDeepersonaCsdRouteImport.update({
+    id: '/csd',
+    path: '/csd',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
+  } as any)
 const AuthenticatedDeepersonaIdRoute =
   AuthenticatedDeepersonaIdRouteImport.update({
     id: '/$id',
@@ -215,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
   '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
+  '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
 }
 export interface FileRoutesByTo {
@@ -244,6 +252,7 @@ export interface FileRoutesByTo {
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
   '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
+  '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
 }
 export interface FileRoutesById {
@@ -275,6 +284,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/_authenticated/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
   '/_authenticated/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
+  '/_authenticated/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/_authenticated/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
 }
 export interface FileRouteTypes {
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/admin/empresas'
     | '/aplicacoes/$slug'
     | '/deepersona/$id'
+    | '/deepersona/csd'
     | '/lekpis/templates'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -335,6 +346,7 @@ export interface FileRouteTypes {
     | '/admin/empresas'
     | '/aplicacoes/$slug'
     | '/deepersona/$id'
+    | '/deepersona/csd'
     | '/lekpis/templates'
   id:
     | '__root__'
@@ -365,6 +377,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/empresas'
     | '/_authenticated/aplicacoes/$slug'
     | '/_authenticated/deepersona/$id'
+    | '/_authenticated/deepersona/csd'
     | '/_authenticated/lekpis/templates'
   fileRoutesById: FileRoutesById
 }
@@ -538,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLekpisTemplatesRouteImport
       parentRoute: typeof AuthenticatedLekpisRoute
     }
+    '/_authenticated/deepersona/csd': {
+      id: '/_authenticated/deepersona/csd'
+      path: '/csd'
+      fullPath: '/deepersona/csd'
+      preLoaderRoute: typeof AuthenticatedDeepersonaCsdRouteImport
+      parentRoute: typeof AuthenticatedDeepersonaRoute
+    }
     '/_authenticated/deepersona/$id': {
       id: '/_authenticated/deepersona/$id'
       path: '/$id'
@@ -607,11 +627,13 @@ const AuthenticatedAplicacoesRouteWithChildren =
 
 interface AuthenticatedDeepersonaRouteChildren {
   AuthenticatedDeepersonaIdRoute: typeof AuthenticatedDeepersonaIdRoute
+  AuthenticatedDeepersonaCsdRoute: typeof AuthenticatedDeepersonaCsdRoute
 }
 
 const AuthenticatedDeepersonaRouteChildren: AuthenticatedDeepersonaRouteChildren =
   {
     AuthenticatedDeepersonaIdRoute: AuthenticatedDeepersonaIdRoute,
+    AuthenticatedDeepersonaCsdRoute: AuthenticatedDeepersonaCsdRoute,
   }
 
 const AuthenticatedDeepersonaRouteWithChildren =
