@@ -8,6 +8,7 @@ import {
   createPersona,
   deletePersona,
   generatePersonaBase,
+  generateICP,
 } from "@/lib/personas.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
