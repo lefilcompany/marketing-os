@@ -42,8 +42,67 @@ import {
   Trash2,
   ArrowUpRight,
   Loader2,
+  Target,
+  Database,
+  TrendingUp,
+  Brain,
+  Layers,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+
+const METHODOLOGY: Array<{
+  step: string;
+  title: string;
+  description: string;
+  icon: typeof Layers;
+  to?: string;
+  status: "active" | "soon";
+}> = [
+  {
+    step: "01",
+    title: "Alinhamento inicial",
+    description: "Matriz CSD — Certezas, Suposições e Dúvidas sobre o público.",
+    icon: Layers,
+    to: "/deepersona/csd",
+    status: "active",
+  },
+  {
+    step: "02",
+    title: "Coleta de dados",
+    description: "Preparação e análise de dados comportamentais e demográficos.",
+    icon: Database,
+    status: "soon",
+  },
+  {
+    step: "03",
+    title: "Segmentação",
+    description: "Clusters e identificação de padrões relevantes.",
+    icon: TrendingUp,
+    status: "soon",
+  },
+  {
+    step: "04",
+    title: "Criação de personas",
+    description: "Canvas detalhado com JTBD, motivações e objeções.",
+    icon: Users,
+    status: "active",
+  },
+  {
+    step: "05",
+    title: "Priorização",
+    description: "Matriz de importância × urgência para definir foco.",
+    icon: Target,
+    status: "soon",
+  },
+  {
+    step: "06",
+    title: "Agentes IA",
+    description: "Agentes inteligentes baseados nas personas.",
+    icon: Brain,
+    status: "soon",
+  },
+];
 
 const STAGE_LABEL: Record<string, string> = {
   draft: "Rascunho",
