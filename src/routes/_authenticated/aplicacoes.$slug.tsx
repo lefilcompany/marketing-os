@@ -6,7 +6,7 @@ import { useWorkspace } from "@/lib/workspace-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AppIcon, categoryLabel } from "./dashboard";
+import { AppIcon, categoryLabel } from "@/components/app-icon";
 import { ArrowLeft, ExternalLink, Lock, LifeBuoy, Users, PenTool, Layers, BarChart3, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";

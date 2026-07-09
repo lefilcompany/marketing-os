@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { AppIcon, categoryLabel } from "./dashboard";
+import { AppIcon, categoryLabel } from "@/components/app-icon";
 import { Search, Star, StarOff, ExternalLink, Lock, Grid3x3, List } from "lucide-react";
 import { toast } from "sonner";
 
