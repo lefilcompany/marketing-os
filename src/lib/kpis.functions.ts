@@ -12,7 +12,19 @@ export const listKpisByKeys = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    if (data.keys.length === 0) return { items: [] as Array<Record<string, unknown>> };
+    type KpiRow = {
+      id: string;
+      metric_key: string;
+      label: string | null;
+      value: number | null;
+      target: number | null;
+      unit: string | null;
+      module: string | null;
+      period_start: string | null;
+      period_end: string | null;
+      updated_at: string | null;
+    };
+    if (data.keys.length === 0) return { items: [] as KpiRow[] };
     const { data: rows, error } = await context.supabase
       .from("kpi_snapshots")
       .select("id, metric_key, label, value, target, unit, module, period_start, period_end, updated_at")
@@ -20,9 +32,8 @@ export const listKpisByKeys = createServerFn({ method: "POST" })
       .in("metric_key", data.keys)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
-    // Reduz para o snapshot mais recente por métrica
-    const latest = new Map<string, Record<string, unknown>>();
-    for (const r of rows ?? []) {
+    const latest = new Map<string, KpiRow>();
+    for (const r of (rows ?? []) as KpiRow[]) {
       if (!latest.has(r.metric_key)) latest.set(r.metric_key, r);
     }
     return { items: Array.from(latest.values()) };
