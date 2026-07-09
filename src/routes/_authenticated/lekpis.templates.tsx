@@ -1,19 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useWorkspace } from "@/lib/workspace-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Sparkles, LayoutTemplate, Check } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, LayoutTemplate, Check } from "lucide-react";
 import {
   DASHBOARD_TEMPLATES,
   formatMetric,
   type DashboardTemplate,
   type DashboardMetric,
 } from "@/lib/dashboard-templates";
-import { listKpisByKeys, seedTemplateKpis } from "@/lib/kpis.functions";
+import { listKpisByKeys } from "@/lib/kpis.functions";
+import { SeedTemplateButton } from "@/components/seed-template-button";
 
 export const Route = createFileRoute("/_authenticated/lekpis/templates")({
   head: () => ({
