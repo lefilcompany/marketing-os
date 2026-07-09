@@ -151,5 +151,5 @@ export const createTaskFromInsight = createServerFn({ method: "POST" })
       .eq("id", data.personaId);
     if (uErr) throw new Error(uErr.message);
 
-    return { task };
+    return { task, alreadyExisted: false };
   });
