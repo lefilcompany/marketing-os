@@ -649,14 +649,12 @@ function InsightTasksPanel({ insights }: { insights: Insight[] }) {
                   </div>
                 </div>
                 <Button asChild variant="ghost" size="sm" className="gap-1 h-8">
-                  <Link
-                    to="/soma"
-                    search={t.project_id ? { project: t.project_id, task: t.id } : { task: t.id }}
-                  >
+                  <Link to="/soma">
                     Abrir
                     <ArrowUpRight className="h-3.5 w-3.5" />
                   </Link>
                 </Button>
+
               </li>
             );
           })}
