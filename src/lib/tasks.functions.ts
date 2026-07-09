@@ -105,7 +105,7 @@ export const createTaskFromInsight = createServerFn({ method: "POST" })
     );
     const { error: uErr } = await context.supabase
       .from("personas")
-      .update({ insights: nextInsights })
+      .update({ insights: nextInsights as never })
       .eq("id", data.personaId);
     if (uErr) throw new Error(uErr.message);
 
