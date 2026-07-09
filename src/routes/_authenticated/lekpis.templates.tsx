@@ -75,7 +75,6 @@ function TemplateCard({
   orgId: string | null | undefined;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const qc = useQueryClient();
   const Icon = template.icon;
 
   const keys = useMemo(() => template.metrics.map((m) => m.key), [template]);
