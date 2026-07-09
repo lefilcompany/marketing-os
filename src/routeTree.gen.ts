@@ -22,6 +22,7 @@ import { Route as AuthenticatedIaRouteImport } from './routes/_authenticated/ia'
 import { Route as AuthenticatedEstrategiaRouteImport } from './routes/_authenticated/estrategia'
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
 import { Route as AuthenticatedDeepersonaRouteImport } from './routes/_authenticated/deepersona'
+import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
@@ -101,6 +102,11 @@ const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
 const AuthenticatedDeepersonaRoute = AuthenticatedDeepersonaRouteImport.update({
   id: '/deepersona',
   path: '/deepersona',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardsRoute = AuthenticatedDashboardsRouteImport.update({
+  id: '/dashboards',
+  path: '/dashboards',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/creator': typeof AuthenticatedCreatorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboards': typeof AuthenticatedDashboardsRoute
   '/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
   '/equipe': typeof AuthenticatedEquipeRoute
   '/estrategia': typeof AuthenticatedEstrategiaRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/creator': typeof AuthenticatedCreatorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboards': typeof AuthenticatedDashboardsRoute
   '/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
   '/equipe': typeof AuthenticatedEquipeRoute
   '/estrategia': typeof AuthenticatedEstrategiaRoute
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
   '/_authenticated/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/estrategia': typeof AuthenticatedEstrategiaRoute
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/creator'
     | '/dashboard'
+    | '/dashboards'
     | '/deepersona'
     | '/equipe'
     | '/estrategia'
@@ -310,6 +320,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/creator'
     | '/dashboard'
+    | '/dashboards'
     | '/deepersona'
     | '/equipe'
     | '/estrategia'
@@ -339,6 +350,7 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracoes'
     | '/_authenticated/creator'
     | '/_authenticated/dashboard'
+    | '/_authenticated/dashboards'
     | '/_authenticated/deepersona'
     | '/_authenticated/equipe'
     | '/_authenticated/estrategia'
@@ -454,6 +466,13 @@ declare module '@tanstack/react-router' {
       path: '/deepersona'
       fullPath: '/deepersona'
       preLoaderRoute: typeof AuthenticatedDeepersonaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboards': {
+      id: '/_authenticated/dashboards'
+      path: '/dashboards'
+      fullPath: '/dashboards'
+      preLoaderRoute: typeof AuthenticatedDashboardsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -620,6 +639,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
   AuthenticatedDeepersonaRoute: typeof AuthenticatedDeepersonaRouteWithChildren
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedEstrategiaRoute: typeof AuthenticatedEstrategiaRoute
@@ -640,6 +660,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
   AuthenticatedDeepersonaRoute: AuthenticatedDeepersonaRouteWithChildren,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
   AuthenticatedEstrategiaRoute: AuthenticatedEstrategiaRoute,

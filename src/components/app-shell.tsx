@@ -74,7 +74,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
 
   const nav = [
     { to: "/dashboard", label: "Home", icon: Home },
-    { to: "/dashboard", label: "Dashboards", icon: LayoutDashboard },
+    { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
   ];
   const moduleSlugs = ["deepersona", "estrategia", "creator", "soma", "comunidades", "lekpis"];
   const modules = MODULES
