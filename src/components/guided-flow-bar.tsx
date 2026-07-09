@@ -11,19 +11,24 @@ import { ChevronLeft, ChevronRight, X, Route as RouteIcon } from "lucide-react";
  */
 export function GuidedFlowBar() {
   const nav = useNavigate();
-  const location = useRouterState({ select: (s) => s.location });
+  const search = useRouterState({ select: (s) => s.location.search }) as
+    | Record<string, unknown>
+    | undefined;
 
   const params = useMemo(() => {
-    const q = new URLSearchParams(
-      typeof location.searchStr === "string"
-        ? location.searchStr
-        : "",
-    );
-    const flowId = q.get("flow");
-    const stepStr = q.get("step");
-    const stepIdx = stepStr ? Math.max(0, parseInt(stepStr, 10) || 0) : 0;
-    return { flowId, stepIdx };
-  }, [location.searchStr]);
+    const flowId =
+      typeof search?.flow === "string" || typeof search?.flow === "number"
+        ? String(search.flow)
+        : null;
+    const rawStep = search?.step;
+    const stepIdx =
+      typeof rawStep === "number"
+        ? rawStep
+        : typeof rawStep === "string"
+          ? parseInt(rawStep, 10) || 0
+          : 0;
+    return { flowId, stepIdx: Math.max(0, stepIdx) };
+  }, [search]);
 
   const flow = getFlow(params.flowId);
   if (!flow) return null;
