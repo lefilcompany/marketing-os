@@ -84,6 +84,8 @@ type Insight = {
   kind: "oportunidade" | "risco" | "hipotese" | "descoberta";
   confidence: "baixa" | "media" | "alta";
   next_action: string;
+  task_id?: string;
+  project_id?: string;
 };
 
 export const Route = createFileRoute("/_authenticated/deepersona/$id")({
