@@ -97,15 +97,23 @@ function LeKpisPage() {
               Combine métricas de mídia, CRM, site, e-mail e financeiro em uma única visão pronta.
             </p>
           </div>
-          <Button
-            variant="secondary"
-            onClick={() => seedM.mutate()}
-            disabled={!currentOrgId || seedM.isPending}
-            className="gap-2 shrink-0"
-          >
-            <Sparkles className="h-4 w-4" />
-            {seedM.isPending ? "Aplicando…" : "Aplicar template"}
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button asChild variant="ghost" className="gap-2">
+              <Link to="/lekpis/templates">
+                <Grid3x3 className="h-4 w-4" />
+                Ver galeria
+              </Link>
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => seedM.mutate()}
+              disabled={!currentOrgId || seedM.isPending}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              {seedM.isPending ? "Aplicando…" : "Aplicar template"}
+            </Button>
+          </div>
         </header>
 
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
