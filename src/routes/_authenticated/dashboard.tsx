@@ -3,147 +3,243 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { getSessionBootstrap } from "@/lib/workspace.functions";
 import {
-  getModulesOverview,
   listCopilotRecommendations,
   generateCopilotRecommendations,
   dismissRecommendation,
 } from "@/lib/modules.functions";
 import { useWorkspace } from "@/lib/workspace-context";
-import { MODULES, type ModuleDef } from "@/lib/modules";
+import { MODULES, getModule, type ModuleSlug } from "@/lib/modules";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Sparkles, RefreshCw, X, Lightbulb, AlertTriangle, Info } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Sparkles,
+  RefreshCw,
+  X,
+  Lightbulb,
+  AlertTriangle,
+  Info,
+  Users,
+  Target,
+  PenTool,
+  Layers,
+  BarChart3,
+  GraduationCap,
+  Activity,
+  AlertCircle,
+  Wand2,
+  MessagesSquare,
+  Map,
+  Trophy,
+  Route as RouteIcon,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Marketing OS — LeFil" }] }),
+  head: () => ({ meta: [{ title: "Fluxos — Marketing OS" }] }),
   component: Dashboard,
 });
 
+// ---------- Flow definitions ----------
+
+type FlowStep = {
+  label: string;
+  icon: LucideIcon;
+  /** Módulo relacionado — usado para cor e link. Se ausente, é neutro. */
+  module?: ModuleSlug;
+  /** Rota clicável (opcional, senão usa a do módulo). */
+  to?: string;
+};
+
+type FlowDef = {
+  id: string;
+  number: number;
+  title: string;
+  subtitle: string;
+  accent: string; // css color
+  steps: FlowStep[];
+};
+
+const FLOWS: FlowDef[] = [
+  {
+    id: "planejar-executar",
+    number: 1,
+    title: "Planejar → Executar → Aprender",
+    subtitle: "Do entendimento do cliente ao ciclo de aprendizado.",
+    accent: "var(--brand-creator)",
+    steps: [
+      { label: "Criar Persona", icon: Users, module: "deepersona" },
+      { label: "Criar Estratégia", icon: Target, module: "estrategia" },
+      { label: "Criar Campanha", icon: PenTool, module: "creator" },
+      { label: "Criar Projeto", icon: Layers, module: "soma" },
+      { label: "Executar", icon: Activity, module: "soma" },
+      { label: "Mensurar", icon: BarChart3, module: "lekpis" },
+      { label: "Aprender", icon: GraduationCap, module: "ia" },
+    ],
+  },
+  {
+    id: "kpi-recuperacao",
+    number: 2,
+    title: "Detecção e recuperação de KPI",
+    subtitle: "A IA vê a queda, propõe a resposta, os módulos executam.",
+    accent: "var(--brand-lekpi)",
+    steps: [
+      { label: "Detectar queda de KPI", icon: AlertCircle, module: "lekpis" },
+      { label: "IA identifica causa", icon: Sparkles, module: "ia" },
+      { label: "Sugere campanha", icon: Wand2, module: "ia" },
+      { label: "Creator cria", icon: PenTool, module: "creator" },
+      { label: "Soma executa", icon: Layers, module: "soma" },
+      { label: "LeKPIs acompanha", icon: BarChart3, module: "lekpis" },
+    ],
+  },
+  {
+    id: "comunidade",
+    number: 3,
+    title: "Comunidade e engajamento",
+    subtitle: "De nova comunidade a recomendações contínuas.",
+    accent: "oklch(0.7 0.18 340)",
+    steps: [
+      { label: "Nova Comunidade", icon: MessagesSquare, module: "comunidades" },
+      { label: "Criar Jornada", icon: Map, module: "comunidades" },
+      { label: "Criar Conteúdo", icon: PenTool, module: "creator" },
+      { label: "Gamificação", icon: Trophy, module: "comunidades" },
+      { label: "Mensurar", icon: BarChart3, module: "lekpis" },
+      { label: "Recomendar melhorias", icon: Sparkles, module: "ia" },
+    ],
+  },
+];
+
+// ---------- Page ----------
+
 function Dashboard() {
-  const { currentOrgId } = useWorkspace();
   const boot = useQuery({ queryKey: ["session-bootstrap"], queryFn: () => getSessionBootstrap() });
-  const overview = useQuery({
-    queryKey: ["modules-overview", currentOrgId],
-    queryFn: () => getModulesOverview({ data: { organizationId: currentOrgId! } }),
-    enabled: !!currentOrgId,
-  });
+  const { currentOrgId } = useWorkspace();
 
   const firstName = (boot.data?.profile?.full_name ?? "").split(" ")[0] || "colega";
   const orgName = boot.data?.memberships.find((m) => m.organization?.id === currentOrgId)?.organization?.name;
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
-      {/* Ambient background */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
-             style={{ background: "radial-gradient(circle, var(--brand-creator), transparent 60%)" }} />
-        <div className="absolute top-20 -right-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
-             style={{ background: "radial-gradient(circle, var(--brand-deepersona), transparent 60%)" }} />
-        <div className="absolute -bottom-40 left-1/3 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
-             style={{ background: "radial-gradient(circle, var(--brand-lekpi), transparent 60%)" }} />
-      </div>
+    <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10">
+      <header className="mb-8 flex flex-col gap-1">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+          Marketing OS · LeFil{orgName ? ` · ${orgName}` : ""}
+        </p>
+        <h1 className="font-display text-2xl font-semibold tracking-tight lg:text-3xl">
+          Olá, {firstName}.
+        </h1>
+        <p className="text-sm text-muted-foreground max-w-2xl">
+          Sua operação em três fluxos. Escolha por onde começar — cada passo abre o módulo certo.
+        </p>
+      </header>
 
-      <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10">
-        <header className="mb-8 flex flex-col gap-1">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-            Marketing OS · LeFil{orgName ? ` · ${orgName}` : ""}
-          </p>
-          <h1 className="font-display text-2xl font-semibold tracking-tight lg:text-3xl">
-            Olá, {firstName}.
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-xl">
-            Seu sistema operacional de marketing. Escolha um módulo para começar.
-          </p>
-        </header>
+      <div className="grid gap-8 lg:grid-cols-[1fr,340px]">
+        <section aria-label="Fluxos" className="space-y-5">
+          {FLOWS.map((flow) => (
+            <FlowCard key={flow.id} flow={flow} />
+          ))}
+        </section>
 
-        <div className="grid gap-8 lg:grid-cols-[1fr,340px]">
-          <section aria-label="Módulos" className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {MODULES.map((mod) => (
-              <ModuleTile
-                key={mod.slug}
-                module={mod}
-                count={overview.data?.counts[mod.slug] ?? 0}
-                loading={overview.isLoading}
-              />
-            ))}
-          </section>
-
-          <aside className="space-y-4">
-            <CopilotPanel />
-          </aside>
-        </div>
+        <aside className="space-y-4">
+          <CopilotPanel />
+        </aside>
       </div>
     </div>
   );
 }
 
-function ModuleTile({ module: mod, count, loading }: { module: ModuleDef; count: number; loading: boolean }) {
-  const Icon = mod.icon;
-  const color = mod.color;
+// ---------- Flow card ----------
 
-  const countLabel = (() => {
-    switch (mod.slug) {
-      case "deepersona": return "personas";
-      case "estrategia": return "estratégias";
-      case "creator": return "campanhas";
-      case "soma": return "projetos & tarefas";
-      case "comunidades": return "comunidades";
-      case "lekpis": return "indicadores";
-      case "biblioteca": return "itens";
-      case "ia": return "copiloto";
-    }
-  })();
-
+function FlowCard({ flow }: { flow: FlowDef }) {
   return (
-    <Link
-      to={mod.route}
-      className="group relative block h-56 overflow-hidden rounded-2xl text-left transition-all duration-500 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    <article
+      className="surface-card overflow-hidden"
+      style={{ borderColor: `color-mix(in oklab, ${flow.accent} 18%, var(--border))` }}
+    >
+      <header className="flex items-start justify-between gap-3 border-b border-border/60 px-5 py-4">
+        <div className="flex items-start gap-3">
+          <div
+            className="grid h-8 w-8 place-items-center rounded-lg text-xs font-semibold text-white"
+            style={{ background: flow.accent }}
+          >
+            {flow.number}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <RouteIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                Fluxo {flow.number}
+              </span>
+            </div>
+            <h2 className="mt-0.5 font-display text-base font-semibold leading-tight">
+              {flow.title}
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{flow.subtitle}</p>
+          </div>
+        </div>
+      </header>
+
+      <div className="px-5 py-5">
+        <ol className="flex flex-wrap items-stretch gap-y-3">
+          {flow.steps.map((step, i) => (
+            <li key={i} className="flex items-stretch">
+              <FlowStepChip step={step} accent={flow.accent} />
+              {i < flow.steps.length - 1 && (
+                <ArrowRight
+                  aria-hidden
+                  className="mx-1.5 h-3.5 w-3.5 self-center shrink-0 text-muted-foreground/70"
+                />
+              )}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </article>
+  );
+}
+
+function FlowStepChip({ step, accent }: { step: FlowStep; accent: string }) {
+  const mod = step.module ? getModule(step.module) : undefined;
+  const to = step.to ?? mod?.route;
+  const color = mod?.color ?? accent;
+  const Icon = step.icon;
+
+  const inner = (
+    <div
+      className="group flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5"
       style={{
-        background: `linear-gradient(135deg, color-mix(in oklab, ${color} 24%, transparent), color-mix(in oklab, ${color} 4%, transparent))`,
-        boxShadow: `0 20px 60px -20px color-mix(in oklab, ${color} 45%, transparent), inset 0 1px 0 0 rgba(255,255,255,0.15)`,
+        borderColor: `color-mix(in oklab, ${color} 30%, var(--border))`,
+        background: `color-mix(in oklab, ${color} 6%, var(--surface))`,
       }}
     >
-      <div className="absolute inset-0 backdrop-blur-2xl" style={{ background: "rgba(255,255,255,0.04)" }} />
-      <div className="absolute inset-0 rounded-2xl border border-white/15" />
-      <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-2xl opacity-70"
-           style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.18), transparent)" }} />
-      <div className="absolute -top-24 -right-24 h-52 w-52 rounded-full blur-3xl opacity-60 transition-opacity duration-500 group-hover:opacity-90"
-           style={{ background: color }} />
-      <div className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-1000 ease-out group-hover:translate-x-full"
-           style={{ background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%)" }} />
+      <span
+        className="grid h-5 w-5 place-items-center rounded-full"
+        style={{ background: `color-mix(in oklab, ${color} 18%, transparent)`, color }}
+      >
+        <Icon className="h-3 w-3" />
+      </span>
+      <span className="text-foreground">{step.label}</span>
+      {mod && (
+        <span
+          className="ml-0.5 text-[9px] uppercase tracking-wider text-muted-foreground group-hover:text-foreground"
+        >
+          {mod.name}
+        </span>
+      )}
+    </div>
+  );
 
-      <div className="relative z-10 flex h-full flex-col justify-between p-5">
-        <div className="flex items-start justify-between">
-          <div
-            className="grid h-11 w-11 place-items-center rounded-xl border border-white/25 backdrop-blur-xl"
-            style={{ background: `color-mix(in oklab, ${color} 35%, rgba(255,255,255,0.08))` }}
-          >
-            <Icon className="h-5 w-5 text-white drop-shadow" />
-          </div>
-          <ArrowUpRight className="h-4 w-4 text-white/70 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-        </div>
-
-        <div className="space-y-1">
-          <h3 className="font-display text-xl font-semibold text-white leading-tight">{mod.name}</h3>
-          <p className="text-xs text-white/70 line-clamp-2">{mod.tagline}</p>
-          <div className="pt-2 flex items-baseline gap-1.5 text-white/90">
-            {loading ? (
-              <Skeleton className="h-5 w-10 bg-white/10" />
-            ) : (
-              <span className="font-display text-lg font-semibold">{count}</span>
-            )}
-            <span className="text-[11px] text-white/60">{countLabel}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-4 -bottom-2 h-8 rounded-full blur-2xl opacity-50"
-           style={{ background: color }} />
+  if (!to) return inner;
+  return (
+    <Link to={to} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full">
+      {inner}
     </Link>
   );
 }
+
+// ---------- Copilot ----------
 
 function CopilotPanel() {
   const { currentOrgId } = useWorkspace();
