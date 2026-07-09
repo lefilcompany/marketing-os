@@ -149,10 +149,10 @@ export function GuidedFlowBar() {
       </div>
 
       {/* Contexto atual do módulo (barra fininha inferior) */}
-      {mod && (
+      {currentMod && (
         <div
           className="h-[2px] w-full"
-          style={{ background: `linear-gradient(90deg, ${mod.color}, transparent)` }}
+          style={{ background: `linear-gradient(90deg, ${currentMod.color}, transparent)` }}
         />
       )}
     </div>
