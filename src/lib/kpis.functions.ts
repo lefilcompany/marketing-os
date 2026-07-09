@@ -115,7 +115,14 @@ export const updateKpiSnapshot = createServerFn({ method: "POST" })
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      label?: string;
+      target?: number | null;
+      value?: number;
+      unit?: string | null;
+      period_start?: string | null;
+      period_end?: string | null;
+    } = {};
     if (data.label !== undefined) patch.label = data.label;
     if (data.target !== undefined) patch.target = data.target;
     if (data.value !== undefined) patch.value = data.value;
