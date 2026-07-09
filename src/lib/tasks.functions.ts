@@ -153,3 +153,156 @@ export const createTaskFromInsight = createServerFn({ method: "POST" })
 
     return { task, alreadyExisted: false };
   });
+
+const CSV_HEADERS = ["id", "title", "status", "due_at", "project_id", "project_name", "description"] as const;
+
+function csvEscape(v: string | null | undefined): string {
+  if (v == null) return "";
+  const s = String(v);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+/** Exporta as tarefas do workspace em CSV (string). */
+export const exportTasksCsv = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { organizationId: string; projectId?: string | null }) =>
+    z.object({
+      organizationId: z.string().uuid(),
+      projectId: z.string().uuid().nullable().optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    let q = context.supabase
+      .from("tasks")
+      .select("id, title, status, due_at, project_id, description, projects:project_id(name)")
+      .eq("organization_id", data.organizationId)
+      .order("updated_at", { ascending: false })
+      .limit(5000);
+    if (data.projectId) q = q.eq("project_id", data.projectId);
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+
+    const lines: string[] = [CSV_HEADERS.join(",")];
+    for (const r of rows ?? []) {
+      const proj = Array.isArray(r.projects) ? r.projects[0] : r.projects;
+      lines.push(
+        [
+          r.id,
+          r.title,
+          r.status,
+          r.due_at ?? "",
+          r.project_id ?? "",
+          proj?.name ?? "",
+          r.description ?? "",
+        ].map(csvEscape).join(","),
+      );
+    }
+    return { csv: lines.join("\n"), count: rows?.length ?? 0 };
+  });
+
+/** Parse CSV robusto (RFC 4180 simplificado). */
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; }
+        else inQuotes = false;
+      } else field += ch;
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === ",") { row.push(field); field = ""; }
+      else if (ch === "\n" || ch === "\r") {
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+        row.push(field); field = "";
+        if (row.length > 1 || row[0] !== "") rows.push(row);
+        row = [];
+      } else field += ch;
+    }
+  }
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+const ALLOWED_STATUSES = new Set(["todo", "in_progress", "blocked", "review", "done"]);
+
+/**
+ * Importa atualizações de tarefas via CSV.
+ * Regras:
+ * - Apenas UPDATE: linhas sem `id` válido são ignoradas (segurança).
+ * - Cada tarefa deve pertencer à organização atual.
+ * - Campos aceitos para atualização: title, status, due_at, description.
+ */
+export const importTasksCsv = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { organizationId: string; csv: string }) =>
+    z.object({
+      organizationId: z.string().uuid(),
+      csv: z.string().min(1).max(2_000_000),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const rows = parseCsv(data.csv);
+    if (rows.length < 2) {
+      return { updated: 0, skipped: 0, errors: ["CSV vazio ou sem linhas de dados."] };
+    }
+    const header = rows[0].map((h) => h.trim().toLowerCase());
+    const col = (name: string) => header.indexOf(name);
+    const iId = col("id");
+    if (iId < 0) return { updated: 0, skipped: 0, errors: ["Coluna 'id' obrigatória no cabeçalho."] };
+    const iTitle = col("title");
+    const iStatus = col("status");
+    const iDue = col("due_at");
+    const iDesc = col("description");
+
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const isoDateRe = /^\d{4}-\d{2}-\d{2}$/;
+
+    let updated = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+
+    for (let r = 1; r < rows.length; r++) {
+      const row = rows[r];
+      const id = (row[iId] ?? "").trim();
+      if (!uuidRe.test(id)) { skipped++; continue; }
+
+      const patch: Record<string, unknown> = {};
+      if (iTitle >= 0) {
+        const t = (row[iTitle] ?? "").trim();
+        if (t) patch.title = t.slice(0, 500);
+      }
+      if (iStatus >= 0) {
+        const s = (row[iStatus] ?? "").trim().toLowerCase();
+        if (s && ALLOWED_STATUSES.has(s)) patch.status = s;
+        else if (s) { errors.push(`Linha ${r + 1}: status inválido "${s}"`); }
+      }
+      if (iDue >= 0) {
+        const d = (row[iDue] ?? "").trim();
+        if (d === "") patch.due_at = null;
+        else if (isoDateRe.test(d)) patch.due_at = d;
+        else errors.push(`Linha ${r + 1}: due_at deve ser YYYY-MM-DD`);
+      }
+      if (iDesc >= 0) {
+        const d = row[iDesc] ?? "";
+        patch.description = d.length ? d.slice(0, 10000) : null;
+      }
+      if (Object.keys(patch).length === 0) { skipped++; continue; }
+
+      const { error, count } = await context.supabase
+        .from("tasks")
+        .update(patch, { count: "exact" })
+        .eq("id", id)
+        .eq("organization_id", data.organizationId);
+      if (error) { errors.push(`Linha ${r + 1}: ${error.message}`); continue; }
+      if ((count ?? 0) > 0) updated++;
+      else skipped++;
+    }
+
+    return { updated, skipped, errors: errors.slice(0, 20) };
+  });
