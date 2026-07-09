@@ -43,13 +43,31 @@ function LeKpisPage() {
   }, [kpisQ.data]);
 
 
+  type SnapshotRow = {
+    id: string;
+    metric_key: string;
+    label: string | null;
+    value: number | null;
+    target: number | null;
+    unit: string | null;
+    period_start: string | null;
+    period_end: string | null;
+    updated_at: string | null;
+  };
   const byKey = useMemo(() => {
-    const map = new Map<string, { value: number | null; target: number | null; updated_at: string | null }>();
-    for (const row of (kpisQ.data?.items ?? []) as Array<{ metric_key: string; value: number | null; target: number | null; updated_at: string | null }>) {
-      map.set(row.metric_key, { value: row.value, target: row.target, updated_at: row.updated_at });
+    const map = new Map<string, SnapshotRow>();
+    for (const row of (kpisQ.data?.items ?? []) as SnapshotRow[]) {
+      map.set(row.metric_key, row);
     }
     return map;
   }, [kpisQ.data]);
+
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const editingMetric = useMemo(
+    () => template.metrics.find((m) => m.key === editingKey) ?? null,
+    [editingKey, template.metrics],
+  );
+  const editingSnapshot = editingKey ? byKey.get(editingKey) : undefined;
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)]">
