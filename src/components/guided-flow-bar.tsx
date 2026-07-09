@@ -239,7 +239,7 @@ export function GuidedFlowBar() {
                       ? "bg-white/70 text-foreground/80 border-border hover:bg-white"
                       : "bg-transparent text-muted-foreground border-border/60 hover:bg-white hover:text-foreground"
                 }`}
-                style={active ? ({ "--tw-ring-color": c } as React.CSSProperties) : undefined}
+                style={active ? ({ ["--tw-ring-color" as never]: c } as Record<string, string>) : undefined}
                 title={s.label}
               >
                 <span
