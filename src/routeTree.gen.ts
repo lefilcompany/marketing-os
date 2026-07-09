@@ -30,6 +30,7 @@ import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
 import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authenticated/aplicacoes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedLekpisTemplatesRouteImport } from './routes/_authenticated/lekpis.templates'
 import { Route as AuthenticatedDeepersonaIdRouteImport } from './routes/_authenticated/deepersona.$id'
 import { Route as AuthenticatedAplicacoesSlugRouteImport } from './routes/_authenticated/aplicacoes.$slug'
 import { Route as AuthenticatedAdminEmpresasRouteImport } from './routes/_authenticated/admin.empresas'
@@ -144,6 +145,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLekpisTemplatesRoute =
+  AuthenticatedLekpisTemplatesRouteImport.update({
+    id: '/templates',
+    path: '/templates',
+    getParentRoute: () => AuthenticatedLekpisRoute,
+  } as any)
 const AuthenticatedDeepersonaIdRoute =
   AuthenticatedDeepersonaIdRouteImport.update({
     id: '/$id',
@@ -191,7 +198,7 @@ export interface FileRoutesByFullPath {
   '/equipe': typeof AuthenticatedEquipeRoute
   '/estrategia': typeof AuthenticatedEstrategiaRoute
   '/ia': typeof AuthenticatedIaRoute
-  '/lekpis': typeof AuthenticatedLekpisRoute
+  '/lekpis': typeof AuthenticatedLekpisRouteWithChildren
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/solicitacoes': typeof AuthenticatedSolicitacoesRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
   '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
+  '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -218,7 +226,7 @@ export interface FileRoutesByTo {
   '/equipe': typeof AuthenticatedEquipeRoute
   '/estrategia': typeof AuthenticatedEstrategiaRoute
   '/ia': typeof AuthenticatedIaRoute
-  '/lekpis': typeof AuthenticatedLekpisRoute
+  '/lekpis': typeof AuthenticatedLekpisRouteWithChildren
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/solicitacoes': typeof AuthenticatedSolicitacoesRoute
@@ -228,6 +236,7 @@ export interface FileRoutesByTo {
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
   '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
+  '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -247,7 +256,7 @@ export interface FileRoutesById {
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/estrategia': typeof AuthenticatedEstrategiaRoute
   '/_authenticated/ia': typeof AuthenticatedIaRoute
-  '/_authenticated/lekpis': typeof AuthenticatedLekpisRoute
+  '/_authenticated/lekpis': typeof AuthenticatedLekpisRouteWithChildren
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/solicitacoes': typeof AuthenticatedSolicitacoesRoute
@@ -257,6 +266,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/_authenticated/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
   '/_authenticated/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
+  '/_authenticated/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/admin/empresas'
     | '/aplicacoes/$slug'
     | '/deepersona/$id'
+    | '/lekpis/templates'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/admin/empresas'
     | '/aplicacoes/$slug'
     | '/deepersona/$id'
+    | '/lekpis/templates'
   id:
     | '__root__'
     | '/'
@@ -341,6 +353,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/empresas'
     | '/_authenticated/aplicacoes/$slug'
     | '/_authenticated/deepersona/$id'
+    | '/_authenticated/lekpis/templates'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -499,6 +512,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/lekpis/templates': {
+      id: '/_authenticated/lekpis/templates'
+      path: '/templates'
+      fullPath: '/lekpis/templates'
+      preLoaderRoute: typeof AuthenticatedLekpisTemplatesRouteImport
+      parentRoute: typeof AuthenticatedLekpisRoute
+    }
     '/_authenticated/deepersona/$id': {
       id: '/_authenticated/deepersona/$id'
       path: '/$id'
@@ -580,6 +600,17 @@ const AuthenticatedDeepersonaRouteWithChildren =
     AuthenticatedDeepersonaRouteChildren,
   )
 
+interface AuthenticatedLekpisRouteChildren {
+  AuthenticatedLekpisTemplatesRoute: typeof AuthenticatedLekpisTemplatesRoute
+}
+
+const AuthenticatedLekpisRouteChildren: AuthenticatedLekpisRouteChildren = {
+  AuthenticatedLekpisTemplatesRoute: AuthenticatedLekpisTemplatesRoute,
+}
+
+const AuthenticatedLekpisRouteWithChildren =
+  AuthenticatedLekpisRoute._addFileChildren(AuthenticatedLekpisRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAplicacoesRoute: typeof AuthenticatedAplicacoesRouteWithChildren
@@ -593,7 +624,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedEstrategiaRoute: typeof AuthenticatedEstrategiaRoute
   AuthenticatedIaRoute: typeof AuthenticatedIaRoute
-  AuthenticatedLekpisRoute: typeof AuthenticatedLekpisRoute
+  AuthenticatedLekpisRoute: typeof AuthenticatedLekpisRouteWithChildren
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedSolicitacoesRoute: typeof AuthenticatedSolicitacoesRoute
@@ -613,7 +644,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
   AuthenticatedEstrategiaRoute: AuthenticatedEstrategiaRoute,
   AuthenticatedIaRoute: AuthenticatedIaRoute,
-  AuthenticatedLekpisRoute: AuthenticatedLekpisRoute,
+  AuthenticatedLekpisRoute: AuthenticatedLekpisRouteWithChildren,
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedSolicitacoesRoute: AuthenticatedSolicitacoesRoute,

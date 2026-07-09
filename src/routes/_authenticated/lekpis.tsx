@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/lib/workspace-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart3, Sparkles, RefreshCw, LayoutTemplate } from "lucide-react";
+import { BarChart3, Sparkles, RefreshCw, LayoutTemplate, Grid3x3 } from "lucide-react";
 import { toast } from "sonner";
 import {
   DASHBOARD_TEMPLATES,
@@ -97,15 +97,23 @@ function LeKpisPage() {
               Combine métricas de mídia, CRM, site, e-mail e financeiro em uma única visão pronta.
             </p>
           </div>
-          <Button
-            variant="secondary"
-            onClick={() => seedM.mutate()}
-            disabled={!currentOrgId || seedM.isPending}
-            className="gap-2 shrink-0"
-          >
-            <Sparkles className="h-4 w-4" />
-            {seedM.isPending ? "Aplicando…" : "Aplicar template"}
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button asChild variant="ghost" className="gap-2">
+              <Link to="/lekpis/templates">
+                <Grid3x3 className="h-4 w-4" />
+                Ver galeria
+              </Link>
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => seedM.mutate()}
+              disabled={!currentOrgId || seedM.isPending}
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              {seedM.isPending ? "Aplicando…" : "Aplicar template"}
+            </Button>
+          </div>
         </header>
 
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
