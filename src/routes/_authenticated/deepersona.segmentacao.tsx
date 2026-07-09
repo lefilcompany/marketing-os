@@ -11,7 +11,7 @@ import {
 } from "@/lib/segments.functions";
 import { listResearchSources } from "@/lib/research.functions";
 import { listCsdItems } from "@/lib/csd.functions";
-import { createPersona, generatePersonaBase } from "@/lib/personas.functions";
+import { createPersona, generatePersonaBase, generateICP } from "@/lib/personas.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
