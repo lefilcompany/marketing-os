@@ -193,16 +193,15 @@ function TemplateCard({
           <Button asChild size="sm" variant="ghost">
             <Link to="/lekpis">Abrir</Link>
           </Button>
-          <Button
+          <SeedTemplateButton
+            template={template}
+            orgId={orgId}
+            existingKeys={new Set(byKey.keys())}
+            loadingExisting={kpisQ.isLoading}
             size="sm"
             variant="secondary"
-            onClick={() => seedM.mutate()}
-            disabled={!orgId || seedM.isPending}
             className="gap-1.5"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            {seedM.isPending ? "Aplicando…" : fullySeeded ? "Reaplicar" : "Semear"}
-          </Button>
+          />
         </div>
       </footer>
     </section>
