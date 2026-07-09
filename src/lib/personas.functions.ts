@@ -131,17 +131,42 @@ async function callAI<T extends z.ZodType>(
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("LOVABLE_API_KEY ausente no servidor.");
   const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
-  const { generateText, Output } = await import("ai");
+  const { generateText, Output, NoObjectGeneratedError } = await import("ai");
   const gateway = createLovableAiGatewayProvider(apiKey);
   const model = gateway("google/gemini-3-flash-preview");
-  const result = await generateText({
-    model,
-    system,
-    prompt,
-    output: Output.object({ schema }),
-  });
-  return result.output as z.infer<T>;
+
+  const attempt = async (extra = "") => {
+    const result = await generateText({
+      model,
+      system,
+      prompt: extra ? `${prompt}\n\n${extra}` : prompt,
+      output: Output.object({ schema }),
+    });
+    return result.output as z.infer<T>;
+  };
+
+  try {
+    return await attempt();
+  } catch (err) {
+    if (NoObjectGeneratedError.isInstance(err)) {
+      // Retenta uma vez com instrução extra de aderência ao schema
+      try {
+        return await attempt(
+          "IMPORTANTE: Retorne APENAS um JSON válido que respeite exatamente o schema pedido. Preencha todos os campos obrigatórios com valores plausíveis em português do Brasil.",
+        );
+      } catch (err2) {
+        if (NoObjectGeneratedError.isInstance(err2)) {
+          throw new Error(
+            "A IA não conseguiu gerar uma resposta válida. Tente novamente em alguns instantes ou ajuste o briefing.",
+          );
+        }
+        throw err2;
+      }
+    }
+    throw err;
+  }
 }
+
 
 const BaseSchema = z.object({
   description: z.string(),
@@ -154,9 +179,9 @@ const BaseSchema = z.object({
     education: z.string(),
     family: z.string(),
   }),
-  pains: z.array(z.string()).min(3).max(7),
-  gains: z.array(z.string()).min(3).max(7),
-  channels: z.array(z.string()).min(3).max(8),
+  pains: z.array(z.string()),
+  gains: z.array(z.string()),
+  channels: z.array(z.string()),
 });
 
 /** Gera esqueleto completo (base) da persona a partir de um briefing curto. */
@@ -198,13 +223,13 @@ export const generatePersonaBase = createServerFn({ method: "POST" })
 const ICPSchema = z.object({
   segment: z.string(),
   company_size: z.string(),
-  industries: z.array(z.string()).min(2).max(6),
+  industries: z.array(z.string()),
   geography: z.string(),
   budget_range: z.string(),
-  buying_triggers: z.array(z.string()).min(3).max(6),
-  decision_criteria: z.array(z.string()).min(3).max(6),
-  decision_makers: z.array(z.string()).min(1).max(5),
-  disqualifiers: z.array(z.string()).min(2).max(5),
+  buying_triggers: z.array(z.string()),
+  decision_criteria: z.array(z.string()),
+  decision_makers: z.array(z.string()),
+  disqualifiers: z.array(z.string()),
 });
 
 export const generateICP = createServerFn({ method: "POST" })
@@ -238,12 +263,12 @@ const JourneySchema = z.object({
     goal: z.string(),
     thinking: z.string(),
     feeling: z.string(),
-    doing: z.array(z.string()).min(2).max(5),
-    touchpoints: z.array(z.string()).min(2).max(5),
-    questions: z.array(z.string()).min(2).max(4),
-    content_ideas: z.array(z.string()).min(2).max(4),
+    doing: z.array(z.string()),
+    touchpoints: z.array(z.string()),
+    questions: z.array(z.string()),
+    content_ideas: z.array(z.string()),
     friction: z.string(),
-  })).length(5),
+  })),
 });
 
 export const generateJourney = createServerFn({ method: "POST" })
@@ -277,7 +302,7 @@ const InsightsSchema = z.object({
     kind: z.enum(["oportunidade", "risco", "hipotese", "descoberta"]),
     confidence: z.enum(["baixa", "media", "alta"]),
     next_action: z.string(),
-  })).min(4).max(6),
+  })),
 });
 
 export const generateInsights = createServerFn({ method: "POST" })
