@@ -724,13 +724,18 @@ function InsightToTaskDialog({
         },
       });
     },
-    onSuccess: () => {
-      toast.success("Tarefa criada no projeto");
+    onSuccess: (result) => {
+      if (result?.alreadyExisted) {
+        toast.info("Este insight já possui uma tarefa vinculada");
+      } else {
+        toast.success("Tarefa criada no projeto");
+      }
       qc.invalidateQueries({ queryKey: ["persona", personaId] });
       qc.invalidateQueries({ queryKey: ["projects", organizationId] });
       qc.invalidateQueries({ queryKey: ["modules-overview", organizationId] });
       onOpenChange(false);
     },
+
     onError: (e: Error) => toast.error(e.message),
   });
 
