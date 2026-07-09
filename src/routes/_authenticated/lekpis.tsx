@@ -214,20 +214,6 @@ function MetricCard({
   color: string;
   onEdit?: () => void;
 }) {
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function MetricCard({
-  metric, snapshot, loading, color,
-}: {
-  metric: DashboardMetric;
-  snapshot: { value: number | null; target: number | null; updated_at: string | null } | undefined;
-  loading: boolean;
-  color: string;
-}) {
   const value = snapshot?.value ?? null;
   const target = snapshot?.target ?? metric.target ?? null;
   const pct = value != null && target && target > 0
