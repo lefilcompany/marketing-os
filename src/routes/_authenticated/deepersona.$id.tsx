@@ -323,6 +323,15 @@ function GeneratingBanner({ color }: { color: string }) {
 }
 
 /* ------------ BASE ------------ */
+const DEMO_FIELDS: Array<{ key: string; label: string }> = [
+  { key: "age_range", label: "Faixa etária" },
+  { key: "gender", label: "Gênero" },
+  { key: "location", label: "Localização" },
+  { key: "income", label: "Renda" },
+  { key: "education", label: "Educação" },
+  { key: "family", label: "Família" },
+];
+
 function BaseEditor({
   persona,
   onGenerate,
@@ -337,23 +346,46 @@ function BaseEditor({
   const [role, setRole] = useState(persona.role ?? "");
   const [briefing, setBriefing] = useState("");
 
+  const initialDemographics = (persona.demographics ?? {}) as Record<string, string>;
+  const initialPains = (persona.pains ?? []) as string[];
+  const initialGains = (persona.gains ?? []) as string[];
+  const initialChannels = (persona.channels ?? []) as string[];
+
+  const [demographics, setDemographics] = useState<Record<string, string>>(initialDemographics);
+  const [pains, setPains] = useState<string[]>(initialPains);
+  const [gains, setGains] = useState<string[]>(initialGains);
+  const [channels, setChannels] = useState<string[]>(initialChannels);
+
+  // Ressincroniza sempre que a persona chega/atualiza do servidor.
   useEffect(() => {
     setDescription(persona.description ?? "");
     setRole(persona.role ?? "");
-  }, [persona.description, persona.role]);
-
-  const demographics = (persona.demographics ?? {}) as Record<string, string>;
-  const pains = (persona.pains ?? []) as string[];
-  const gains = (persona.gains ?? []) as string[];
-  const channels = (persona.channels ?? []) as string[];
+    setDemographics((persona.demographics ?? {}) as Record<string, string>);
+    setPains((persona.pains ?? []) as string[]);
+    setGains((persona.gains ?? []) as string[>);
+    setChannels((persona.channels ?? []) as string[]);
+  }, [persona.description, persona.role, persona.demographics, persona.pains, persona.gains, persona.channels]);
 
   const save = useMutation({
     mutationFn: () =>
-      updatePersona({ data: { id: persona.id, patch: { description, role } } }),
+      updatePersona({
+        data: {
+          id: persona.id,
+          patch: {
+            description,
+            role,
+            demographics,
+            pains,
+            gains,
+            channels,
+          },
+        },
+      }),
     onSuccess: () => {
       toast.success("Base salva");
       qc.invalidateQueries({ queryKey: ["persona", persona.id] });
     },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const hasBase = pains.length > 0 || gains.length > 0;
@@ -364,9 +396,9 @@ function BaseEditor({
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold">Base da persona</h2>
           {hasBase && (
-            <Button variant="ghost" size="sm" onClick={() => save.mutate()} disabled={save.isPending}>
-              <Save className="h-3.5 w-3.5 mr-1.5" />
-              Salvar
+            <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending} className="gap-1.5">
+              {save.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              Salvar tudo
             </Button>
           )}
         </div>
@@ -407,30 +439,163 @@ function BaseEditor({
 
       {hasBase && (
         <div className="grid gap-4 md:grid-cols-2">
-          <ChipCard title="Demografia">
-            <dl className="grid grid-cols-1 gap-1.5 text-sm">
-              {Object.entries(demographics).map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground capitalize">{k.replace(/_/g, " ")}</dt>
-                  <dd className="text-right">{String(v)}</dd>
+          <EditableCard title="Demografia">
+            <div className="grid gap-2">
+              {DEMO_FIELDS.map((f) => (
+                <div key={f.key} className="grid grid-cols-[110px_1fr] items-center gap-3">
+                  <Label className="text-xs text-muted-foreground">{f.label}</Label>
+                  <Input
+                    className="h-8 text-sm"
+                    value={demographics[f.key] ?? ""}
+                    onChange={(e) =>
+                      setDemographics((prev) => ({ ...prev, [f.key]: e.target.value }))
+                    }
+                  />
                 </div>
               ))}
-            </dl>
-          </ChipCard>
-          <ChipCard title="Canais">
-            <ChipList items={channels} />
-          </ChipCard>
-          <ChipCard title="Dores">
-            <BulletList items={pains} />
-          </ChipCard>
-          <ChipCard title="Ganhos">
-            <BulletList items={gains} />
-          </ChipCard>
+            </div>
+          </EditableCard>
+
+          <EditableCard title="Canais">
+            <ChipEditor items={channels} onChange={setChannels} placeholder="Adicionar canal…" />
+          </EditableCard>
+
+          <EditableCard title="Dores">
+            <ListEditor items={pains} onChange={setPains} placeholder="Nova dor…" />
+          </EditableCard>
+
+          <EditableCard title="Ganhos">
+            <ListEditor items={gains} onChange={setGains} placeholder="Novo ganho…" />
+          </EditableCard>
         </div>
       )}
     </div>
   );
 }
+
+function EditableCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="surface-card p-4 space-y-3">
+      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function ChipEditor({
+  items,
+  onChange,
+  placeholder,
+}: {
+  items: string[];
+  onChange: (v: string[]) => void;
+  placeholder?: string;
+}) {
+  const [value, setValue] = useState("");
+  const add = () => {
+    const v = value.trim();
+    if (!v) return;
+    onChange([...items, v]);
+    setValue("");
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((it, i) => (
+          <span key={i} className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs">
+            {it}
+            <button
+              type="button"
+              className="ml-0.5 text-muted-foreground hover:text-foreground"
+              onClick={() => onChange(items.filter((_, idx) => idx !== i))}
+              aria-label="Remover"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        {items.length === 0 && <span className="text-xs text-muted-foreground">Nenhum.</span>}
+      </div>
+      <div className="flex gap-2">
+        <Input
+          className="h-8 text-sm"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { e.preventDefault(); add(); }
+          }}
+          placeholder={placeholder}
+        />
+        <Button type="button" size="sm" variant="secondary" onClick={add} disabled={!value.trim()}>
+          Add
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ListEditor({
+  items,
+  onChange,
+  placeholder,
+}: {
+  items: string[];
+  onChange: (v: string[]) => void;
+  placeholder?: string;
+}) {
+  const [value, setValue] = useState("");
+  const add = () => {
+    const v = value.trim();
+    if (!v) return;
+    onChange([...items, v]);
+    setValue("");
+  };
+  return (
+    <div className="space-y-2">
+      <ul className="space-y-1.5">
+        {items.map((it, i) => (
+          <li key={i} className="flex items-start gap-2 group">
+            <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-current opacity-50" />
+            <Textarea
+              value={it}
+              onChange={(e) => {
+                const next = [...items];
+                next[i] = e.target.value;
+                onChange(next);
+              }}
+              rows={1}
+              className="min-h-[32px] text-sm py-1 resize-none flex-1"
+            />
+            <button
+              type="button"
+              className="opacity-0 group-hover:opacity-100 text-xs text-muted-foreground hover:text-destructive px-1"
+              onClick={() => onChange(items.filter((_, idx) => idx !== i))}
+              aria-label="Remover"
+            >
+              ×
+            </button>
+          </li>
+        ))}
+        {items.length === 0 && <li className="text-xs text-muted-foreground">Nenhum.</li>}
+      </ul>
+      <div className="flex gap-2">
+        <Input
+          className="h-8 text-sm"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { e.preventDefault(); add(); }
+          }}
+          placeholder={placeholder}
+        />
+        <Button type="button" size="sm" variant="secondary" onClick={add} disabled={!value.trim()}>
+          Add
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 
 /* ------------ ICP ------------ */
 function ICPView({
