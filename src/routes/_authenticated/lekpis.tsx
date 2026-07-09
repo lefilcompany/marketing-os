@@ -34,27 +34,14 @@ function LeKpisPage() {
     enabled: !!currentOrgId,
   });
 
-  const seedM = useMutation({
-    mutationFn: () =>
-      seedTemplateKpis({
-        data: {
-          organizationId: currentOrgId!,
-          module: `template:${template.slug}`,
-          metrics: template.metrics.map((m) => ({
-            key: m.key,
-            label: `${m.label} · ${m.platform}`,
-            unit: m.unit,
-            target: m.target ?? null,
-          })),
-        },
-      }),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["lekpis", currentOrgId, templateSlug] });
-      if (res.inserted > 0) toast.success(`${res.inserted} indicador(es) criado(s).`);
-      else toast.info("Todos os indicadores desse template já existem.");
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Falha ao aplicar template."),
-  });
+  const existingKeys = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of (kpisQ.data?.items ?? []) as Array<{ metric_key: string }>) {
+      set.add(row.metric_key);
+    }
+    return set;
+  }, [kpisQ.data]);
+
 
   const byKey = useMemo(() => {
     const map = new Map<string, { value: number | null; target: number | null; updated_at: string | null }>();
