@@ -198,13 +198,13 @@ export const generatePersonaBase = createServerFn({ method: "POST" })
 const ICPSchema = z.object({
   segment: z.string(),
   company_size: z.string(),
-  industries: z.array(z.string()).min(2).max(6),
+  industries: z.array(z.string()),
   geography: z.string(),
   budget_range: z.string(),
-  buying_triggers: z.array(z.string()).min(3).max(6),
-  decision_criteria: z.array(z.string()).min(3).max(6),
-  decision_makers: z.array(z.string()).min(1).max(5),
-  disqualifiers: z.array(z.string()).min(2).max(5),
+  buying_triggers: z.array(z.string()),
+  decision_criteria: z.array(z.string()),
+  decision_makers: z.array(z.string()),
+  disqualifiers: z.array(z.string()),
 });
 
 export const generateICP = createServerFn({ method: "POST" })
