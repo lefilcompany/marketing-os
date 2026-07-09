@@ -286,6 +286,9 @@ function MetricCard({
           </span>
         )}
       </div>
+      {periodLabel && (
+        <div className="mt-1 text-[10px] text-muted-foreground">Período · {periodLabel}</div>
+      )}
       {pct != null && (
         <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
           <div
