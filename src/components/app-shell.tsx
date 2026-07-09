@@ -74,11 +74,12 @@ function AppSidebar({ canAdmin, isSuperadmin }: { canAdmin: boolean; isSuperadmi
 
   const nav = [
     { to: "/dashboard", label: "Visão geral", icon: LayoutDashboard },
-    { to: "/aplicacoes", label: "Aplicações", icon: Grid3x3 },
     { to: "/atividades", label: "Atividades", icon: Activity },
     { to: "/notificacoes", label: "Notificações", icon: Bell },
   ];
+  const modules = MODULES.map((m) => ({ to: m.route, label: m.name, icon: m.icon, color: m.color }));
   const admin = [
+    { to: "/aplicacoes", label: "Aplicações externas", icon: Grid3x3 },
     { to: "/equipe", label: "Equipe", icon: Users },
     { to: "/solicitacoes", label: "Solicitações", icon: Inbox },
   ];
