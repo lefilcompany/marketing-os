@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/lib/workspace-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart3, Sparkles, RefreshCw, LayoutTemplate } from "lucide-react";
+import { BarChart3, Sparkles, RefreshCw, LayoutTemplate, Grid3x3 } from "lucide-react";
 import { toast } from "sonner";
 import {
   DASHBOARD_TEMPLATES,
