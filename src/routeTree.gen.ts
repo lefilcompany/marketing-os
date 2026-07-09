@@ -30,6 +30,7 @@ import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
 import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authenticated/aplicacoes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedDeepersonaIdRouteImport } from './routes/_authenticated/deepersona.$id'
 import { Route as AuthenticatedAplicacoesSlugRouteImport } from './routes/_authenticated/aplicacoes.$slug'
 import { Route as AuthenticatedAdminEmpresasRouteImport } from './routes/_authenticated/admin.empresas'
 import { Route as AuthenticatedAdminComunicadosRouteImport } from './routes/_authenticated/admin.comunicados'
@@ -143,6 +144,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDeepersonaIdRoute =
+  AuthenticatedDeepersonaIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
+  } as any)
 const AuthenticatedAplicacoesSlugRoute =
   AuthenticatedAplicacoesSlugRouteImport.update({
     id: '/$slug',
@@ -180,7 +187,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/creator': typeof AuthenticatedCreatorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/deepersona': typeof AuthenticatedDeepersonaRoute
+  '/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
   '/equipe': typeof AuthenticatedEquipeRoute
   '/estrategia': typeof AuthenticatedEstrategiaRoute
   '/ia': typeof AuthenticatedIaRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
+  '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -206,7 +214,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/creator': typeof AuthenticatedCreatorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/deepersona': typeof AuthenticatedDeepersonaRoute
+  '/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
   '/equipe': typeof AuthenticatedEquipeRoute
   '/estrategia': typeof AuthenticatedEstrategiaRoute
   '/ia': typeof AuthenticatedIaRoute
@@ -219,6 +227,7 @@ export interface FileRoutesByTo {
   '/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
+  '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -234,7 +243,7 @@ export interface FileRoutesById {
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/deepersona': typeof AuthenticatedDeepersonaRoute
+  '/_authenticated/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/estrategia': typeof AuthenticatedEstrategiaRoute
   '/_authenticated/ia': typeof AuthenticatedIaRoute
@@ -247,6 +256,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
   '/_authenticated/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/_authenticated/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
+  '/_authenticated/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
     | '/admin/comunicados'
     | '/admin/empresas'
     | '/aplicacoes/$slug'
+    | '/deepersona/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/admin/comunicados'
     | '/admin/empresas'
     | '/aplicacoes/$slug'
+    | '/deepersona/$id'
   id:
     | '__root__'
     | '/'
@@ -328,6 +340,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/comunicados'
     | '/_authenticated/admin/empresas'
     | '/_authenticated/aplicacoes/$slug'
+    | '/_authenticated/deepersona/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -486,6 +499,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/deepersona/$id': {
+      id: '/_authenticated/deepersona/$id'
+      path: '/$id'
+      fullPath: '/deepersona/$id'
+      preLoaderRoute: typeof AuthenticatedDeepersonaIdRouteImport
+      parentRoute: typeof AuthenticatedDeepersonaRoute
+    }
     '/_authenticated/aplicacoes/$slug': {
       id: '/_authenticated/aplicacoes/$slug'
       path: '/$slug'
@@ -546,6 +566,20 @@ const AuthenticatedAplicacoesRouteWithChildren =
     AuthenticatedAplicacoesRouteChildren,
   )
 
+interface AuthenticatedDeepersonaRouteChildren {
+  AuthenticatedDeepersonaIdRoute: typeof AuthenticatedDeepersonaIdRoute
+}
+
+const AuthenticatedDeepersonaRouteChildren: AuthenticatedDeepersonaRouteChildren =
+  {
+    AuthenticatedDeepersonaIdRoute: AuthenticatedDeepersonaIdRoute,
+  }
+
+const AuthenticatedDeepersonaRouteWithChildren =
+  AuthenticatedDeepersonaRoute._addFileChildren(
+    AuthenticatedDeepersonaRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAplicacoesRoute: typeof AuthenticatedAplicacoesRouteWithChildren
@@ -555,7 +589,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedDeepersonaRoute: typeof AuthenticatedDeepersonaRoute
+  AuthenticatedDeepersonaRoute: typeof AuthenticatedDeepersonaRouteWithChildren
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedEstrategiaRoute: typeof AuthenticatedEstrategiaRoute
   AuthenticatedIaRoute: typeof AuthenticatedIaRoute
@@ -575,7 +609,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedDeepersonaRoute: AuthenticatedDeepersonaRoute,
+  AuthenticatedDeepersonaRoute: AuthenticatedDeepersonaRouteWithChildren,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
   AuthenticatedEstrategiaRoute: AuthenticatedEstrategiaRoute,
   AuthenticatedIaRoute: AuthenticatedIaRoute,

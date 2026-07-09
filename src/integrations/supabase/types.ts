@@ -812,44 +812,62 @@ export type Database = {
       }
       personas: {
         Row: {
+          avatar_seed: string | null
           channels: Json
           created_at: string
           created_by: string | null
           demographics: Json
           description: string | null
           gains: Json
+          icp: Json
           id: string
+          insights: Json
+          journey: Json
           name: string
           organization_id: string
           pains: Json
+          role: string | null
+          stage: string
           status: string
           updated_at: string
         }
         Insert: {
+          avatar_seed?: string | null
           channels?: Json
           created_at?: string
           created_by?: string | null
           demographics?: Json
           description?: string | null
           gains?: Json
+          icp?: Json
           id?: string
+          insights?: Json
+          journey?: Json
           name: string
           organization_id: string
           pains?: Json
+          role?: string | null
+          stage?: string
           status?: string
           updated_at?: string
         }
         Update: {
+          avatar_seed?: string | null
           channels?: Json
           created_at?: string
           created_by?: string | null
           demographics?: Json
           description?: string | null
           gains?: Json
+          icp?: Json
           id?: string
+          insights?: Json
+          journey?: Json
           name?: string
           organization_id?: string
           pains?: Json
+          role?: string | null
+          stage?: string
           status?: string
           updated_at?: string
         }
