@@ -9,6 +9,11 @@ import {
   generateJourney,
   generateInsights,
 } from "@/lib/personas.functions";
+import {
+  listProjects,
+  createProject,
+  createTaskFromInsight,
+} from "@/lib/tasks.functions";
 import { getModule } from "@/lib/modules";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +22,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ArrowLeft,
   Sparkles,
@@ -30,6 +50,8 @@ import {
   AlertTriangle,
   HelpCircle,
   Compass,
+  ListPlus,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 
