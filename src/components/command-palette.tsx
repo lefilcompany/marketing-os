@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
-  CommandItem, CommandList, CommandSeparator, CommandLoading,
+  CommandItem, CommandList, CommandSeparator,
 } from "@/components/ui/command";
 import { getWorkspaceApps } from "@/lib/workspace.functions";
 import { globalSearch, type SearchHit } from "@/lib/search.functions";
@@ -101,7 +101,7 @@ export function CommandPalette({
       />
       <CommandList>
         {searching && searchQ.isFetching && (
-          <CommandLoading>Buscando…</CommandLoading>
+          <div className="px-3 py-2 text-xs text-muted-foreground">Buscando…</div>
         )}
         {!searching && <CommandEmpty>Digite para buscar em todos os módulos.</CommandEmpty>}
         {searching && !searchQ.isFetching && !hasResults && (
