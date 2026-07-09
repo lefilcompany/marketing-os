@@ -289,8 +289,40 @@ function StageBar({ stageIdx, color }: { stageIdx: number; color: string }) {
   );
 }
 
+function GeneratingBanner({ color }: { color: string }) {
+  return (
+    <div className="surface-card relative overflow-hidden p-4 flex items-center gap-4">
+      <div
+        className="grid h-10 w-10 place-items-center rounded-xl"
+        style={{ background: `color-mix(in oklab, ${color} 30%, transparent)` }}
+      >
+        <Loader2 className="h-5 w-5 animate-spin" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-medium">Gerando base da persona com IA…</p>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            Aguarde
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Isso leva alguns segundos. O editor será liberado ao concluir.
+        </p>
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full w-1/3 rounded-full animate-[persona-progress_1.4s_ease-in-out_infinite]"
+            style={{
+              background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+            }}
+          />
+        </div>
+      </div>
+      <style>{`@keyframes persona-progress { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }`}</style>
+    </div>
+  );
+}
+
 /* ------------ BASE ------------ */
-function BaseEditor({
   persona,
   onGenerate,
   pending,
