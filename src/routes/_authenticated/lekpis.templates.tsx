@@ -101,28 +101,8 @@ function TemplateCard({
   const total = template.metrics.length;
   const fullySeeded = seededCount >= total;
 
-  const seedM = useMutation({
-    mutationFn: () =>
-      seedTemplateKpis({
-        data: {
-          organizationId: orgId!,
-          module: `template:${template.slug}`,
-          metrics: template.metrics.map((m) => ({
-            key: m.key,
-            label: `${m.label} · ${m.platform}`,
-            unit: m.unit,
-            target: m.target ?? null,
-          })),
-        },
-      }),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["lekpis-template-preview", orgId, template.slug] });
-      qc.invalidateQueries({ queryKey: ["lekpis"] });
-      if (res.inserted > 0) toast.success(`${res.inserted} indicador(es) criado(s) em ${template.name}.`);
-      else toast.info("Todos os indicadores desse template já existem.");
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Falha ao aplicar template."),
-  });
+
+
 
   const visible = expanded ? template.metrics : template.metrics.slice(0, 4);
 
