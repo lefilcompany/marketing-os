@@ -86,3 +86,49 @@ export const seedTemplateKpis = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { inserted: toInsert.length };
   });
+
+/**
+ * Atualiza label, target, valor e período (period_start/period_end) de um
+ * kpi_snapshot. Todos os campos são opcionais — envie apenas o que mudou.
+ */
+export const updateKpiSnapshot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: {
+    id: string;
+    organizationId: string;
+    label?: string;
+    target?: number | null;
+    value?: number;
+    unit?: string | null;
+    periodStart?: string | null; // YYYY-MM-DD
+    periodEnd?: string | null;   // YYYY-MM-DD
+  }) =>
+    z.object({
+      id: z.string().uuid(),
+      organizationId: z.string().uuid(),
+      label: z.string().min(1).max(160).optional(),
+      target: z.number().nullable().optional(),
+      value: z.number().optional(),
+      unit: z.string().max(20).nullable().optional(),
+      periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+      periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const patch: Record<string, unknown> = {};
+    if (data.label !== undefined) patch.label = data.label;
+    if (data.target !== undefined) patch.target = data.target;
+    if (data.value !== undefined) patch.value = data.value;
+    if (data.unit !== undefined) patch.unit = data.unit;
+    if (data.periodStart !== undefined) patch.period_start = data.periodStart;
+    if (data.periodEnd !== undefined) patch.period_end = data.periodEnd;
+    if (Object.keys(patch).length === 0) return { updated: 0 };
+    const { data: rows, error } = await context.supabase
+      .from("kpi_snapshots")
+      .update(patch)
+      .eq("id", data.id)
+      .eq("organization_id", data.organizationId)
+      .select("id");
+    if (error) throw new Error(error.message);
+    return { updated: rows?.length ?? 0 };
+  });
