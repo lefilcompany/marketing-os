@@ -154,9 +154,9 @@ const BaseSchema = z.object({
     education: z.string(),
     family: z.string(),
   }),
-  pains: z.array(z.string()).min(3).max(7),
-  gains: z.array(z.string()).min(3).max(7),
-  channels: z.array(z.string()).min(3).max(8),
+  pains: z.array(z.string()),
+  gains: z.array(z.string()),
+  channels: z.array(z.string()),
 });
 
 /** Gera esqueleto completo (base) da persona a partir de um briefing curto. */
