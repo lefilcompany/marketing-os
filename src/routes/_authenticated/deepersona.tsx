@@ -70,16 +70,18 @@ const METHODOLOGY: Array<{
   {
     step: "02",
     title: "Coleta de dados",
-    description: "Preparação e análise de dados comportamentais e demográficos.",
+    description: "Entrevistas, pesquisas e analytics vinculados ao CSD.",
     icon: Database,
-    status: "soon",
+    to: "/deepersona/coleta",
+    status: "active",
   },
   {
     step: "03",
     title: "Segmentação",
-    description: "Clusters e identificação de padrões relevantes.",
+    description: "Clusters gerados pela IA a partir do CSD + coleta.",
     icon: TrendingUp,
-    status: "soon",
+    to: "/deepersona/segmentacao",
+    status: "active",
   },
   {
     step: "04",
