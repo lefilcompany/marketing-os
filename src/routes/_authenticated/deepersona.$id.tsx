@@ -366,6 +366,10 @@ function BaseEditor({
     setChannels((persona.channels ?? []) as string[]);
   }, [persona.description, persona.role, persona.demographics, persona.pains, persona.gains, persona.channels]);
 
+  const errors = validateBase({ demographics, pains, gains, channels });
+  const hasErrors = Object.keys(errors).length > 0;
+  const [showErrors, setShowErrors] = useState(false);
+
   const save = useMutation({
     mutationFn: () =>
       updatePersona({
@@ -383,25 +387,55 @@ function BaseEditor({
       }),
     onSuccess: () => {
       toast.success("Base salva");
+      setShowErrors(false);
       qc.invalidateQueries({ queryKey: ["persona", persona.id] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const handleSave = () => {
+    if (hasErrors) {
+      setShowErrors(true);
+      toast.error("Preencha os campos obrigatórios antes de salvar.");
+      return;
+    }
+    save.mutate();
+  };
+
   const hasBase = pains.length > 0 || gains.length > 0;
+  const errorCount = Object.keys(errors).length;
 
   return (
     <div className="space-y-6">
       <div className="surface-card p-5 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-lg font-semibold">Base da persona</h2>
           {hasBase && (
-            <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending} className="gap-1.5">
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={save.isPending}
+              className="gap-1.5"
+            >
               {save.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               Salvar tudo
             </Button>
           )}
         </div>
+
+        {hasBase && showErrors && hasErrors && (
+          <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm space-y-1">
+            <p className="font-medium text-destructive flex items-center gap-1.5">
+              <AlertTriangle className="h-4 w-4" />
+              {errorCount === 1 ? "1 campo obrigatório pendente" : `${errorCount} campos obrigatórios pendentes`}
+            </p>
+            <ul className="list-disc pl-5 text-xs text-destructive/90">
+              {Object.values(errors).map((msg, i) => (
+                <li key={i}>{msg}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
@@ -439,32 +473,41 @@ function BaseEditor({
 
       {hasBase && (
         <div className="grid gap-4 md:grid-cols-2">
-          <EditableCard title="Demografia">
+          <EditableCard
+            title="Demografia"
+            error={showErrors ? errors["demographics"] : undefined}
+          >
             <div className="grid gap-2">
-              {DEMO_FIELDS.map((f) => (
-                <div key={f.key} className="grid grid-cols-[110px_1fr] items-center gap-3">
-                  <Label className="text-xs text-muted-foreground">{f.label}</Label>
-                  <Input
-                    className="h-8 text-sm"
-                    value={demographics[f.key] ?? ""}
-                    onChange={(e) =>
-                      setDemographics((prev) => ({ ...prev, [f.key]: e.target.value }))
-                    }
-                  />
-                </div>
-              ))}
+              {DEMO_FIELDS.map((f) => {
+                const fieldErr = showErrors && !((demographics[f.key] ?? "").trim());
+                return (
+                  <div key={f.key} className="grid grid-cols-[110px_1fr] items-center gap-3">
+                    <Label className="text-xs text-muted-foreground">
+                      {f.label} <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      className={`h-8 text-sm ${fieldErr ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      aria-invalid={fieldErr}
+                      value={demographics[f.key] ?? ""}
+                      onChange={(e) =>
+                        setDemographics((prev) => ({ ...prev, [f.key]: e.target.value }))
+                      }
+                    />
+                  </div>
+                );
+              })}
             </div>
           </EditableCard>
 
-          <EditableCard title="Canais">
+          <EditableCard title="Canais" error={showErrors ? errors["channels"] : undefined}>
             <ChipEditor items={channels} onChange={setChannels} placeholder="Adicionar canal…" />
           </EditableCard>
 
-          <EditableCard title="Dores">
+          <EditableCard title="Dores" error={showErrors ? errors["pains"] : undefined}>
             <ListEditor items={pains} onChange={setPains} placeholder="Nova dor…" />
           </EditableCard>
 
-          <EditableCard title="Ganhos">
+          <EditableCard title="Ganhos" error={showErrors ? errors["gains"] : undefined}>
             <ListEditor items={gains} onChange={setGains} placeholder="Novo ganho…" />
           </EditableCard>
         </div>
@@ -473,14 +516,60 @@ function BaseEditor({
   );
 }
 
-function EditableCard({ title, children }: { title: string; children: React.ReactNode }) {
+function validateBase({
+  demographics,
+  pains,
+  gains,
+  channels,
+}: {
+  demographics: Record<string, string>;
+  pains: string[];
+  gains: string[];
+  channels: string[];
+}): Record<string, string> {
+  const errors: Record<string, string> = {};
+  const missingDemo = DEMO_FIELDS.filter((f) => !(demographics[f.key] ?? "").trim());
+  if (missingDemo.length > 0) {
+    errors["demographics"] = `Demografia: preencha ${missingDemo.map((f) => f.label.toLowerCase()).join(", ")}.`;
+  }
+  if (pains.filter((p) => p.trim()).length === 0) {
+    errors["pains"] = "Adicione ao menos uma dor.";
+  }
+  if (gains.filter((g) => g.trim()).length === 0) {
+    errors["gains"] = "Adicione ao menos um ganho.";
+  }
+  if (channels.filter((c) => c.trim()).length === 0) {
+    errors["channels"] = "Adicione ao menos um canal.";
+  }
+  return errors;
+}
+
+function EditableCard({
+  title,
+  error,
+  children,
+}: {
+  title: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="surface-card p-4 space-y-3">
-      <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
+    <div className={`surface-card p-4 space-y-3 ${error ? "ring-1 ring-destructive/50" : ""}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
+        {error && (
+          <span className="text-[10px] text-destructive flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            obrigatório
+          </span>
+        )}
+      </div>
       {children}
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
+
 
 function ChipEditor({
   items,
