@@ -211,26 +211,54 @@ function MetricCard({
   metric, snapshot, loading, color, onEdit,
 }: {
   metric: DashboardMetric;
-  snapshot: { value: number | null; target: number | null; updated_at: string | null } | undefined;
+  snapshot:
+    | {
+        label?: string | null;
+        value: number | null;
+        target: number | null;
+        updated_at: string | null;
+        period_start?: string | null;
+        period_end?: string | null;
+      }
+    | undefined;
   loading: boolean;
   color: string;
   onEdit?: () => void;
 }) {
   const value = snapshot?.value ?? null;
   const target = snapshot?.target ?? metric.target ?? null;
+  const displayLabel = snapshot?.label ?? metric.label;
   const pct = value != null && target && target > 0
     ? Math.max(0, Math.min(150, (value / target) * 100))
     : null;
   const status = pct == null ? "empty" : pct >= 100 ? "hit" : pct >= 70 ? "on-track" : "off";
 
+  const periodLabel = snapshot?.period_start && snapshot?.period_end
+    ? formatPeriod(snapshot.period_start, snapshot.period_end)
+    : null;
+
   return (
-    <div className="rounded-xl border p-4 bg-surface/60">
+    <div className={`group rounded-xl border p-4 bg-surface/60 relative ${onEdit ? "cursor-pointer hover:border-primary/40 transition-colors" : ""}`}
+         onClick={onEdit}
+         role={onEdit ? "button" : undefined}
+         tabIndex={onEdit ? 0 : undefined}
+         onKeyDown={onEdit ? (e) => { if (e.key === "Enter") onEdit(); } : undefined}>
+      {onEdit && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 grid place-items-center rounded-md hover:bg-muted"
+          aria-label="Editar indicador"
+        >
+          <Pencil className="h-3 w-3 text-muted-foreground" />
+        </button>
+      )}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
             {metric.platform}
           </div>
-          <div className="text-sm font-medium truncate">{metric.label}</div>
+          <div className="text-sm font-medium truncate">{displayLabel}</div>
         </div>
         <span
           className="h-2 w-2 rounded-full shrink-0"
