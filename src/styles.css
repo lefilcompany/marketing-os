@@ -61,31 +61,31 @@
 :root {
   --radius: 0.75rem;
 
-  /* Base neutra premium — quase preto azulado sobre off-white */
-  --background: oklch(0.985 0.003 260);
-  --foreground: oklch(0.18 0.02 265);
+  /* Cloud White — Stripe Dashboard aesthetic */
+  --background: oklch(0.995 0.002 260);
+  --foreground: oklch(0.2 0.025 265);
   --surface: oklch(1 0 0);
   --surface-elevated: oklch(1 0 0);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 265);
+  --card-foreground: oklch(0.2 0.025 265);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 265);
+  --popover-foreground: oklch(0.2 0.025 265);
 
-  /* Primária: azul-noite Marketing OS */
-  --primary: oklch(0.28 0.08 265);
-  --primary-foreground: oklch(0.985 0.003 260);
+  /* Primária: violeta Stripe #635bff */
+  --primary: oklch(0.55 0.24 275);
+  --primary-foreground: oklch(0.99 0.005 260);
 
-  --secondary: oklch(0.96 0.008 260);
-  --secondary-foreground: oklch(0.22 0.03 265);
+  --secondary: oklch(0.975 0.005 260);
+  --secondary-foreground: oklch(0.25 0.03 265);
 
-  --muted: oklch(0.965 0.005 260);
-  --muted-foreground: oklch(0.5 0.015 260);
+  --muted: oklch(0.97 0.004 260);
+  --muted-foreground: oklch(0.55 0.015 260);
 
-  --accent: oklch(0.94 0.02 265);
-  --accent-foreground: oklch(0.22 0.03 265);
+  --accent: oklch(0.955 0.012 275);
+  --accent-foreground: oklch(0.28 0.05 275);
 
-  --destructive: oklch(0.58 0.22 25);
+  --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.99 0.005 260);
 
   --success: oklch(0.68 0.15 155);
@@ -95,23 +95,30 @@
   --info: oklch(0.65 0.14 235);
   --info-foreground: oklch(0.99 0.005 260);
 
-  --border: oklch(0.92 0.007 260);
-  --input: oklch(0.92 0.007 260);
-  --ring: oklch(0.55 0.14 265);
+  --border: oklch(0.93 0.006 260);
+  --input: oklch(0.93 0.006 260);
+  --ring: oklch(0.55 0.24 275);
+
+  /* Sidebar — Stripe-style light neutral panel */
+  --sidebar: oklch(0.985 0.003 260);
+  --sidebar-foreground: oklch(0.3 0.02 265);
+  --sidebar-accent: oklch(0.95 0.015 275);
+  --sidebar-accent-foreground: oklch(0.35 0.15 275);
+  --sidebar-border: oklch(0.93 0.006 260);
 
   /* Cores por plataforma */
-  --brand-creator: oklch(0.62 0.22 300);      /* violeta — IA & criatividade */
-  --brand-soma: oklch(0.65 0.15 230);         /* azul — operação */
-  --brand-lekpi: oklch(0.7 0.16 155);         /* verde — dados */
-  --brand-deepersona: oklch(0.75 0.15 65);    /* âmbar — pessoas */
+  --brand-creator: oklch(0.62 0.22 300);
+  --brand-soma: oklch(0.65 0.15 230);
+  --brand-lekpi: oklch(0.7 0.16 155);
+  --brand-deepersona: oklch(0.75 0.15 65);
 
-  --gradient-hero: linear-gradient(135deg, oklch(0.28 0.08 265) 0%, oklch(0.42 0.14 275) 50%, oklch(0.55 0.18 295) 100%);
-  --gradient-mesh: radial-gradient(at 20% 0%, oklch(0.62 0.22 300 / 0.15) 0px, transparent 50%),
-                   radial-gradient(at 80% 0%, oklch(0.65 0.15 230 / 0.15) 0px, transparent 50%),
-                   radial-gradient(at 50% 100%, oklch(0.7 0.16 155 / 0.1) 0px, transparent 50%);
-  --shadow-soft: 0 1px 2px oklch(0.2 0.05 265 / 0.04), 0 4px 12px oklch(0.2 0.05 265 / 0.04);
-  --shadow-elevated: 0 4px 8px oklch(0.2 0.05 265 / 0.06), 0 16px 32px oklch(0.2 0.05 265 / 0.08);
-  --shadow-glow: 0 0 0 1px oklch(0.55 0.14 265 / 0.2), 0 8px 32px oklch(0.55 0.14 265 / 0.2);
+  --gradient-hero: linear-gradient(135deg, oklch(0.55 0.24 275) 0%, oklch(0.62 0.22 295) 50%, oklch(0.7 0.18 315) 100%);
+  --gradient-mesh: radial-gradient(at 20% 0%, oklch(0.55 0.24 275 / 0.12) 0px, transparent 50%),
+                   radial-gradient(at 80% 0%, oklch(0.65 0.15 230 / 0.1) 0px, transparent 50%),
+                   radial-gradient(at 50% 100%, oklch(0.7 0.16 155 / 0.08) 0px, transparent 50%);
+  --shadow-soft: 0 1px 2px oklch(0.2 0.05 265 / 0.04), 0 1px 3px oklch(0.2 0.05 265 / 0.03);
+  --shadow-elevated: 0 2px 4px oklch(0.2 0.05 265 / 0.05), 0 8px 24px oklch(0.2 0.05 265 / 0.08);
+  --shadow-glow: 0 0 0 1px oklch(0.55 0.24 275 / 0.2), 0 8px 32px oklch(0.55 0.24 275 / 0.18);
 }
 
 .dark {
