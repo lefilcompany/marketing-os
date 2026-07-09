@@ -42,8 +42,67 @@ import {
   Trash2,
   ArrowUpRight,
   Loader2,
+  Target,
+  Database,
+  TrendingUp,
+  Brain,
+  Layers,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+
+const METHODOLOGY: Array<{
+  step: string;
+  title: string;
+  description: string;
+  icon: typeof Layers;
+  to?: string;
+  status: "active" | "soon";
+}> = [
+  {
+    step: "01",
+    title: "Alinhamento inicial",
+    description: "Matriz CSD — Certezas, Suposições e Dúvidas sobre o público.",
+    icon: Layers,
+    to: "/deepersona/csd",
+    status: "active",
+  },
+  {
+    step: "02",
+    title: "Coleta de dados",
+    description: "Preparação e análise de dados comportamentais e demográficos.",
+    icon: Database,
+    status: "soon",
+  },
+  {
+    step: "03",
+    title: "Segmentação",
+    description: "Clusters e identificação de padrões relevantes.",
+    icon: TrendingUp,
+    status: "soon",
+  },
+  {
+    step: "04",
+    title: "Criação de personas",
+    description: "Canvas detalhado com JTBD, motivações e objeções.",
+    icon: Users,
+    status: "active",
+  },
+  {
+    step: "05",
+    title: "Priorização",
+    description: "Matriz de importância × urgência para definir foco.",
+    icon: Target,
+    status: "soon",
+  },
+  {
+    step: "06",
+    title: "Agentes IA",
+    description: "Agentes inteligentes baseados nas personas.",
+    icon: Brain,
+    status: "soon",
+  },
+];
 
 const STAGE_LABEL: Record<string, string> = {
   draft: "Rascunho",
@@ -224,6 +283,102 @@ function DeePersonaIndex() {
             </DialogContent>
           </Dialog>
         </header>
+
+        {/* Metodologia — 6 etapas */}
+        <section className="surface-card relative overflow-hidden">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-40"
+            style={{
+              background: `radial-gradient(80% 60% at 100% 0%, color-mix(in oklab, ${mod.color} 25%, transparent), transparent 70%)`,
+            }}
+          />
+          <div className="relative p-6 space-y-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                  Metodologia
+                </p>
+                <h2 className="font-display text-xl font-semibold mt-1">
+                  Do alinhamento à persona viva, em 6 etapas
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1 max-w-xl">
+                  Comece pela Matriz CSD para separar o que se sabe do que se
+                  supõe. Depois evolua para personas priorizadas e acionáveis.
+                </p>
+              </div>
+              <Link
+                to="/deepersona/csd"
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-sm hover:bg-white/20 transition"
+              >
+                Começar pelo CSD <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {METHODOLOGY.map((s) => {
+                const StepIcon = s.icon;
+                const inner = (
+                  <div
+                    className={`group relative flex h-full items-start gap-3 rounded-2xl border p-4 transition ${
+                      s.to
+                        ? "border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 cursor-pointer"
+                        : "border-white/5 bg-white/[0.02] opacity-70"
+                    }`}
+                  >
+                    <div
+                      className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl"
+                      style={{
+                        background: `linear-gradient(135deg, color-mix(in oklab, ${mod.color} 40%, transparent), color-mix(in oklab, ${mod.color} 10%, transparent))`,
+                      }}
+                    >
+                      <StepIcon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono tracking-widest text-muted-foreground">
+                          {s.step}
+                        </span>
+                        {s.status === "soon" && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[9px] uppercase tracking-wider"
+                          >
+                            Em breve
+                          </Badge>
+                        )}
+                      </div>
+                      <h3 className="font-medium mt-0.5">{s.title}</h3>
+                      <p className="text-xs text-muted-foreground mt-1 leading-snug">
+                        {s.description}
+                      </p>
+                    </div>
+                    {s.to && (
+                      <ArrowUpRight className="h-4 w-4 flex-shrink-0 opacity-0 transition group-hover:opacity-100" />
+                    )}
+                  </div>
+                );
+                return s.to ? (
+                  <Link key={s.step} to={s.to}>
+                    {inner}
+                  </Link>
+                ) : (
+                  <div key={s.step}>{inner}</div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            <h2 className="font-display text-xl font-semibold">
+              Suas personas
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Etapa 04 · Canvas detalhado por persona.
+            </p>
+          </div>
+        </div>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {list.isLoading &&

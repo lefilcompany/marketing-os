@@ -452,6 +452,47 @@ export type Database = {
           },
         ]
       }
+      csd_items: {
+        Row: {
+          category: Database["public"]["Enums"]["csd_category"]
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          source: string
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["csd_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          source?: string
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["csd_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          source?: string
+          text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "csd_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           application_id: string
@@ -812,7 +853,10 @@ export type Database = {
       }
       personas: {
         Row: {
+          age: number | null
           avatar_seed: string | null
+          behaviors: Json
+          bio: string | null
           channels: Json
           created_at: string
           created_by: string | null
@@ -821,18 +865,30 @@ export type Database = {
           gains: Json
           icp: Json
           id: string
+          image_url: string | null
           insights: Json
           journey: Json
+          jtbd: Json
+          kpis: Json
+          motivations: Json
           name: string
+          objections: Json
+          occupation: string | null
           organization_id: string
           pains: Json
+          quote: string | null
           role: string | null
           stage: string
           status: string
+          triggers: Json
           updated_at: string
+          values: Json
         }
         Insert: {
+          age?: number | null
           avatar_seed?: string | null
+          behaviors?: Json
+          bio?: string | null
           channels?: Json
           created_at?: string
           created_by?: string | null
@@ -841,18 +897,30 @@ export type Database = {
           gains?: Json
           icp?: Json
           id?: string
+          image_url?: string | null
           insights?: Json
           journey?: Json
+          jtbd?: Json
+          kpis?: Json
+          motivations?: Json
           name: string
+          objections?: Json
+          occupation?: string | null
           organization_id: string
           pains?: Json
+          quote?: string | null
           role?: string | null
           stage?: string
           status?: string
+          triggers?: Json
           updated_at?: string
+          values?: Json
         }
         Update: {
+          age?: number | null
           avatar_seed?: string | null
+          behaviors?: Json
+          bio?: string | null
           channels?: Json
           created_at?: string
           created_by?: string | null
@@ -861,15 +929,24 @@ export type Database = {
           gains?: Json
           icp?: Json
           id?: string
+          image_url?: string | null
           insights?: Json
           journey?: Json
+          jtbd?: Json
+          kpis?: Json
+          motivations?: Json
           name?: string
+          objections?: Json
+          occupation?: string | null
           organization_id?: string
           pains?: Json
+          quote?: string | null
           role?: string | null
           stage?: string
           status?: string
+          triggers?: Json
           updated_at?: string
+          values?: Json
         }
         Relationships: [
           {
@@ -1266,6 +1343,7 @@ export type Database = {
         | "unavailable"
         | "coming_soon"
       connection_mode: "external_link" | "authenticated_link" | "sso"
+      csd_category: "certainty" | "assumption" | "doubt"
       invitation_status: "pending" | "accepted" | "expired" | "cancelled"
       member_status: "active" | "invited" | "disabled"
       notification_type:
@@ -1454,6 +1532,7 @@ export const Constants = {
         "coming_soon",
       ],
       connection_mode: ["external_link", "authenticated_link", "sso"],
+      csd_category: ["certainty", "assumption", "doubt"],
       invitation_status: ["pending", "accepted", "expired", "cancelled"],
       member_status: ["active", "invited", "disabled"],
       notification_type: [
