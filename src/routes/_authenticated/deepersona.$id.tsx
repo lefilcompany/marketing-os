@@ -213,7 +213,13 @@ function PersonaDetail() {
           </TabsContent>
 
           <TabsContent value="insights" className="mt-6">
-            <InsightsView insights={insights} onGenerate={() => genInsights.mutate()} pending={genInsights.isPending} />
+            <InsightsView
+              insights={insights}
+              personaId={persona.id}
+              organizationId={persona.organization_id}
+              onGenerate={() => genInsights.mutate()}
+              pending={genInsights.isPending}
+            />
           </TabsContent>
         </Tabs>
       </div>
