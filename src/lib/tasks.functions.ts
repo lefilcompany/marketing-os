@@ -272,7 +272,7 @@ export const importTasksCsv = createServerFn({ method: "POST" })
       const id = (row[iId] ?? "").trim();
       if (!uuidRe.test(id)) { skipped++; continue; }
 
-      const patch: Record<string, unknown> = {};
+      const patch: { title?: string; status?: string; due_at?: string | null; description?: string | null } = {};
       if (iTitle >= 0) {
         const t = (row[iTitle] ?? "").trim();
         if (t) patch.title = t.slice(0, 500);
