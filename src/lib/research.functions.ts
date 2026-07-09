@@ -97,7 +97,7 @@ export const updateResearchSource = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("research_sources")
-      .update(data.patch)
+      .update(data.patch as never)
       .eq("id", data.id)
       .select("*")
       .single();
