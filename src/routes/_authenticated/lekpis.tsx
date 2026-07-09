@@ -303,3 +303,18 @@ function MetricCard({
     </div>
   );
 }
+
+function formatPeriod(start: string, end: string): string {
+  const s = new Date(start);
+  const e = new Date(end);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  if (end === today) {
+    const diff = Math.round((now.getTime() - s.getTime()) / 86400000);
+    if (diff === 7) return "últimos 7 dias";
+    if (diff === 30) return "últimos 30 dias";
+    if (diff === 90) return "últimos 90 dias";
+  }
+  const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" });
+  return `${fmt.format(s)} – ${fmt.format(e)}`;
+}
