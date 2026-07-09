@@ -103,6 +103,19 @@ export const createTaskFromInsight = createServerFn({ method: "POST" })
     const insight = insights[data.insightIndex];
     if (!insight) throw new Error("Insight não encontrado");
 
+    // Idempotência: se o insight já foi convertido, retornar a tarefa existente.
+    const existingTaskId = typeof insight.task_id === "string" ? insight.task_id : null;
+    if (existingTaskId) {
+      const { data: existing, error: exErr } = await context.supabase
+        .from("tasks")
+        .select("*")
+        .eq("id", existingTaskId)
+        .maybeSingle();
+      if (exErr) throw new Error(exErr.message);
+      if (existing) return { task: existing, alreadyExisted: true };
+      // Tarefa referenciada foi apagada — limpar marca e permitir recriar.
+    }
+
     const title = String(insight.next_action ?? insight.title ?? "Próxima ação");
     const description =
       `Origem: DeePersona · ${persona.name}\n\n` +
@@ -124,6 +137,7 @@ export const createTaskFromInsight = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (tErr) throw new Error(tErr.message);
+
 
     // Marca o insight como convertido
     const nextInsights = insights.map((it, idx) =>
