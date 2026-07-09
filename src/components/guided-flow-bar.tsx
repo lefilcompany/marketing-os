@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { FLOWS, getFlow } from "@/lib/flows";
+import { getFlow } from "@/lib/flows";
 import { getModule } from "@/lib/modules";
 import { ChevronLeft, ChevronRight, X, Route as RouteIcon } from "lucide-react";
 
@@ -34,8 +34,8 @@ export function GuidedFlowBar() {
   if (!flow) return null;
 
   const stepIdx = Math.min(params.stepIdx, flow.steps.length - 1);
-  const step = flow.steps[stepIdx];
-  const mod = getModule(step.module);
+  const currentStep = flow.steps[stepIdx];
+  const currentMod = getModule(currentStep.module);
   const total = flow.steps.length;
   const progress = ((stepIdx + 1) / total) * 100;
 
