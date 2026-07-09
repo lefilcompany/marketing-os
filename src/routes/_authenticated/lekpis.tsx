@@ -179,14 +179,41 @@ function LeKpisPage() {
                 snapshot={byKey.get(m.key)}
                 loading={kpisQ.isLoading}
                 color={template.color}
+                onEdit={byKey.has(m.key) ? () => setEditingKey(m.key) : undefined}
               />
             ))}
           </div>
 
           <p className="text-xs text-muted-foreground mt-5">
             Sem dados? Clique em <span className="font-medium">Aplicar template</span> para criar os
-            indicadores no workspace — depois atualize os valores via LeKPIs ou integrações.
+            indicadores no workspace — depois clique em cada indicador para editar nome, período e meta.
           </p>
+        </section>
+      </div>
+
+      {editingMetric && currentOrgId && (
+        <EditKpiDialog
+          open={!!editingKey}
+          onOpenChange={(v) => !v && setEditingKey(null)}
+          organizationId={currentOrgId}
+          metric={editingMetric}
+          snapshot={editingSnapshot}
+          invalidateKeys={[["lekpis", currentOrgId, templateSlug]]}
+        />
+      )}
+    </div>
+  );
+}
+
+function MetricCard({
+  metric, snapshot, loading, color, onEdit,
+}: {
+  metric: DashboardMetric;
+  snapshot: { value: number | null; target: number | null; updated_at: string | null } | undefined;
+  loading: boolean;
+  color: string;
+  onEdit?: () => void;
+}) {
         </section>
       </div>
     </div>
