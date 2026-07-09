@@ -96,7 +96,7 @@ export const updatePersona = createServerFn({ method: "POST" })
     if (data.stage) patch.stage = data.stage;
     const { data: row, error } = await context.supabase
       .from("personas")
-      .update(patch)
+      .update(patch as never)
       .eq("id", data.id)
       .select("*")
       .single();
