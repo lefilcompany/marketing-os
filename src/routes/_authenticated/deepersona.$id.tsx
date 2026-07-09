@@ -369,10 +369,31 @@ function BaseEditor({
   const errors = validateBase({ demographics, pains, gains, channels });
   const hasErrors = Object.keys(errors).length > 0;
   const [showErrors, setShowErrors] = useState(false);
+  const [savedSections, setSavedSections] = useState<string[] | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const computeChangedSections = (): string[] => {
+    const changed: string[] = [];
+    const eqArr = (a: string[], b: string[]) =>
+      a.length === b.length && a.every((v, i) => v === b[i]);
+    const eqObj = (a: Record<string, string>, b: Record<string, string>) => {
+      const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+      for (const k of keys) if ((a[k] ?? "") !== (b[k] ?? "")) return false;
+      return true;
+    };
+    if ((persona.description ?? "") !== description) changed.push("Descrição");
+    if ((persona.role ?? "") !== role) changed.push("Cargo");
+    if (!eqObj(initialDemographics, demographics)) changed.push("Demografia");
+    if (!eqArr(initialPains, pains)) changed.push("Dores");
+    if (!eqArr(initialGains, gains)) changed.push("Ganhos");
+    if (!eqArr(initialChannels, channels)) changed.push("Canais");
+    return changed;
+  };
 
   const save = useMutation({
-    mutationFn: () =>
-      updatePersona({
+    mutationFn: async () => {
+      const changed = computeChangedSections();
+      await updatePersona({
         data: {
           id: persona.id,
           patch: {
@@ -384,13 +405,26 @@ function BaseEditor({
             channels,
           },
         },
-      }),
-    onSuccess: () => {
-      toast.success("Base salva");
-      setShowErrors(false);
-      qc.invalidateQueries({ queryKey: ["persona", persona.id] });
+      });
+      return changed;
     },
-    onError: (e: Error) => toast.error(e.message),
+    onSuccess: (changed) => {
+      setSaveError(null);
+      setSavedSections(changed);
+      setShowErrors(false);
+      toast.success(
+        changed.length === 0
+          ? "Nada para salvar"
+          : `Salvo: ${changed.join(", ")}`,
+      );
+      qc.invalidateQueries({ queryKey: ["persona", persona.id] });
+      window.setTimeout(() => setSavedSections(null), 4000);
+    },
+    onError: (e: Error) => {
+      setSaveError(e.message);
+      toast.error(e.message);
+      window.setTimeout(() => setSaveError(null), 6000);
+    },
   });
 
   const handleSave = () => {
@@ -399,11 +433,23 @@ function BaseEditor({
       toast.error("Preencha os campos obrigatórios antes de salvar.");
       return;
     }
+    setSavedSections(null);
+    setSaveError(null);
     save.mutate();
   };
 
   const hasBase = pains.length > 0 || gains.length > 0;
   const errorCount = Object.keys(errors).length;
+
+  const isSaving = save.isPending;
+  const justSaved = !isSaving && savedSections !== null && !saveError;
+  const failed = !isSaving && !!saveError;
+
+  const buttonVariant: "default" | "destructive" | "secondary" = failed
+    ? "destructive"
+    : justSaved
+      ? "secondary"
+      : "default";
 
   return (
     <div className="space-y-6">
@@ -413,15 +459,72 @@ function BaseEditor({
           {hasBase && (
             <Button
               size="sm"
+              variant={buttonVariant}
               onClick={handleSave}
-              disabled={save.isPending}
-              className="gap-1.5"
+              disabled={isSaving}
+              className="gap-1.5 min-w-[130px]"
+              aria-live="polite"
             >
-              {save.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-              Salvar tudo
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Salvando…
+                </>
+              ) : justSaved ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Salvo
+                </>
+              ) : failed ? (
+                <>
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Tentar novamente
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5" />
+                  Salvar tudo
+                </>
+              )}
             </Button>
           )}
         </div>
+
+        {hasBase && justSaved && savedSections && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm space-y-2">
+            <p className="font-medium text-emerald-400 flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4" />
+              {savedSections.length === 0
+                ? "Nenhuma alteração pendente"
+                : savedSections.length === 1
+                  ? "1 seção atualizada"
+                  : `${savedSections.length} seções atualizadas`}
+            </p>
+            {savedSections.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {savedSections.map((s) => (
+                  <Badge
+                    key={s}
+                    variant="secondary"
+                    className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                  >
+                    {s}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {hasBase && failed && (
+          <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm">
+            <p className="font-medium text-destructive flex items-center gap-1.5">
+              <AlertTriangle className="h-4 w-4" />
+              Erro ao salvar
+            </p>
+            <p className="text-xs text-destructive/90 mt-1">{saveError}</p>
+          </div>
+        )}
 
         {hasBase && showErrors && hasErrors && (
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm space-y-1">
@@ -436,6 +539,7 @@ function BaseEditor({
             </ul>
           </div>
         )}
+
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
