@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { getModule } from "@/lib/modules";
@@ -63,6 +63,7 @@ function SegmentacaoPage() {
   const { currentOrgId } = useWorkspace();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as { flow?: string; step?: number };
 
   const list = useQuery({
     queryKey: ["segments", currentOrgId],
@@ -136,15 +137,18 @@ function SegmentacaoPage() {
 
   const promote = useMutation({
     mutationFn: async (seg: (typeof segments)[number]) => {
+      const chars = Array.isArray(seg.characteristics)
+        ? (seg.characteristics as string[])
+        : [];
       const briefing = [
         seg.hypothesis,
-        Array.isArray(seg.characteristics)
-          ? "Características: " + (seg.characteristics as string[]).join(", ")
-          : "",
-        seg.size_estimate ? "Tamanho: " + seg.size_estimate : "",
+        chars.length ? "Características: " + chars.join(", ") : "",
+        seg.size_estimate ? "Tamanho estimado: " + seg.size_estimate : "",
       ]
         .filter(Boolean)
         .join(". ");
+
+      // 1) Cria a persona já com descrição do segmento (aparece no editor na hora).
       const p = await createPersona({
         data: {
           organizationId: currentOrgId!,
@@ -152,17 +156,33 @@ function SegmentacaoPage() {
           description: briefing || undefined,
         },
       });
+
+      // 2) Dispara a geração da base em background — o editor recarrega sozinho.
       if (briefing.length >= 4) {
-        await generatePersonaBase({
-          data: { id: p.item.id, briefing },
-        });
+        generatePersonaBase({ data: { id: p.item.id, briefing } })
+          .then(() => {
+            qc.invalidateQueries({ queryKey: ["persona", p.item.id] });
+            qc.invalidateQueries({ queryKey: ["personas", currentOrgId] });
+            toast.success(`Base da persona "${seg.name}" pronta`);
+          })
+          .catch((e: Error) => toast.error(`Falha ao gerar base: ${e.message}`));
       }
+
       return p.item;
     },
     onSuccess: (persona) => {
-      toast.success("Persona criada a partir do segmento");
+      toast.success("Abrindo persona no Canvas…");
       qc.invalidateQueries({ queryKey: ["personas", currentOrgId] });
-      navigate({ to: "/deepersona/$id", params: { id: persona.id } });
+      // Preserva estado do fluxo guiado (?flow=&step=) ao navegar.
+      const nextSearch =
+        search?.flow != null
+          ? { flow: search.flow, step: search.step ?? 0 }
+          : undefined;
+      navigate({
+        to: "/deepersona/$id",
+        params: { id: persona.id },
+        search: nextSearch as never,
+      });
     },
     onError: (e: Error) => toast.error(e.message),
   });
