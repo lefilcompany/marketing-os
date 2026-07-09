@@ -83,16 +83,16 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
   const bibliotecaModule = MODULES.find((m) => m.slug === "biblioteca");
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
-      <SidebarHeader className="border-b">
-        <div className="flex items-center gap-2 px-2 py-1">
-          <div className="h-8 w-8 rounded-lg bg-gradient-hero flex items-center justify-center shrink-0">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border">
+        <div className="flex items-center gap-2.5 px-2 py-2">
+          <div className="h-8 w-8 rounded-lg bg-gradient-hero flex items-center justify-center shrink-0 shadow-sm">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="font-display font-semibold text-sm leading-tight">Marketing OS</div>
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">LeFil</div>
+              <div className="font-display font-semibold text-[13px] leading-tight tracking-tight">Marketing OS</div>
+              <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-0.5">LeFil</div>
             </div>
           )}
         </div>
@@ -210,8 +210,8 @@ function TopHeader({ profile, memberships, currentMembership, onSwitch, onOpenPa
   const initials = (profile?.full_name || profile?.email || "?").slice(0, 2).toUpperCase();
 
   return (
-    <header className="h-16 border-b bg-surface/80 backdrop-blur sticky top-0 z-30 flex items-center gap-3 px-4 lg:px-6">
-      <SidebarTrigger className="hidden lg:flex" />
+    <header className="h-14 border-b bg-background/85 backdrop-blur-xl sticky top-0 z-30 flex items-center gap-3 px-4 lg:px-6">
+      <SidebarTrigger className="hidden lg:flex text-muted-foreground hover:text-foreground" />
       <button className="lg:hidden" onClick={onOpenPalette} aria-label="Menu">
         <Menu className="h-5 w-5" />
       </button>
@@ -219,12 +219,12 @@ function TopHeader({ profile, memberships, currentMembership, onSwitch, onOpenPa
       {/* Workspace switcher */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="gap-2 max-w-[220px]">
-            <div className="h-6 w-6 rounded bg-gradient-hero grid place-items-center text-white text-xs font-semibold shrink-0">
+          <Button variant="ghost" className="gap-2 max-w-[240px] h-9 px-2 rounded-lg hover:bg-accent">
+            <div className="h-6 w-6 rounded-md bg-gradient-hero grid place-items-center text-white text-[11px] font-semibold shrink-0">
               {currentMembership?.organization?.name.slice(0, 1) ?? "?"}
             </div>
-            <span className="truncate font-medium text-sm">{currentMembership?.organization?.name ?? "Sem workspace"}</span>
-            <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="truncate font-medium text-[13px]">{currentMembership?.organization?.name ?? "Sem workspace"}</span>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
@@ -252,11 +252,11 @@ function TopHeader({ profile, memberships, currentMembership, onSwitch, onOpenPa
 
       <button
         onClick={onOpenPalette}
-        className="hidden md:flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background text-sm text-muted-foreground hover:bg-accent transition-colors min-w-[240px]"
+        className="hidden md:flex items-center gap-2 h-9 px-3 rounded-lg border border-border bg-muted/40 text-[13px] text-muted-foreground hover:bg-accent hover:border-accent transition-colors min-w-[280px]"
       >
-        <Search className="h-4 w-4" />
-        <span>Buscar plataformas, páginas…</span>
-        <kbd className="ml-auto text-[10px] px-1.5 py-0.5 rounded border bg-muted">⌘K</kbd>
+        <Search className="h-3.5 w-3.5" />
+        <span>Buscar…</span>
+        <kbd className="ml-auto text-[10px] px-1.5 py-0.5 rounded border border-border bg-background font-mono">⌘K</kbd>
       </button>
 
       <NotificationBell />
