@@ -91,15 +91,19 @@ function LeKpisPage() {
                 Ver galeria
               </Link>
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => seedM.mutate()}
-              disabled={!currentOrgId || seedM.isPending}
-              className="gap-2"
-            >
-              <Sparkles className="h-4 w-4" />
-              {seedM.isPending ? "Aplicando…" : "Aplicar template"}
+            <Button asChild variant="ghost" className="gap-2">
+              <Link to="/lekpis/templates">
+                <Grid3x3 className="h-4 w-4" />
+                Ver galeria
+              </Link>
             </Button>
+            <SeedTemplateButton
+              template={template}
+              orgId={currentOrgId}
+              existingKeys={existingKeys}
+              loadingExisting={kpisQ.isLoading}
+              invalidateKeys={[["lekpis", currentOrgId, templateSlug]]}
+            />
           </div>
         </header>
 
