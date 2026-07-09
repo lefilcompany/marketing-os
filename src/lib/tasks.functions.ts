@@ -18,6 +18,34 @@ export const listProjects = createServerFn({ method: "POST" })
     return { items: rows ?? [] };
   });
 
+/** Busca tarefas por ids (com nome do projeto). */
+export const listTasksByIds = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { ids: string[] }) =>
+    z.object({ ids: z.array(z.string().uuid()).max(200) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (data.ids.length === 0) return { items: [] as Array<{ id: string; title: string; status: string; due_at: string | null; project_id: string | null; project_name: string | null }> };
+    const { data: rows, error } = await context.supabase
+      .from("tasks")
+      .select("id, title, status, due_at, project_id, projects:project_id(name)")
+      .in("id", data.ids);
+    if (error) throw new Error(error.message);
+    const items = (rows ?? []).map((r: { id: string; title: string; status: string; due_at: string | null; project_id: string | null; projects: { name: string } | { name: string }[] | null }) => {
+      const proj = Array.isArray(r.projects) ? r.projects[0] : r.projects;
+      return {
+        id: r.id,
+        title: r.title,
+        status: r.status,
+        due_at: r.due_at,
+        project_id: r.project_id,
+        project_name: proj?.name ?? null,
+      };
+    });
+    return { items };
+  });
+
+
 /** Cria um projeto. */
 export const createProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
