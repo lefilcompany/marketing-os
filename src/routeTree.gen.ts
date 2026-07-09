@@ -36,6 +36,7 @@ import { Route as AuthenticatedDeepersonaSegmentacaoRouteImport } from './routes
 import { Route as AuthenticatedDeepersonaPriorizacaoRouteImport } from './routes/_authenticated/deepersona.priorizacao'
 import { Route as AuthenticatedDeepersonaCsdRouteImport } from './routes/_authenticated/deepersona.csd'
 import { Route as AuthenticatedDeepersonaColetaRouteImport } from './routes/_authenticated/deepersona.coleta'
+import { Route as AuthenticatedDeepersonaAgentesRouteImport } from './routes/_authenticated/deepersona.agentes'
 import { Route as AuthenticatedDeepersonaIdRouteImport } from './routes/_authenticated/deepersona.$id'
 import { Route as AuthenticatedAplicacoesSlugRouteImport } from './routes/_authenticated/aplicacoes.$slug'
 import { Route as AuthenticatedAdminEmpresasRouteImport } from './routes/_authenticated/admin.empresas'
@@ -185,6 +186,12 @@ const AuthenticatedDeepersonaColetaRoute =
     path: '/coleta',
     getParentRoute: () => AuthenticatedDeepersonaRoute,
   } as any)
+const AuthenticatedDeepersonaAgentesRoute =
+  AuthenticatedDeepersonaAgentesRouteImport.update({
+    id: '/agentes',
+    path: '/agentes',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
+  } as any)
 const AuthenticatedDeepersonaIdRoute =
   AuthenticatedDeepersonaIdRouteImport.update({
     id: '/$id',
@@ -243,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
   '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
+  '/deepersona/agentes': typeof AuthenticatedDeepersonaAgentesRoute
   '/deepersona/coleta': typeof AuthenticatedDeepersonaColetaRoute
   '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
@@ -276,6 +284,7 @@ export interface FileRoutesByTo {
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
   '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
+  '/deepersona/agentes': typeof AuthenticatedDeepersonaAgentesRoute
   '/deepersona/coleta': typeof AuthenticatedDeepersonaColetaRoute
   '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
@@ -311,6 +320,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
   '/_authenticated/aplicacoes/$slug': typeof AuthenticatedAplicacoesSlugRoute
   '/_authenticated/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
+  '/_authenticated/deepersona/agentes': typeof AuthenticatedDeepersonaAgentesRoute
   '/_authenticated/deepersona/coleta': typeof AuthenticatedDeepersonaColetaRoute
   '/_authenticated/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/_authenticated/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
@@ -346,6 +356,7 @@ export interface FileRouteTypes {
     | '/admin/empresas'
     | '/aplicacoes/$slug'
     | '/deepersona/$id'
+    | '/deepersona/agentes'
     | '/deepersona/coleta'
     | '/deepersona/csd'
     | '/deepersona/priorizacao'
@@ -379,6 +390,7 @@ export interface FileRouteTypes {
     | '/admin/empresas'
     | '/aplicacoes/$slug'
     | '/deepersona/$id'
+    | '/deepersona/agentes'
     | '/deepersona/coleta'
     | '/deepersona/csd'
     | '/deepersona/priorizacao'
@@ -413,6 +425,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/empresas'
     | '/_authenticated/aplicacoes/$slug'
     | '/_authenticated/deepersona/$id'
+    | '/_authenticated/deepersona/agentes'
     | '/_authenticated/deepersona/coleta'
     | '/_authenticated/deepersona/csd'
     | '/_authenticated/deepersona/priorizacao'
@@ -618,6 +631,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDeepersonaColetaRouteImport
       parentRoute: typeof AuthenticatedDeepersonaRoute
     }
+    '/_authenticated/deepersona/agentes': {
+      id: '/_authenticated/deepersona/agentes'
+      path: '/agentes'
+      fullPath: '/deepersona/agentes'
+      preLoaderRoute: typeof AuthenticatedDeepersonaAgentesRouteImport
+      parentRoute: typeof AuthenticatedDeepersonaRoute
+    }
     '/_authenticated/deepersona/$id': {
       id: '/_authenticated/deepersona/$id'
       path: '/$id'
@@ -687,6 +707,7 @@ const AuthenticatedAplicacoesRouteWithChildren =
 
 interface AuthenticatedDeepersonaRouteChildren {
   AuthenticatedDeepersonaIdRoute: typeof AuthenticatedDeepersonaIdRoute
+  AuthenticatedDeepersonaAgentesRoute: typeof AuthenticatedDeepersonaAgentesRoute
   AuthenticatedDeepersonaColetaRoute: typeof AuthenticatedDeepersonaColetaRoute
   AuthenticatedDeepersonaCsdRoute: typeof AuthenticatedDeepersonaCsdRoute
   AuthenticatedDeepersonaPriorizacaoRoute: typeof AuthenticatedDeepersonaPriorizacaoRoute
@@ -696,6 +717,7 @@ interface AuthenticatedDeepersonaRouteChildren {
 const AuthenticatedDeepersonaRouteChildren: AuthenticatedDeepersonaRouteChildren =
   {
     AuthenticatedDeepersonaIdRoute: AuthenticatedDeepersonaIdRoute,
+    AuthenticatedDeepersonaAgentesRoute: AuthenticatedDeepersonaAgentesRoute,
     AuthenticatedDeepersonaColetaRoute: AuthenticatedDeepersonaColetaRoute,
     AuthenticatedDeepersonaCsdRoute: AuthenticatedDeepersonaCsdRoute,
     AuthenticatedDeepersonaPriorizacaoRoute:
