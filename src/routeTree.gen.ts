@@ -33,6 +33,7 @@ import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedLekpisTemplatesRouteImport } from './routes/_authenticated/lekpis.templates'
 import { Route as AuthenticatedDeepersonaSegmentacaoRouteImport } from './routes/_authenticated/deepersona.segmentacao'
+import { Route as AuthenticatedDeepersonaPriorizacaoRouteImport } from './routes/_authenticated/deepersona.priorizacao'
 import { Route as AuthenticatedDeepersonaCsdRouteImport } from './routes/_authenticated/deepersona.csd'
 import { Route as AuthenticatedDeepersonaColetaRouteImport } from './routes/_authenticated/deepersona.coleta'
 import { Route as AuthenticatedDeepersonaIdRouteImport } from './routes/_authenticated/deepersona.$id'
@@ -166,6 +167,12 @@ const AuthenticatedDeepersonaSegmentacaoRoute =
     path: '/segmentacao',
     getParentRoute: () => AuthenticatedDeepersonaRoute,
   } as any)
+const AuthenticatedDeepersonaPriorizacaoRoute =
+  AuthenticatedDeepersonaPriorizacaoRouteImport.update({
+    id: '/priorizacao',
+    path: '/priorizacao',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
+  } as any)
 const AuthenticatedDeepersonaCsdRoute =
   AuthenticatedDeepersonaCsdRouteImport.update({
     id: '/csd',
@@ -238,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
   '/deepersona/coleta': typeof AuthenticatedDeepersonaColetaRoute
   '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
+  '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
   '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
 }
@@ -270,6 +278,7 @@ export interface FileRoutesByTo {
   '/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
   '/deepersona/coleta': typeof AuthenticatedDeepersonaColetaRoute
   '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
+  '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
   '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
 }
@@ -304,6 +313,7 @@ export interface FileRoutesById {
   '/_authenticated/deepersona/$id': typeof AuthenticatedDeepersonaIdRoute
   '/_authenticated/deepersona/coleta': typeof AuthenticatedDeepersonaColetaRoute
   '/_authenticated/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
+  '/_authenticated/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/_authenticated/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
   '/_authenticated/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
 }
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/deepersona/$id'
     | '/deepersona/coleta'
     | '/deepersona/csd'
+    | '/deepersona/priorizacao'
     | '/deepersona/segmentacao'
     | '/lekpis/templates'
   fileRoutesByTo: FileRoutesByTo
@@ -370,6 +381,7 @@ export interface FileRouteTypes {
     | '/deepersona/$id'
     | '/deepersona/coleta'
     | '/deepersona/csd'
+    | '/deepersona/priorizacao'
     | '/deepersona/segmentacao'
     | '/lekpis/templates'
   id:
@@ -403,6 +415,7 @@ export interface FileRouteTypes {
     | '/_authenticated/deepersona/$id'
     | '/_authenticated/deepersona/coleta'
     | '/_authenticated/deepersona/csd'
+    | '/_authenticated/deepersona/priorizacao'
     | '/_authenticated/deepersona/segmentacao'
     | '/_authenticated/lekpis/templates'
   fileRoutesById: FileRoutesById
@@ -584,6 +597,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDeepersonaSegmentacaoRouteImport
       parentRoute: typeof AuthenticatedDeepersonaRoute
     }
+    '/_authenticated/deepersona/priorizacao': {
+      id: '/_authenticated/deepersona/priorizacao'
+      path: '/priorizacao'
+      fullPath: '/deepersona/priorizacao'
+      preLoaderRoute: typeof AuthenticatedDeepersonaPriorizacaoRouteImport
+      parentRoute: typeof AuthenticatedDeepersonaRoute
+    }
     '/_authenticated/deepersona/csd': {
       id: '/_authenticated/deepersona/csd'
       path: '/csd'
@@ -669,6 +689,7 @@ interface AuthenticatedDeepersonaRouteChildren {
   AuthenticatedDeepersonaIdRoute: typeof AuthenticatedDeepersonaIdRoute
   AuthenticatedDeepersonaColetaRoute: typeof AuthenticatedDeepersonaColetaRoute
   AuthenticatedDeepersonaCsdRoute: typeof AuthenticatedDeepersonaCsdRoute
+  AuthenticatedDeepersonaPriorizacaoRoute: typeof AuthenticatedDeepersonaPriorizacaoRoute
   AuthenticatedDeepersonaSegmentacaoRoute: typeof AuthenticatedDeepersonaSegmentacaoRoute
 }
 
@@ -677,6 +698,8 @@ const AuthenticatedDeepersonaRouteChildren: AuthenticatedDeepersonaRouteChildren
     AuthenticatedDeepersonaIdRoute: AuthenticatedDeepersonaIdRoute,
     AuthenticatedDeepersonaColetaRoute: AuthenticatedDeepersonaColetaRoute,
     AuthenticatedDeepersonaCsdRoute: AuthenticatedDeepersonaCsdRoute,
+    AuthenticatedDeepersonaPriorizacaoRoute:
+      AuthenticatedDeepersonaPriorizacaoRoute,
     AuthenticatedDeepersonaSegmentacaoRoute:
       AuthenticatedDeepersonaSegmentacaoRoute,
   }
