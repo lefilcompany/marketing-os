@@ -1,19 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useWorkspace } from "@/lib/workspace-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Sparkles, LayoutTemplate, Check } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, LayoutTemplate, Check } from "lucide-react";
 import {
   DASHBOARD_TEMPLATES,
   formatMetric,
   type DashboardTemplate,
   type DashboardMetric,
 } from "@/lib/dashboard-templates";
-import { listKpisByKeys, seedTemplateKpis } from "@/lib/kpis.functions";
+import { listKpisByKeys } from "@/lib/kpis.functions";
+import { SeedTemplateButton } from "@/components/seed-template-button";
 
 export const Route = createFileRoute("/_authenticated/lekpis/templates")({
   head: () => ({
@@ -75,7 +75,6 @@ function TemplateCard({
   orgId: string | null | undefined;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const qc = useQueryClient();
   const Icon = template.icon;
 
   const keys = useMemo(() => template.metrics.map((m) => m.key), [template]);
@@ -102,28 +101,8 @@ function TemplateCard({
   const total = template.metrics.length;
   const fullySeeded = seededCount >= total;
 
-  const seedM = useMutation({
-    mutationFn: () =>
-      seedTemplateKpis({
-        data: {
-          organizationId: orgId!,
-          module: `template:${template.slug}`,
-          metrics: template.metrics.map((m) => ({
-            key: m.key,
-            label: `${m.label} · ${m.platform}`,
-            unit: m.unit,
-            target: m.target ?? null,
-          })),
-        },
-      }),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["lekpis-template-preview", orgId, template.slug] });
-      qc.invalidateQueries({ queryKey: ["lekpis"] });
-      if (res.inserted > 0) toast.success(`${res.inserted} indicador(es) criado(s) em ${template.name}.`);
-      else toast.info("Todos os indicadores desse template já existem.");
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Falha ao aplicar template."),
-  });
+
+
 
   const visible = expanded ? template.metrics : template.metrics.slice(0, 4);
 
@@ -193,16 +172,15 @@ function TemplateCard({
           <Button asChild size="sm" variant="ghost">
             <Link to="/lekpis">Abrir</Link>
           </Button>
-          <Button
+          <SeedTemplateButton
+            template={template}
+            orgId={orgId}
+            existingKeys={new Set(byKey.keys())}
+            loadingExisting={kpisQ.isLoading}
             size="sm"
             variant="secondary"
-            onClick={() => seedM.mutate()}
-            disabled={!orgId || seedM.isPending}
             className="gap-1.5"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            {seedM.isPending ? "Aplicando…" : fullySeeded ? "Reaplicar" : "Semear"}
-          </Button>
+          />
         </div>
       </footer>
     </section>

@@ -1,19 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/lib/workspace-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart3, Sparkles, RefreshCw, LayoutTemplate, Grid3x3 } from "lucide-react";
-import { toast } from "sonner";
+import { BarChart3, RefreshCw, LayoutTemplate, Grid3x3 } from "lucide-react";
 import {
   DASHBOARD_TEMPLATES,
   formatMetric,
   getTemplate,
   type DashboardMetric,
 } from "@/lib/dashboard-templates";
-import { listKpisByKeys, seedTemplateKpis } from "@/lib/kpis.functions";
+import { listKpisByKeys } from "@/lib/kpis.functions";
+import { SeedTemplateButton } from "@/components/seed-template-button";
 
 export const Route = createFileRoute("/_authenticated/lekpis")({
   head: () => ({ meta: [{ title: "LeKPIs — Marketing OS" }] }),
@@ -34,27 +34,14 @@ function LeKpisPage() {
     enabled: !!currentOrgId,
   });
 
-  const seedM = useMutation({
-    mutationFn: () =>
-      seedTemplateKpis({
-        data: {
-          organizationId: currentOrgId!,
-          module: `template:${template.slug}`,
-          metrics: template.metrics.map((m) => ({
-            key: m.key,
-            label: `${m.label} · ${m.platform}`,
-            unit: m.unit,
-            target: m.target ?? null,
-          })),
-        },
-      }),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["lekpis", currentOrgId, templateSlug] });
-      if (res.inserted > 0) toast.success(`${res.inserted} indicador(es) criado(s).`);
-      else toast.info("Todos os indicadores desse template já existem.");
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Falha ao aplicar template."),
-  });
+  const existingKeys = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of (kpisQ.data?.items ?? []) as Array<{ metric_key: string }>) {
+      set.add(row.metric_key);
+    }
+    return set;
+  }, [kpisQ.data]);
+
 
   const byKey = useMemo(() => {
     const map = new Map<string, { value: number | null; target: number | null; updated_at: string | null }>();
@@ -104,15 +91,19 @@ function LeKpisPage() {
                 Ver galeria
               </Link>
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => seedM.mutate()}
-              disabled={!currentOrgId || seedM.isPending}
-              className="gap-2"
-            >
-              <Sparkles className="h-4 w-4" />
-              {seedM.isPending ? "Aplicando…" : "Aplicar template"}
+            <Button asChild variant="ghost" className="gap-2">
+              <Link to="/lekpis/templates">
+                <Grid3x3 className="h-4 w-4" />
+                Ver galeria
+              </Link>
             </Button>
+            <SeedTemplateButton
+              template={template}
+              orgId={currentOrgId}
+              existingKeys={existingKeys}
+              loadingExisting={kpisQ.isLoading}
+              invalidateKeys={[["lekpis", currentOrgId, templateSlug]]}
+            />
           </div>
         </header>
 
