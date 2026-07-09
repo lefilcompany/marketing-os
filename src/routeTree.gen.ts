@@ -13,12 +13,20 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSomaRouteImport } from './routes/_authenticated/soma'
 import { Route as AuthenticatedSolicitacoesRouteImport } from './routes/_authenticated/solicitacoes'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
+import { Route as AuthenticatedLekpisRouteImport } from './routes/_authenticated/lekpis'
+import { Route as AuthenticatedIaRouteImport } from './routes/_authenticated/ia'
+import { Route as AuthenticatedEstrategiaRouteImport } from './routes/_authenticated/estrategia'
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
+import { Route as AuthenticatedDeepersonaRouteImport } from './routes/_authenticated/deepersona'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
+import { Route as AuthenticatedComunidadesRouteImport } from './routes/_authenticated/comunidades'
+import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
 import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authenticated/aplicacoes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -46,6 +54,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSomaRoute = AuthenticatedSomaRouteImport.update({
+  id: '/soma',
+  path: '/soma',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSolicitacoesRoute =
   AuthenticatedSolicitacoesRouteImport.update({
     id: '/solicitacoes',
@@ -63,14 +76,39 @@ const AuthenticatedNotificacoesRoute =
     path: '/notificacoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLekpisRoute = AuthenticatedLekpisRouteImport.update({
+  id: '/lekpis',
+  path: '/lekpis',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedIaRoute = AuthenticatedIaRouteImport.update({
+  id: '/ia',
+  path: '/ia',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEstrategiaRoute = AuthenticatedEstrategiaRouteImport.update({
+  id: '/estrategia',
+  path: '/estrategia',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
   id: '/equipe',
   path: '/equipe',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDeepersonaRoute = AuthenticatedDeepersonaRouteImport.update({
+  id: '/deepersona',
+  path: '/deepersona',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCreatorRoute = AuthenticatedCreatorRouteImport.update({
+  id: '/creator',
+  path: '/creator',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedConfiguracoesRoute =
@@ -79,6 +117,17 @@ const AuthenticatedConfiguracoesRoute =
     path: '/configuracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedComunidadesRoute =
+  AuthenticatedComunidadesRouteImport.update({
+    id: '/comunidades',
+    path: '/comunidades',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
+  id: '/biblioteca',
+  path: '/biblioteca',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAtividadesRoute = AuthenticatedAtividadesRouteImport.update({
   id: '/atividades',
   path: '/atividades',
@@ -126,12 +175,20 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/aplicacoes': typeof AuthenticatedAplicacoesRouteWithChildren
   '/atividades': typeof AuthenticatedAtividadesRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/comunidades': typeof AuthenticatedComunidadesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/creator': typeof AuthenticatedCreatorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/deepersona': typeof AuthenticatedDeepersonaRoute
   '/equipe': typeof AuthenticatedEquipeRoute
+  '/estrategia': typeof AuthenticatedEstrategiaRoute
+  '/ia': typeof AuthenticatedIaRoute
+  '/lekpis': typeof AuthenticatedLekpisRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/solicitacoes': typeof AuthenticatedSolicitacoesRoute
+  '/soma': typeof AuthenticatedSomaRoute
   '/admin/aplicacoes': typeof AuthenticatedAdminAplicacoesRoute
   '/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
@@ -144,12 +201,20 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/aplicacoes': typeof AuthenticatedAplicacoesRouteWithChildren
   '/atividades': typeof AuthenticatedAtividadesRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/comunidades': typeof AuthenticatedComunidadesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/creator': typeof AuthenticatedCreatorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/deepersona': typeof AuthenticatedDeepersonaRoute
   '/equipe': typeof AuthenticatedEquipeRoute
+  '/estrategia': typeof AuthenticatedEstrategiaRoute
+  '/ia': typeof AuthenticatedIaRoute
+  '/lekpis': typeof AuthenticatedLekpisRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/solicitacoes': typeof AuthenticatedSolicitacoesRoute
+  '/soma': typeof AuthenticatedSomaRoute
   '/admin/aplicacoes': typeof AuthenticatedAdminAplicacoesRoute
   '/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
@@ -164,12 +229,20 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/aplicacoes': typeof AuthenticatedAplicacoesRouteWithChildren
   '/_authenticated/atividades': typeof AuthenticatedAtividadesRoute
+  '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/_authenticated/comunidades': typeof AuthenticatedComunidadesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/_authenticated/creator': typeof AuthenticatedCreatorRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/deepersona': typeof AuthenticatedDeepersonaRoute
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
+  '/_authenticated/estrategia': typeof AuthenticatedEstrategiaRoute
+  '/_authenticated/ia': typeof AuthenticatedIaRoute
+  '/_authenticated/lekpis': typeof AuthenticatedLekpisRoute
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/solicitacoes': typeof AuthenticatedSolicitacoesRoute
+  '/_authenticated/soma': typeof AuthenticatedSomaRoute
   '/_authenticated/admin/aplicacoes': typeof AuthenticatedAdminAplicacoesRoute
   '/_authenticated/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
   '/_authenticated/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
@@ -184,12 +257,20 @@ export interface FileRouteTypes {
     | '/admin'
     | '/aplicacoes'
     | '/atividades'
+    | '/biblioteca'
+    | '/comunidades'
     | '/configuracoes'
+    | '/creator'
     | '/dashboard'
+    | '/deepersona'
     | '/equipe'
+    | '/estrategia'
+    | '/ia'
+    | '/lekpis'
     | '/notificacoes'
     | '/perfil'
     | '/solicitacoes'
+    | '/soma'
     | '/admin/aplicacoes'
     | '/admin/comunicados'
     | '/admin/empresas'
@@ -202,12 +283,20 @@ export interface FileRouteTypes {
     | '/admin'
     | '/aplicacoes'
     | '/atividades'
+    | '/biblioteca'
+    | '/comunidades'
     | '/configuracoes'
+    | '/creator'
     | '/dashboard'
+    | '/deepersona'
     | '/equipe'
+    | '/estrategia'
+    | '/ia'
+    | '/lekpis'
     | '/notificacoes'
     | '/perfil'
     | '/solicitacoes'
+    | '/soma'
     | '/admin/aplicacoes'
     | '/admin/comunicados'
     | '/admin/empresas'
@@ -221,12 +310,20 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/aplicacoes'
     | '/_authenticated/atividades'
+    | '/_authenticated/biblioteca'
+    | '/_authenticated/comunidades'
     | '/_authenticated/configuracoes'
+    | '/_authenticated/creator'
     | '/_authenticated/dashboard'
+    | '/_authenticated/deepersona'
     | '/_authenticated/equipe'
+    | '/_authenticated/estrategia'
+    | '/_authenticated/ia'
+    | '/_authenticated/lekpis'
     | '/_authenticated/notificacoes'
     | '/_authenticated/perfil'
     | '/_authenticated/solicitacoes'
+    | '/_authenticated/soma'
     | '/_authenticated/admin/aplicacoes'
     | '/_authenticated/admin/comunicados'
     | '/_authenticated/admin/empresas'
@@ -270,6 +367,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/soma': {
+      id: '/_authenticated/soma'
+      path: '/soma'
+      fullPath: '/soma'
+      preLoaderRoute: typeof AuthenticatedSomaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/solicitacoes': {
       id: '/_authenticated/solicitacoes'
       path: '/solicitacoes'
@@ -291,11 +395,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotificacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/lekpis': {
+      id: '/_authenticated/lekpis'
+      path: '/lekpis'
+      fullPath: '/lekpis'
+      preLoaderRoute: typeof AuthenticatedLekpisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ia': {
+      id: '/_authenticated/ia'
+      path: '/ia'
+      fullPath: '/ia'
+      preLoaderRoute: typeof AuthenticatedIaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/estrategia': {
+      id: '/_authenticated/estrategia'
+      path: '/estrategia'
+      fullPath: '/estrategia'
+      preLoaderRoute: typeof AuthenticatedEstrategiaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/equipe': {
       id: '/_authenticated/equipe'
       path: '/equipe'
       fullPath: '/equipe'
       preLoaderRoute: typeof AuthenticatedEquipeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/deepersona': {
+      id: '/_authenticated/deepersona'
+      path: '/deepersona'
+      fullPath: '/deepersona'
+      preLoaderRoute: typeof AuthenticatedDeepersonaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -305,11 +437,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/creator': {
+      id: '/_authenticated/creator'
+      path: '/creator'
+      fullPath: '/creator'
+      preLoaderRoute: typeof AuthenticatedCreatorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/configuracoes': {
       id: '/_authenticated/configuracoes'
       path: '/configuracoes'
       fullPath: '/configuracoes'
       preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/comunidades': {
+      id: '/_authenticated/comunidades'
+      path: '/comunidades'
+      fullPath: '/comunidades'
+      preLoaderRoute: typeof AuthenticatedComunidadesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/biblioteca': {
+      id: '/_authenticated/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/biblioteca'
+      preLoaderRoute: typeof AuthenticatedBibliotecaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/atividades': {
@@ -397,24 +550,40 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAplicacoesRoute: typeof AuthenticatedAplicacoesRouteWithChildren
   AuthenticatedAtividadesRoute: typeof AuthenticatedAtividadesRoute
+  AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
+  AuthenticatedComunidadesRoute: typeof AuthenticatedComunidadesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
+  AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDeepersonaRoute: typeof AuthenticatedDeepersonaRoute
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
+  AuthenticatedEstrategiaRoute: typeof AuthenticatedEstrategiaRoute
+  AuthenticatedIaRoute: typeof AuthenticatedIaRoute
+  AuthenticatedLekpisRoute: typeof AuthenticatedLekpisRoute
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedSolicitacoesRoute: typeof AuthenticatedSolicitacoesRoute
+  AuthenticatedSomaRoute: typeof AuthenticatedSomaRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAplicacoesRoute: AuthenticatedAplicacoesRouteWithChildren,
   AuthenticatedAtividadesRoute: AuthenticatedAtividadesRoute,
+  AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
+  AuthenticatedComunidadesRoute: AuthenticatedComunidadesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
+  AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDeepersonaRoute: AuthenticatedDeepersonaRoute,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
+  AuthenticatedEstrategiaRoute: AuthenticatedEstrategiaRoute,
+  AuthenticatedIaRoute: AuthenticatedIaRoute,
+  AuthenticatedLekpisRoute: AuthenticatedLekpisRoute,
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedSolicitacoesRoute: AuthenticatedSolicitacoesRoute,
+  AuthenticatedSomaRoute: AuthenticatedSomaRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -429,13 +598,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
+import { MODULES } from "@/lib/modules";
 import { CommandPalette } from "@/components/command-palette";
 import { NotificationBell } from "@/components/notification-bell";
 
@@ -73,11 +74,12 @@ function AppSidebar({ canAdmin, isSuperadmin }: { canAdmin: boolean; isSuperadmi
 
   const nav = [
     { to: "/dashboard", label: "Visão geral", icon: LayoutDashboard },
-    { to: "/aplicacoes", label: "Aplicações", icon: Grid3x3 },
     { to: "/atividades", label: "Atividades", icon: Activity },
     { to: "/notificacoes", label: "Notificações", icon: Bell },
   ];
+  const modules = MODULES.map((m) => ({ to: m.route, label: m.name, icon: m.icon, color: m.color }));
   const admin = [
+    { to: "/aplicacoes", label: "Aplicações externas", icon: Grid3x3 },
     { to: "/equipe", label: "Equipe", icon: Users },
     { to: "/solicitacoes", label: "Solicitações", icon: Inbox },
   ];
@@ -107,6 +109,24 @@ function AppSidebar({ canAdmin, isSuperadmin }: { canAdmin: boolean; isSuperadmi
                 <SidebarMenuItem key={it.to}>
                   <SidebarMenuButton asChild isActive={pathname === it.to}>
                     <Link to={it.to}><it.icon className="h-4 w-4" /><span>{it.label}</span></Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Módulos</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {modules.map((it) => (
+                <SidebarMenuItem key={it.to}>
+                  <SidebarMenuButton asChild isActive={pathname === it.to}>
+                    <Link to={it.to}>
+                      <it.icon className="h-4 w-4" style={{ color: it.color }} />
+                      <span>{it.label}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -275,7 +295,7 @@ function MobileNav({ canAdmin }: { canAdmin: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const items = [
     { to: "/dashboard", label: "Início", icon: LayoutDashboard },
-    { to: "/aplicacoes", label: "Apps", icon: Grid3x3 },
+    { to: "/creator", label: "Creator", icon: Sparkles },
     { to: "/notificacoes", label: "Alertas", icon: Bell },
     { to: canAdmin ? "/equipe" : "/perfil", label: canAdmin ? "Equipe" : "Perfil", icon: canAdmin ? Users : UserIcon },
   ];

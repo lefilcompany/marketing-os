@@ -1,87 +1,87 @@
-# Marketing OS — Plano de construção
+# Plano — Marketing OS v1 (MVP até 19/jul)
 
-Escopo enorme. Proponho entregar a **Fase 1 completa** (lobby funcional) com toda a fundação de arquitetura, banco e segurança já preparada para as Fases 2–4. Depois iteramos.
+Reposicionar a home e a navegação como o "sistema operacional de marketing" descrito no PRD, com **7 módulos** reais (DeePersona, Estratégia, Creator, Soma, Comunidades, LeKPIs, IA), estrutura real no banco e IA copiloto ativa via Lovable AI.
 
-## O que entra na primeira entrega
+Vou executar em **4 fases**. Cada fase entrega valor sozinha e pode ser revisada antes da próxima.
 
-**Fundação**
-- Ativar Lovable Cloud (auth + DB + edge functions)
-- Design system próprio do Marketing OS em `src/styles.css` (tokens neutros + cores de destaque por plataforma: Creator, SoMA, LeKPI, Deepersona)
-- Layout com sidebar recolhível (desktop) + navegação inferior (mobile), header com WorkspaceSwitcher, busca global, notificações, avatar
-- Command palette (Ctrl/⌘+K)
+---
 
-**Banco de dados (todas as tabelas do briefing, com RLS + GRANTs)**
-`profiles`, `organizations`, `organization_members`, `applications`, `organization_applications`, `user_application_permissions`, `access_requests`, `application_access_logs`, `favorites`, `invitations`, `notifications`, `announcements`, `platform_status_history`, `audit_logs` + enums (`app_role`, `application_status`, `connection_mode`, etc.) + tabela separada de roles globais (`user_global_roles` para superadmin) usando o padrão `has_role` security-definer.
+## Fase 1 — Fundação (esta iteração)
 
-**Autenticação e onboarding**
-- Login e-mail/senha + magic link + recuperação de senha + confirmação
-- Aceite de convite por token
-- Sem cadastro público (só via convite ou seed)
-- Onboarding de primeiro acesso (nome, foto, tour das apps, favoritar)
-- Rotas protegidas via `_authenticated/`
+Objetivo: transformar a home atual (que mostra "aplicações") em uma home Marketing OS com os 7 módulos, e criar o esqueleto navegável de todos eles.
 
-**Multiempresa**
-- WorkspaceSwitcher no header, contexto global de workspace atual persistido
-- Isolamento total via RLS baseado em `organization_members`
-- Papéis: `superadmin` (global), `org_admin`, `member`, `viewer`
+**Home nova (`/dashboard`)**
+- Cabeçalho compacto à esquerda: "Marketing OS · LeFil" + saudação + Marketing Score (mock por enquanto).
+- Grid dos **7 módulos** como cards de vidro grandes (mantém o efeito atual: glass, reflexo, glow por cor de módulo).
+- Cada card: ícone, nome, subtítulo curto ("Conheça seus clientes", "Transforme conhecimento em plano", etc.), status ("Ativo"/"Em breve") e um KPI vivo do módulo (ex.: nº de personas, nº de campanhas).
+- Bloco lateral pequeno "IA Copiloto" com 2–3 recomendações geradas pela IA (real, via gateway).
+- Sem scroll na home; abaixo dos cards, timeline compacta das últimas atividades.
 
-**Dashboard**
-- Saudação personalizada
-- "Continue seu trabalho" (últimos acessos reais)
-- "Suas aplicações" (cards das apps liberadas para o workspace)
-- Resumo do ecossistema (contadores reais, sem números fake)
-- Comunicados
-- Jornada do Marketing (Entender → Planejar → Executar → Medir)
+**Sidebar**
+- Reorganizada para: Home · DeePersona · Estratégia · Creator · Soma · Comunidades · LeKPIs · Biblioteca · IA · Configurações. Mantém grupos de Gestão e Administração já existentes.
 
-**Catálogo `/aplicações`**
-- Busca, filtros (categoria/status/disponibilidade), ordenação, grid/lista
-- Cards liberados: "Abrir aplicação"; não liberados: "Solicitar acesso"
-- Página de detalhes por app com bloco "Como se conecta ao Marketing OS"
+**Rotas (shells navegáveis)**
+- `/deepersona`, `/estrategia`, `/creator`, `/soma`, `/comunidades`, `/lekpis`, `/biblioteca`, `/ia`.
+- Cada shell: header do módulo, tabs vazias com placeholders "Em construção" claros — nada de botão fake.
+- `/aplicacoes` continua existindo (agora é a integração com plataformas externas da LeFil, não o produto principal).
 
-**Redirecionamento seguro**
-- Server function valida: auth → membership → org tem app → user tem permissão → registra log → devolve URL validada contra `allowed_domains`
-- Abertura em nova aba por padrão, configurável
-- Sem iframe
+**IA copiloto (mínimo funcional já nesta fase)**
+- Server function `generateCopilotRecommendations` usando `google/gemini-3-flash-preview` via Lovable AI Gateway.
+- Recebe contexto do workspace (nome da org, contagens de personas/estratégias/etc.) e devolve 3 recomendações estruturadas (`{ title, body, module, severity }`) usando `Output.object`.
+- Home consome via TanStack Query.
 
-**Gestão**
-- Página Equipe (admin): listar/convidar/remover/alterar papel/permissões por app
-- Solicitações de acesso: criar (membro), aprovar/recusar (admin)
-- Notificações: central, marcar lida, contador
-- Atividades: histórico do usuário / da empresa / global (por papel)
+**DB — migrações fase 1**
+- `personas` (workspace, nome, descrição, dados demográficos jsonb, dores jsonb, ganhos jsonb, canais jsonb, status).
+- `strategies` (workspace, nome, objetivo, posicionamento, proposta_valor, canais jsonb, frameworks jsonb, status, persona_id).
+- `campaigns` (workspace, nome, estratégia_id, objetivo, canal, status, kpis jsonb).
+- `projects` (workspace, campanha_id, nome, status, prazo).
+- `tasks` (project_id, título, status, responsável, prazo).
+- `communities` (workspace, nome, tipo, plataforma, membros_estimados).
+- `kpi_snapshots` (workspace, chave, valor, meta, período).
+- `copilot_recommendations` (workspace, título, corpo, módulo, severidade, dismissed).
+- `library_items` (workspace, tipo, nome, payload jsonb) — para a Biblioteca única.
 
-**Painel Superadmin `/admin`**
-- Visão geral, gestão de empresas, gestão de aplicações (cadastro completo com todas as propriedades do briefing), comunicados segmentados, status de plataformas
+Todas com RLS scoped por `organization_members` + GRANTs corretos.
 
-**Seed de demonstração** (migration separada, fácil de remover)
-- 4 apps: Creator, SoMA, LeKPI, Deepersona (com URLs corretas e cores de destaque)
-- 1 empresa demo, 1 superadmin, 1 admin, alguns membros, notificações, atividades, 1 comunicado, 1 solicitação pendente
+---
 
-**Preparação para SSO (sem implementar)**
-- Campo `connection_mode` (`external_link` | `authenticated_link` | `sso`) já no schema
-- Serviço abstrato de resolução de URL — hoje só modo 1 ativo
+## Fase 2 — DeePersona e Estratégia completos
 
-## Detalhes técnicos
+- CRUD de Personas com wizard guiado (etapas do PRD).
+- CRUD de Estratégias com frameworks AEIOU/CRISC/PARTE em formulários guiados.
+- Templates iniciais e biblioteca sendo populada.
+- IA: gerar rascunho de persona a partir de descrição livre; gerar estratégia a partir de persona.
 
-- Stack: TanStack Start + React 19 + TS + Tailwind v4 + shadcn/ui + Lucide
-- Server functions para toda leitura/escrita autenticada; edge routes apenas se precisar
-- Superadmin verificado via `has_role(auth.uid(), 'superadmin')` em RLS e server fns
-- Idioma da UI: **português (PT-BR)**
-- Tema claro como padrão, tokens preparados para dark
-- Sem dados/métricas inventados — empty states quando não houver dados
+## Fase 3 — Creator e Soma
 
-## O que NÃO entra agora (Fases 2–4)
+- Creator: gerar conteúdo (post, email, roteiro, landing copy) puxando persona + estratégia como contexto de prompt.
+- Soma: transformar campanha em tarefas automaticamente (server fn que cria `project` + `tasks` a partir de um `campaign_id`), kanban simples.
 
-- SSO real, geração de links assinados temporários
-- Auditoria avançada com export, retenção configurável
-- Métricas gráficas (só contadores por enquanto)
-- Assistente IA
-- Notificações por e-mail (só in-app)
-- Realtime (arquitetura permite, mas ligamos depois)
+## Fase 4 — Comunidades, LeKPIs, IA plena
 
-## Perguntas antes de começar
+- Comunidades: CRUD + jornadas e eventos (sem integração WhatsApp real).
+- LeKPIs: dashboards com dados agregados dos módulos + insights da IA sobre os snapshots.
+- IA: chat contextual persistente (histórico salvo por workspace).
 
-1. Confirma **PT-BR** em toda a UI?
-2. Posso criar você como **superadmin** usando o e-mail do seu login atual da Lovable? (necessário para você acessar `/admin` no primeiro login)
-3. Quer que eu já configure **Google Sign-In** além de e-mail/senha e magic link?
+---
 
-Se aprovar, começo pela ativação do Cloud + design system + schema completo, depois auth, dashboard, catálogo, redirecionamento seguro, gestão, e por fim o painel superadmin.
+## Decisões técnicas
+
+- **Stack**: mantém TanStack Start + Supabase + shadcn. Todas as leituras via `createServerFn` com `requireSupabaseAuth`; RLS por membership.
+- **IA**: Lovable AI Gateway, provider `createLovableAiGatewayProvider` em `src/lib/ai-gateway.server.ts`. Model default `google/gemini-3-flash-preview`. Erros 402/429 exibidos como toast claro.
+- **Ícones/cores dos módulos**: paleta já parcialmente presente (`--brand-creator`, `--brand-deepersona`, `--brand-lekpi`); vou estender com tokens para os 4 restantes em `styles.css`.
+- **Nada mock invisível**: onde um número for simulado (ex.: Marketing Score fase 1), exibirei rótulo "demo" e nunca disfarçarei botão sem função.
+
+---
+
+## O que vou entregar **nesta rodada** (Fase 1)
+
+1. Migração criando as 9 tabelas + RLS + GRANTs.
+2. Server functions: `getModuleOverview`, `listPersonas/Strategies/... (contagens)`, `generateCopilotRecommendations`, `dismissRecommendation`.
+3. Provider Lovable AI em `src/lib/ai-gateway.server.ts`.
+4. Home nova com 7 cards + painel IA + timeline.
+5. Sidebar atualizada.
+6. Shells de rota para os 7 módulos + Biblioteca + IA.
+7. Tokens de cor de módulo em `styles.css`.
+
+Se aprovar, sigo. Depois combinamos por qual módulo aprofundar na Fase 2.
