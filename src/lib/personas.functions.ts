@@ -131,17 +131,42 @@ async function callAI<T extends z.ZodType>(
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("LOVABLE_API_KEY ausente no servidor.");
   const { createLovableAiGatewayProvider } = await import("@/lib/ai-gateway.server");
-  const { generateText, Output } = await import("ai");
+  const { generateText, Output, NoObjectGeneratedError } = await import("ai");
   const gateway = createLovableAiGatewayProvider(apiKey);
   const model = gateway("google/gemini-3-flash-preview");
-  const result = await generateText({
-    model,
-    system,
-    prompt,
-    output: Output.object({ schema }),
-  });
-  return result.output as z.infer<T>;
+
+  const attempt = async (extra = "") => {
+    const result = await generateText({
+      model,
+      system,
+      prompt: extra ? `${prompt}\n\n${extra}` : prompt,
+      output: Output.object({ schema }),
+    });
+    return result.output as z.infer<T>;
+  };
+
+  try {
+    return await attempt();
+  } catch (err) {
+    if (NoObjectGeneratedError.isInstance(err)) {
+      // Retenta uma vez com instrução extra de aderência ao schema
+      try {
+        return await attempt(
+          "IMPORTANTE: Retorne APENAS um JSON válido que respeite exatamente o schema pedido. Preencha todos os campos obrigatórios com valores plausíveis em português do Brasil.",
+        );
+      } catch (err2) {
+        if (NoObjectGeneratedError.isInstance(err2)) {
+          throw new Error(
+            "A IA não conseguiu gerar uma resposta válida. Tente novamente em alguns instantes ou ajuste o briefing.",
+          );
+        }
+        throw err2;
+      }
+    }
+    throw err;
+  }
 }
+
 
 const BaseSchema = z.object({
   description: z.string(),
