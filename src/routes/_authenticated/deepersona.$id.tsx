@@ -102,13 +102,34 @@ function PersonaDetail() {
   const mod = getModule("deepersona")!;
   const qc = useQueryClient();
 
+  const [flagTick, setFlagTick] = useState(0);
+  const sessionGenerating =
+    typeof window !== "undefined" &&
+    !!sessionStorage.getItem(`deepersona:generating:${id}`);
+
   const personaQ = useQuery({
     queryKey: ["persona", id],
     queryFn: () => getPersona({ data: { id } }),
+    refetchInterval: sessionGenerating ? 2000 : false,
   });
 
   const persona = personaQ.data?.item;
   const stageIdx = Math.max(0, STAGE_ORDER.indexOf(persona?.stage ?? "draft"));
+
+  const painsArr = (persona?.pains ?? []) as unknown[];
+  const gainsArr = (persona?.gains ?? []) as unknown[];
+  const hasBaseData = painsArr.length > 0 || gainsArr.length > 0;
+
+  // Limpa flag assim que a base chegou.
+  useEffect(() => {
+    if (hasBaseData && typeof window !== "undefined") {
+      sessionStorage.removeItem(`deepersona:generating:${id}`);
+      setFlagTick((t) => t + 1);
+    }
+  }, [hasBaseData, id]);
+
+  const isGenerating = sessionGenerating && !hasBaseData;
+  void flagTick;
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["persona", id] });
@@ -196,36 +217,48 @@ function PersonaDetail() {
 
         <StageBar stageIdx={stageIdx} color={mod.color} />
 
-        <Tabs defaultValue="base" className="w-full">
-          <TabsList className="grid grid-cols-4 max-w-xl">
-            <TabsTrigger value="base"><Users className="h-3.5 w-3.5 mr-1.5" />Base</TabsTrigger>
-            <TabsTrigger value="icp"><Target className="h-3.5 w-3.5 mr-1.5" />ICP</TabsTrigger>
-            <TabsTrigger value="journey"><MapIcon className="h-3.5 w-3.5 mr-1.5" />Jornada</TabsTrigger>
-            <TabsTrigger value="insights"><Lightbulb className="h-3.5 w-3.5 mr-1.5" />Insights</TabsTrigger>
-          </TabsList>
+        {isGenerating && <GeneratingBanner color={mod.color} />}
 
-          <TabsContent value="base" className="mt-6">
-            <BaseEditor persona={persona} onGenerate={(b) => genBase.mutate(b)} pending={genBase.isPending} />
-          </TabsContent>
+        <fieldset
+          disabled={isGenerating}
+          className={
+            isGenerating
+              ? "pointer-events-none opacity-60 select-none"
+              : undefined
+          }
+          aria-busy={isGenerating}
+        >
+          <Tabs defaultValue="base" className="w-full">
+            <TabsList className="grid grid-cols-4 max-w-xl">
+              <TabsTrigger value="base"><Users className="h-3.5 w-3.5 mr-1.5" />Base</TabsTrigger>
+              <TabsTrigger value="icp"><Target className="h-3.5 w-3.5 mr-1.5" />ICP</TabsTrigger>
+              <TabsTrigger value="journey"><MapIcon className="h-3.5 w-3.5 mr-1.5" />Jornada</TabsTrigger>
+              <TabsTrigger value="insights"><Lightbulb className="h-3.5 w-3.5 mr-1.5" />Insights</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="icp" className="mt-6">
-            <ICPView icp={icp} onGenerate={() => genICP.mutate()} pending={genICP.isPending} />
-          </TabsContent>
+            <TabsContent value="base" className="mt-6">
+              <BaseEditor persona={persona} onGenerate={(b) => genBase.mutate(b)} pending={genBase.isPending || isGenerating} />
+            </TabsContent>
 
-          <TabsContent value="journey" className="mt-6">
-            <JourneyView journey={journey} color={mod.color} onGenerate={() => genJourney.mutate()} pending={genJourney.isPending} />
-          </TabsContent>
+            <TabsContent value="icp" className="mt-6">
+              <ICPView icp={icp} onGenerate={() => genICP.mutate()} pending={genICP.isPending} />
+            </TabsContent>
 
-          <TabsContent value="insights" className="mt-6">
-            <InsightsView
-              insights={insights}
-              personaId={persona.id}
-              organizationId={persona.organization_id}
-              onGenerate={() => genInsights.mutate()}
-              pending={genInsights.isPending}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="journey" className="mt-6">
+              <JourneyView journey={journey} color={mod.color} onGenerate={() => genJourney.mutate()} pending={genJourney.isPending} />
+            </TabsContent>
+
+            <TabsContent value="insights" className="mt-6">
+              <InsightsView
+                insights={insights}
+                personaId={persona.id}
+                organizationId={persona.organization_id}
+                onGenerate={() => genInsights.mutate()}
+                pending={genInsights.isPending}
+              />
+            </TabsContent>
+          </Tabs>
+        </fieldset>
       </div>
     </div>
   );
@@ -252,6 +285,39 @@ function StageBar({ stageIdx, color }: { stageIdx: number; color: string }) {
           </span>
         ))}
       </div>
+    </div>
+  );
+}
+
+function GeneratingBanner({ color }: { color: string }) {
+  return (
+    <div className="surface-card relative overflow-hidden p-4 flex items-center gap-4">
+      <div
+        className="grid h-10 w-10 place-items-center rounded-xl"
+        style={{ background: `color-mix(in oklab, ${color} 30%, transparent)` }}
+      >
+        <Loader2 className="h-5 w-5 animate-spin" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-medium">Gerando base da persona com IA…</p>
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            Aguarde
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Isso leva alguns segundos. O editor será liberado ao concluir.
+        </p>
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full w-1/3 rounded-full animate-[persona-progress_1.4s_ease-in-out_infinite]"
+            style={{
+              background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+            }}
+          />
+        </div>
+      </div>
+      <style>{`@keyframes persona-progress { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }`}</style>
     </div>
   );
 }
