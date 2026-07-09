@@ -63,6 +63,7 @@ function SegmentacaoPage() {
   const { currentOrgId } = useWorkspace();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as { flow?: string; step?: number };
 
   const list = useQuery({
     queryKey: ["segments", currentOrgId],
