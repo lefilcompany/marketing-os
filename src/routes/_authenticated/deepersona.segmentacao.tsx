@@ -63,7 +63,17 @@ function SegmentacaoPage() {
   const { currentOrgId } = useWorkspace();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as { flow?: string; step?: number };
+  const rawSearch = useSearch({ strict: false }) as {
+    flow?: string | number;
+    step?: string | number;
+  };
+  const search = {
+    flow: rawSearch?.flow != null ? String(rawSearch.flow) : undefined,
+    step:
+      rawSearch?.step != null && !Number.isNaN(Number(rawSearch.step))
+        ? Number(rawSearch.step)
+        : undefined,
+  };
 
   const list = useQuery({
     queryKey: ["segments", currentOrgId],
