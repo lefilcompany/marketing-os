@@ -14,6 +14,8 @@ import {
 } from "@/lib/dashboard-templates";
 import { listKpisByKeys } from "@/lib/kpis.functions";
 import { SeedTemplateButton } from "@/components/seed-template-button";
+import { EditKpiDialog } from "@/components/edit-kpi-dialog";
+import { Pencil } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/lekpis")({
   head: () => ({ meta: [{ title: "LeKPIs — Marketing OS" }] }),
@@ -43,13 +45,31 @@ function LeKpisPage() {
   }, [kpisQ.data]);
 
 
+  type SnapshotRow = {
+    id: string;
+    metric_key: string;
+    label: string | null;
+    value: number | null;
+    target: number | null;
+    unit: string | null;
+    period_start: string | null;
+    period_end: string | null;
+    updated_at: string | null;
+  };
   const byKey = useMemo(() => {
-    const map = new Map<string, { value: number | null; target: number | null; updated_at: string | null }>();
-    for (const row of (kpisQ.data?.items ?? []) as Array<{ metric_key: string; value: number | null; target: number | null; updated_at: string | null }>) {
-      map.set(row.metric_key, { value: row.value, target: row.target, updated_at: row.updated_at });
+    const map = new Map<string, SnapshotRow>();
+    for (const row of (kpisQ.data?.items ?? []) as SnapshotRow[]) {
+      map.set(row.metric_key, row);
     }
     return map;
   }, [kpisQ.data]);
+
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const editingMetric = useMemo(
+    () => template.metrics.find((m) => m.key === editingKey) ?? null,
+    [editingKey, template.metrics],
+  );
+  const editingSnapshot = editingKey ? byKey.get(editingKey) : undefined;
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)]">
@@ -161,43 +181,84 @@ function LeKpisPage() {
                 snapshot={byKey.get(m.key)}
                 loading={kpisQ.isLoading}
                 color={template.color}
+                onEdit={byKey.has(m.key) ? () => setEditingKey(m.key) : undefined}
               />
             ))}
           </div>
 
           <p className="text-xs text-muted-foreground mt-5">
             Sem dados? Clique em <span className="font-medium">Aplicar template</span> para criar os
-            indicadores no workspace — depois atualize os valores via LeKPIs ou integrações.
+            indicadores no workspace — depois clique em cada indicador para editar nome, período e meta.
           </p>
         </section>
       </div>
+
+      {editingMetric && currentOrgId && (
+        <EditKpiDialog
+          open={!!editingKey}
+          onOpenChange={(v) => !v && setEditingKey(null)}
+          organizationId={currentOrgId}
+          metric={editingMetric}
+          snapshot={editingSnapshot}
+          invalidateKeys={[["lekpis", currentOrgId, templateSlug]]}
+        />
+      )}
     </div>
   );
 }
 
 function MetricCard({
-  metric, snapshot, loading, color,
+  metric, snapshot, loading, color, onEdit,
 }: {
   metric: DashboardMetric;
-  snapshot: { value: number | null; target: number | null; updated_at: string | null } | undefined;
+  snapshot:
+    | {
+        label?: string | null;
+        value: number | null;
+        target: number | null;
+        updated_at: string | null;
+        period_start?: string | null;
+        period_end?: string | null;
+      }
+    | undefined;
   loading: boolean;
   color: string;
+  onEdit?: () => void;
 }) {
   const value = snapshot?.value ?? null;
   const target = snapshot?.target ?? metric.target ?? null;
+  const displayLabel = snapshot?.label ?? metric.label;
   const pct = value != null && target && target > 0
     ? Math.max(0, Math.min(150, (value / target) * 100))
     : null;
   const status = pct == null ? "empty" : pct >= 100 ? "hit" : pct >= 70 ? "on-track" : "off";
 
+  const periodLabel = snapshot?.period_start && snapshot?.period_end
+    ? formatPeriod(snapshot.period_start, snapshot.period_end)
+    : null;
+
   return (
-    <div className="rounded-xl border p-4 bg-surface/60">
+    <div className={`group rounded-xl border p-4 bg-surface/60 relative ${onEdit ? "cursor-pointer hover:border-primary/40 transition-colors" : ""}`}
+         onClick={onEdit}
+         role={onEdit ? "button" : undefined}
+         tabIndex={onEdit ? 0 : undefined}
+         onKeyDown={onEdit ? (e) => { if (e.key === "Enter") onEdit(); } : undefined}>
+      {onEdit && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 grid place-items-center rounded-md hover:bg-muted"
+          aria-label="Editar indicador"
+        >
+          <Pencil className="h-3 w-3 text-muted-foreground" />
+        </button>
+      )}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
             {metric.platform}
           </div>
-          <div className="text-sm font-medium truncate">{metric.label}</div>
+          <div className="text-sm font-medium truncate">{displayLabel}</div>
         </div>
         <span
           className="h-2 w-2 rounded-full shrink-0"
@@ -225,6 +286,9 @@ function MetricCard({
           </span>
         )}
       </div>
+      {periodLabel && (
+        <div className="mt-1 text-[10px] text-muted-foreground">Período · {periodLabel}</div>
+      )}
       {pct != null && (
         <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
           <div
@@ -238,4 +302,19 @@ function MetricCard({
       )}
     </div>
   );
+}
+
+function formatPeriod(start: string, end: string): string {
+  const s = new Date(start);
+  const e = new Date(end);
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  if (end === today) {
+    const diff = Math.round((now.getTime() - s.getTime()) / 86400000);
+    if (diff === 7) return "últimos 7 dias";
+    if (diff === 30) return "últimos 30 dias";
+    if (diff === 90) return "últimos 90 dias";
+  }
+  const fmt = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" });
+  return `${fmt.format(s)} – ${fmt.format(e)}`;
 }
