@@ -467,7 +467,7 @@ function InsightsView({
   onGenerate: () => void;
   pending: boolean;
 }) {
-  const kindStyle: Record<string, { bg: string; ring: string; icon: JSX.Element }> = {
+  const kindStyle: Record<string, { bg: string; ring: string; icon: React.ReactNode }> = {
     oportunidade: { bg: "bg-emerald-500/10", ring: "border-emerald-500/30", icon: <TrendingUp className="h-3.5 w-3.5 text-emerald-500" /> },
     risco: { bg: "bg-red-500/10", ring: "border-red-500/30", icon: <AlertTriangle className="h-3.5 w-3.5 text-red-500" /> },
     hipotese: { bg: "bg-blue-500/10", ring: "border-blue-500/30", icon: <HelpCircle className="h-3.5 w-3.5 text-blue-500" /> },
