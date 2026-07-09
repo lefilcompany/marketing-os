@@ -914,6 +914,69 @@ export type Database = {
         }
         Relationships: []
       }
+      persona_agents: {
+        Row: {
+          capabilities: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          organization_id: string
+          persona_id: string
+          role: string | null
+          starter_questions: Json
+          status: string
+          system_prompt: string
+          tone: string | null
+          updated_at: string
+        }
+        Insert: {
+          capabilities?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          persona_id: string
+          role?: string | null
+          starter_questions?: Json
+          status?: string
+          system_prompt: string
+          tone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capabilities?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          persona_id?: string
+          role?: string | null
+          starter_questions?: Json
+          status?: string
+          system_prompt?: string
+          tone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "persona_agents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "persona_agents_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       personas: {
         Row: {
           age: number | null
@@ -929,6 +992,7 @@ export type Database = {
           icp: Json
           id: string
           image_url: string | null
+          importance: number | null
           insights: Json
           journey: Json
           jtbd: Json
@@ -939,12 +1003,14 @@ export type Database = {
           occupation: string | null
           organization_id: string
           pains: Json
+          priority_notes: string | null
           quote: string | null
           role: string | null
           stage: string
           status: string
           triggers: Json
           updated_at: string
+          urgency: number | null
           values: Json
         }
         Insert: {
@@ -961,6 +1027,7 @@ export type Database = {
           icp?: Json
           id?: string
           image_url?: string | null
+          importance?: number | null
           insights?: Json
           journey?: Json
           jtbd?: Json
@@ -971,12 +1038,14 @@ export type Database = {
           occupation?: string | null
           organization_id: string
           pains?: Json
+          priority_notes?: string | null
           quote?: string | null
           role?: string | null
           stage?: string
           status?: string
           triggers?: Json
           updated_at?: string
+          urgency?: number | null
           values?: Json
         }
         Update: {
@@ -993,6 +1062,7 @@ export type Database = {
           icp?: Json
           id?: string
           image_url?: string | null
+          importance?: number | null
           insights?: Json
           journey?: Json
           jtbd?: Json
@@ -1003,12 +1073,14 @@ export type Database = {
           occupation?: string | null
           organization_id?: string
           pains?: Json
+          priority_notes?: string | null
           quote?: string | null
           role?: string | null
           stage?: string
           status?: string
           triggers?: Json
           updated_at?: string
+          urgency?: number | null
           values?: Json
         }
         Relationships: [

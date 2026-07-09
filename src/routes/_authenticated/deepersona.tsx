@@ -95,14 +95,16 @@ const METHODOLOGY: Array<{
     title: "Priorização",
     description: "Matriz de importância × urgência para definir foco.",
     icon: Target,
-    status: "soon",
+    to: "/deepersona/priorizacao",
+    status: "active",
   },
   {
     step: "06",
     title: "Agentes IA",
     description: "Agentes inteligentes baseados nas personas.",
     icon: Brain,
-    status: "soon",
+    to: "/deepersona/agentes",
+    status: "active",
   },
 ];
 
