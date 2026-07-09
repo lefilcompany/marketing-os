@@ -238,12 +238,12 @@ const JourneySchema = z.object({
     goal: z.string(),
     thinking: z.string(),
     feeling: z.string(),
-    doing: z.array(z.string()).min(2).max(5),
-    touchpoints: z.array(z.string()).min(2).max(5),
-    questions: z.array(z.string()).min(2).max(4),
-    content_ideas: z.array(z.string()).min(2).max(4),
+    doing: z.array(z.string()),
+    touchpoints: z.array(z.string()),
+    questions: z.array(z.string()),
+    content_ideas: z.array(z.string()),
     friction: z.string(),
-  })).length(5),
+  })),
 });
 
 export const generateJourney = createServerFn({ method: "POST" })
