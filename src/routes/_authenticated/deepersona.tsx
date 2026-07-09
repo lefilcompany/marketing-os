@@ -154,10 +154,26 @@ function DeePersonaIndex() {
           description: briefing.trim() || undefined,
         },
       });
+      const personaId = res.item.id;
+
+      // Dispara geração de base + ICP em background e sinaliza para o Canvas
+      // exibir a barra de progresso enquanto o editor recarrega sozinho.
       if (useAI && briefing.trim().length >= 4) {
-        await generatePersonaBase({
-          data: { id: res.item.id, briefing: briefing.trim() },
-        });
+        try {
+          sessionStorage.setItem(`deepersona:generating:${personaId}`, "1");
+        } catch { /* noop */ }
+        generatePersonaBase({ data: { id: personaId, briefing: briefing.trim() } })
+          .then(() => generateICP({ data: { id: personaId } }))
+          .then(() => {
+            try { sessionStorage.removeItem(`deepersona:generating:${personaId}`); } catch { /* noop */ }
+            qc.invalidateQueries({ queryKey: ["persona", personaId] });
+            qc.invalidateQueries({ queryKey: ["personas", currentOrgId] });
+            toast.success(`Persona "${res.item.name}" pronta com base + ICP`);
+          })
+          .catch((e: Error) => {
+            try { sessionStorage.removeItem(`deepersona:generating:${personaId}`); } catch { /* noop */ }
+            toast.error(`Falha ao gerar com IA: ${e.message}`);
+          });
       }
       return res.item;
     },
