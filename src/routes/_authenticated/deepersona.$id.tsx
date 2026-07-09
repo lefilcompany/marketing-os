@@ -323,6 +323,7 @@ function GeneratingBanner({ color }: { color: string }) {
 }
 
 /* ------------ BASE ------------ */
+function BaseEditor({
   persona,
   onGenerate,
   pending,
