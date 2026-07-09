@@ -102,13 +102,34 @@ function PersonaDetail() {
   const mod = getModule("deepersona")!;
   const qc = useQueryClient();
 
+  const [flagTick, setFlagTick] = useState(0);
+  const sessionGenerating =
+    typeof window !== "undefined" &&
+    !!sessionStorage.getItem(`deepersona:generating:${id}`);
+
   const personaQ = useQuery({
     queryKey: ["persona", id],
     queryFn: () => getPersona({ data: { id } }),
+    refetchInterval: sessionGenerating ? 2000 : false,
   });
 
   const persona = personaQ.data?.item;
   const stageIdx = Math.max(0, STAGE_ORDER.indexOf(persona?.stage ?? "draft"));
+
+  const painsArr = (persona?.pains ?? []) as unknown[];
+  const gainsArr = (persona?.gains ?? []) as unknown[];
+  const hasBaseData = painsArr.length > 0 || gainsArr.length > 0;
+
+  // Limpa flag assim que a base chegou.
+  useEffect(() => {
+    if (hasBaseData && typeof window !== "undefined") {
+      sessionStorage.removeItem(`deepersona:generating:${id}`);
+      setFlagTick((t) => t + 1);
+    }
+  }, [hasBaseData, id]);
+
+  const isGenerating = sessionGenerating && !hasBaseData;
+  void flagTick;
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["persona", id] });
