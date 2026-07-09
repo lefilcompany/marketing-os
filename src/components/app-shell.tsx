@@ -15,9 +15,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  LayoutDashboard, Grid3x3, Activity, Bell, Users, Inbox,
-  Settings, HelpCircle, Shield, ChevronDown, LogOut, User as UserIcon,
-  Sparkles, Search, Menu,
+  LayoutDashboard, Home, BookMarked, Users,
+  Settings, Shield, ChevronDown, LogOut, User as UserIcon,
+  Sparkles, Search, Menu, Bell,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
@@ -67,22 +67,20 @@ export function AppShell({ children, profile, memberships, isSuperadmin }: Props
   );
 }
 
-function AppSidebar({ canAdmin, isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean }) {
+function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
 
   const nav = [
-    { to: "/dashboard", label: "Visão geral", icon: LayoutDashboard },
-    { to: "/atividades", label: "Atividades", icon: Activity },
-    { to: "/notificacoes", label: "Notificações", icon: Bell },
+    { to: "/dashboard", label: "Home", icon: Home },
+    { to: "/dashboard", label: "Dashboards", icon: LayoutDashboard },
   ];
-  const modules = MODULES.map((m) => ({ to: m.route, label: m.name, icon: m.icon, color: m.color }));
-  const admin = [
-    { to: "/aplicacoes", label: "Aplicações externas", icon: Grid3x3 },
-    { to: "/equipe", label: "Equipe", icon: Users },
-    { to: "/solicitacoes", label: "Solicitações", icon: Inbox },
-  ];
+  const moduleSlugs = ["deepersona", "estrategia", "creator", "soma", "comunidades", "lekpis"];
+  const modules = MODULES
+    .filter((m) => moduleSlugs.includes(m.slug))
+    .map((m) => ({ to: m.route, label: m.name, icon: m.icon, color: m.color }));
+  const bibliotecaModule = MODULES.find((m) => m.slug === "biblioteca");
 
   return (
     <Sidebar collapsible="icon" className="border-r">
@@ -106,7 +104,7 @@ function AppSidebar({ canAdmin, isSuperadmin }: { canAdmin: boolean; isSuperadmi
           <SidebarGroupContent>
             <SidebarMenu>
               {nav.map((it) => (
-                <SidebarMenuItem key={it.to}>
+                <SidebarMenuItem key={it.label}>
                   <SidebarMenuButton asChild isActive={pathname === it.to}>
                     <Link to={it.to}><it.icon className="h-4 w-4" /><span>{it.label}</span></Link>
                   </SidebarMenuButton>
@@ -134,18 +132,19 @@ function AppSidebar({ canAdmin, isSuperadmin }: { canAdmin: boolean; isSuperadmi
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {canAdmin && (
+        {bibliotecaModule && (
           <SidebarGroup>
-            <SidebarGroupLabel>Gestão</SidebarGroupLabel>
+            <SidebarGroupLabel>Biblioteca</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {admin.map((it) => (
-                  <SidebarMenuItem key={it.to}>
-                    <SidebarMenuButton asChild isActive={pathname === it.to}>
-                      <Link to={it.to}><it.icon className="h-4 w-4" /><span>{it.label}</span></Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname === bibliotecaModule.route}>
+                    <Link to={bibliotecaModule.route}>
+                      <BookMarked className="h-4 w-4" style={{ color: bibliotecaModule.color }} />
+                      <span>{bibliotecaModule.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -174,15 +173,11 @@ function AppSidebar({ canAdmin, isSuperadmin }: { canAdmin: boolean; isSuperadmi
                   <Link to="/configuracoes"><Settings className="h-4 w-4" /><span>Configurações</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a href="mailto:suporte@lefil.com.br"><HelpCircle className="h-4 w-4" /><span>Ajuda</span></a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
 
       <SidebarFooter className="border-t">
         {!collapsed && (
