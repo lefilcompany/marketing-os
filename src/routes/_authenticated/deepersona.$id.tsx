@@ -490,13 +490,18 @@ function JourneyView({
 /* ------------ INSIGHTS ------------ */
 function InsightsView({
   insights,
+  personaId,
+  organizationId,
   onGenerate,
   pending,
 }: {
   insights: Insight[];
+  personaId: string;
+  organizationId: string;
   onGenerate: () => void;
   pending: boolean;
 }) {
+  const [target, setTarget] = useState<{ idx: number; insight: Insight } | null>(null);
   const kindStyle: Record<string, { bg: string; ring: string; icon: React.ReactNode }> = {
     oportunidade: { bg: "bg-emerald-500/10", ring: "border-emerald-500/30", icon: <TrendingUp className="h-3.5 w-3.5 text-emerald-500" /> },
     risco: { bg: "bg-red-500/10", ring: "border-red-500/30", icon: <AlertTriangle className="h-3.5 w-3.5 text-red-500" /> },
@@ -520,6 +525,7 @@ function InsightsView({
         <div className="grid gap-3 md:grid-cols-2">
           {insights.map((i, idx) => {
             const style = kindStyle[i.kind] ?? kindStyle.descoberta;
+            const done = !!i.task_id;
             return (
               <div key={idx} className={`rounded-2xl border ${style.ring} ${style.bg} p-4 space-y-2`}>
                 <div className="flex items-center justify-between">
@@ -537,12 +543,218 @@ function InsightsView({
                   <span className="text-muted-foreground">Próxima ação: </span>
                   <span className="font-medium">{i.next_action}</span>
                 </div>
+                <div className="pt-2 flex justify-end">
+                  {done ? (
+                    <Badge variant="secondary" className="gap-1 text-[10px]">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                      Tarefa criada
+                    </Badge>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="gap-1.5 h-7"
+                      onClick={() => setTarget({ idx, insight: i })}
+                    >
+                      <ListPlus className="h-3.5 w-3.5" />
+                      Gerar tarefa
+                    </Button>
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
       )}
+
+      <InsightToTaskDialog
+        open={!!target}
+        onOpenChange={(v) => !v && setTarget(null)}
+        insight={target?.insight ?? null}
+        insightIndex={target?.idx ?? -1}
+        personaId={personaId}
+        organizationId={organizationId}
+      />
     </div>
+  );
+}
+
+function InsightToTaskDialog({
+  open,
+  onOpenChange,
+  insight,
+  insightIndex,
+  personaId,
+  organizationId,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  insight: Insight | null;
+  insightIndex: number;
+  personaId: string;
+  organizationId: string;
+}) {
+  const qc = useQueryClient();
+  const [projectId, setProjectId] = useState<string>("");
+  const [mode, setMode] = useState<"pick" | "new">("pick");
+  const [newName, setNewName] = useState("");
+  const [dueAt, setDueAt] = useState<string>("");
+
+  const projectsQ = useQuery({
+    queryKey: ["projects", organizationId],
+    queryFn: () => listProjects({ data: { organizationId } }),
+    enabled: open && !!organizationId,
+  });
+
+  useEffect(() => {
+    if (open) {
+      setProjectId("");
+      setNewName("");
+      setDueAt("");
+      setMode("pick");
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (projectsQ.data && projectsQ.data.items.length === 0) setMode("new");
+  }, [projectsQ.data]);
+
+  const create = useMutation({
+    mutationFn: async () => {
+      let pid = projectId;
+      if (mode === "new") {
+        const p = await createProject({
+          data: { organizationId, name: newName.trim() },
+        });
+        pid = p.item.id;
+      }
+      if (!pid) throw new Error("Selecione um projeto");
+      return createTaskFromInsight({
+        data: {
+          personaId,
+          insightIndex,
+          projectId: pid,
+          dueAt: dueAt || null,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Tarefa criada no projeto");
+      qc.invalidateQueries({ queryKey: ["persona", personaId] });
+      qc.invalidateQueries({ queryKey: ["projects", organizationId] });
+      qc.invalidateQueries({ queryKey: ["modules-overview", organizationId] });
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const canSubmit =
+    mode === "pick" ? !!projectId : newName.trim().length > 0;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Gerar tarefa a partir do insight</DialogTitle>
+          <DialogDescription>
+            A tarefa herda a próxima ação sugerida pela IA.
+          </DialogDescription>
+        </DialogHeader>
+
+        {insight && (
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3 space-y-1 text-sm">
+            <p className="font-medium">{insight.title}</p>
+            <p className="text-muted-foreground text-xs">{insight.body}</p>
+            <p className="pt-1 text-xs">
+              <span className="text-muted-foreground">Próxima ação: </span>
+              <span className="font-medium">{insight.next_action}</span>
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="flex gap-2 text-xs">
+            <button
+              type="button"
+              onClick={() => setMode("pick")}
+              className={`rounded-full px-3 py-1 border ${mode === "pick" ? "border-primary text-primary" : "border-white/10 text-muted-foreground"}`}
+            >
+              Projeto existente
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("new")}
+              className={`rounded-full px-3 py-1 border ${mode === "new" ? "border-primary text-primary" : "border-white/10 text-muted-foreground"}`}
+            >
+              Novo projeto
+            </button>
+          </div>
+
+          {mode === "pick" ? (
+            <div className="space-y-1.5">
+              <Label>Projeto</Label>
+              <Select value={projectId} onValueChange={setProjectId}>
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      projectsQ.isLoading
+                        ? "Carregando..."
+                        : projectsQ.data?.items.length
+                          ? "Selecione um projeto"
+                          : "Nenhum projeto — crie um novo"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectsQ.data?.items.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <Label>Nome do novo projeto</Label>
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Ex.: Ativação Q3"
+              />
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label>Prazo (opcional)</Label>
+            <Input
+              type="date"
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => create.mutate()}
+            disabled={!canSubmit || create.isPending}
+          >
+            {create.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Criando...
+              </>
+            ) : (
+              "Criar tarefa"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
