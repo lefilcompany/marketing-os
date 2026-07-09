@@ -83,16 +83,16 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
   const bibliotecaModule = MODULES.find((m) => m.slug === "biblioteca");
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
-      <SidebarHeader className="border-b">
-        <div className="flex items-center gap-2 px-2 py-1">
-          <div className="h-8 w-8 rounded-lg bg-gradient-hero flex items-center justify-center shrink-0">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border">
+        <div className="flex items-center gap-2.5 px-2 py-2">
+          <div className="h-8 w-8 rounded-lg bg-gradient-hero flex items-center justify-center shrink-0 shadow-sm">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="font-display font-semibold text-sm leading-tight">Marketing OS</div>
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">LeFil</div>
+              <div className="font-display font-semibold text-[13px] leading-tight tracking-tight">Marketing OS</div>
+              <div className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground mt-0.5">LeFil</div>
             </div>
           )}
         </div>
