@@ -245,6 +245,69 @@ export type Database = {
         }
         Relationships: []
       }
+      audience_segments: {
+        Row: {
+          characteristics: Json
+          color: string | null
+          created_at: string
+          created_by: string
+          hypothesis: string | null
+          id: string
+          name: string
+          organization_id: string
+          persona_id: string | null
+          priority: string
+          size_estimate: string | null
+          source_refs: Json
+          updated_at: string
+        }
+        Insert: {
+          characteristics?: Json
+          color?: string | null
+          created_at?: string
+          created_by: string
+          hypothesis?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          persona_id?: string | null
+          priority?: string
+          size_estimate?: string | null
+          source_refs?: Json
+          updated_at?: string
+        }
+        Update: {
+          characteristics?: Json
+          color?: string | null
+          created_at?: string
+          created_by?: string
+          hypothesis?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          persona_id?: string | null
+          priority?: string
+          size_estimate?: string | null
+          source_refs?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audience_segments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audience_segments_persona_id_fkey"
+            columns: ["persona_id"]
+            isOneToOne: false
+            referencedRelation: "personas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1082,6 +1145,69 @@ export type Database = {
           },
           {
             foreignKeyName: "projects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      research_sources: {
+        Row: {
+          created_at: string
+          created_by: string
+          csd_item_id: string | null
+          id: string
+          insights: Json
+          kind: string
+          notes: string | null
+          organization_id: string
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          csd_item_id?: string | null
+          id?: string
+          insights?: Json
+          kind?: string
+          notes?: string | null
+          organization_id: string
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          csd_item_id?: string | null
+          id?: string
+          insights?: Json
+          kind?: string
+          notes?: string | null
+          organization_id?: string
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_sources_csd_item_id_fkey"
+            columns: ["csd_item_id"]
+            isOneToOne: false
+            referencedRelation: "csd_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_sources_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
