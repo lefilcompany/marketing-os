@@ -362,7 +362,7 @@ function BaseEditor({
     setRole(persona.role ?? "");
     setDemographics((persona.demographics ?? {}) as Record<string, string>);
     setPains((persona.pains ?? []) as string[]);
-    setGains((persona.gains ?? []) as string[>);
+    setGains((persona.gains ?? []) as string[]);
     setChannels((persona.channels ?? []) as string[]);
   }, [persona.description, persona.role, persona.demographics, persona.pains, persona.gains, persona.channels]);
 
