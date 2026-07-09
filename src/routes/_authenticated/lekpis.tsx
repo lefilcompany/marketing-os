@@ -1,8 +1,242 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ModuleShell } from "@/components/module-shell";
-import { getModule } from "@/lib/modules";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useWorkspace } from "@/lib/workspace-context";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { BarChart3, Sparkles, RefreshCw, LayoutTemplate } from "lucide-react";
+import { toast } from "sonner";
+import {
+  DASHBOARD_TEMPLATES,
+  formatMetric,
+  getTemplate,
+  type DashboardMetric,
+} from "@/lib/dashboard-templates";
+import { listKpisByKeys, seedTemplateKpis } from "@/lib/kpis.functions";
 
 export const Route = createFileRoute("/_authenticated/lekpis")({
   head: () => ({ meta: [{ title: "LeKPIs — Marketing OS" }] }),
-  component: () => <ModuleShell module={getModule("lekpis")!} />,
+  component: LeKpisPage,
 });
+
+function LeKpisPage() {
+  const [templateSlug, setTemplateSlug] = useState<string>(DASHBOARD_TEMPLATES[0].slug);
+  const template = getTemplate(templateSlug)!;
+  const { currentOrgId } = useWorkspace();
+  const qc = useQueryClient();
+
+  const keys = useMemo(() => template.metrics.map((m) => m.key), [template]);
+
+  const kpisQ = useQuery({
+    queryKey: ["lekpis", currentOrgId, templateSlug],
+    queryFn: () => listKpisByKeys({ data: { organizationId: currentOrgId!, keys } }),
+    enabled: !!currentOrgId,
+  });
+
+  const seedM = useMutation({
+    mutationFn: () =>
+      seedTemplateKpis({
+        data: {
+          organizationId: currentOrgId!,
+          module: `template:${template.slug}`,
+          metrics: template.metrics.map((m) => ({
+            key: m.key,
+            label: `${m.label} · ${m.platform}`,
+            unit: m.unit,
+            target: m.target ?? null,
+          })),
+        },
+      }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["lekpis", currentOrgId, templateSlug] });
+      if (res.inserted > 0) toast.success(`${res.inserted} indicador(es) criado(s).`);
+      else toast.info("Todos os indicadores desse template já existem.");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Falha ao aplicar template."),
+  });
+
+  const byKey = useMemo(() => {
+    const map = new Map<string, { value: number | null; target: number | null; updated_at: string | null }>();
+    for (const row of (kpisQ.data?.items ?? []) as Array<{ metric_key: string; value: number | null; target: number | null; updated_at: string | null }>) {
+      map.set(row.metric_key, { value: row.value, target: row.target, updated_at: row.updated_at });
+    }
+    return map;
+  }, [kpisQ.data]);
+
+  return (
+    <div className="relative min-h-[calc(100vh-4rem)]">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 -z-10 opacity-50"
+        style={{
+          background: `radial-gradient(60% 100% at 20% 0%, color-mix(in oklab, ${template.color} 30%, transparent), transparent 70%)`,
+        }}
+      />
+
+      <div className="mx-auto max-w-6xl px-6 py-10 space-y-8">
+        <header className="flex items-start gap-5">
+          <div
+            className="grid h-14 w-14 place-items-center rounded-2xl border border-white/20 shadow-elevated"
+            style={{
+              background: `linear-gradient(135deg, color-mix(in oklab, ${template.color} 55%, transparent), color-mix(in oklab, ${template.color} 20%, transparent))`,
+            }}
+          >
+            <BarChart3 className="h-6 w-6 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                Módulo · LeKPIs
+              </p>
+              <Badge variant="secondary" className="text-[10px]">Templates</Badge>
+            </div>
+            <h1 className="font-display text-3xl font-semibold tracking-tight mt-1">
+              Dashboards multi-plataforma
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Combine métricas de mídia, CRM, site, e-mail e financeiro em uma única visão pronta.
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            onClick={() => seedM.mutate()}
+            disabled={!currentOrgId || seedM.isPending}
+            className="gap-2 shrink-0"
+          >
+            <Sparkles className="h-4 w-4" />
+            {seedM.isPending ? "Aplicando…" : "Aplicar template"}
+          </Button>
+        </header>
+
+        <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {DASHBOARD_TEMPLATES.map((t) => {
+            const active = t.slug === templateSlug;
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.slug}
+                onClick={() => setTemplateSlug(t.slug)}
+                className={`group relative rounded-xl border p-3 text-left transition-all ${
+                  active ? "border-primary/60" : "hover:border-primary/30"
+                }`}
+                style={active ? { boxShadow: `0 12px 40px -18px ${t.color}` } : undefined}
+              >
+                <div
+                  className="grid h-8 w-8 place-items-center rounded-lg mb-2"
+                  style={{ background: `color-mix(in oklab, ${t.color} 30%, transparent)` }}
+                >
+                  <Icon className="h-4 w-4 text-white" />
+                </div>
+                <div className="text-sm font-medium leading-tight">{t.name}</div>
+                <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{t.tagline}</p>
+                {active && (
+                  <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full"
+                        style={{ background: t.color }} />
+                )}
+              </button>
+            );
+          })}
+        </section>
+
+        <section className="surface-card p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <LayoutTemplate className="h-4 w-4 text-muted-foreground" />
+              <h2 className="font-display text-lg font-semibold">{template.name}</h2>
+              <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
+                {template.metrics.length} métricas
+              </Badge>
+            </div>
+            <Button size="sm" variant="ghost" className="gap-1"
+                    onClick={() => qc.invalidateQueries({ queryKey: ["lekpis", currentOrgId, templateSlug] })}>
+              <RefreshCw className={`h-3.5 w-3.5 ${kpisQ.isFetching ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {template.metrics.map((m) => (
+              <MetricCard
+                key={m.key}
+                metric={m}
+                snapshot={byKey.get(m.key)}
+                loading={kpisQ.isLoading}
+                color={template.color}
+              />
+            ))}
+          </div>
+
+          <p className="text-xs text-muted-foreground mt-5">
+            Sem dados? Clique em <span className="font-medium">Aplicar template</span> para criar os
+            indicadores no workspace — depois atualize os valores via LeKPIs ou integrações.
+          </p>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function MetricCard({
+  metric, snapshot, loading, color,
+}: {
+  metric: DashboardMetric;
+  snapshot: { value: number | null; target: number | null; updated_at: string | null } | undefined;
+  loading: boolean;
+  color: string;
+}) {
+  const value = snapshot?.value ?? null;
+  const target = snapshot?.target ?? metric.target ?? null;
+  const pct = value != null && target && target > 0
+    ? Math.max(0, Math.min(150, (value / target) * 100))
+    : null;
+  const status = pct == null ? "empty" : pct >= 100 ? "hit" : pct >= 70 ? "on-track" : "off";
+
+  return (
+    <div className="rounded-xl border p-4 bg-surface/60">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            {metric.platform}
+          </div>
+          <div className="text-sm font-medium truncate">{metric.label}</div>
+        </div>
+        <span
+          className="h-2 w-2 rounded-full shrink-0"
+          style={{
+            background:
+              status === "hit" ? "oklch(0.72 0.18 145)" :
+              status === "on-track" ? color :
+              status === "off" ? "oklch(0.7 0.18 25)" :
+              "var(--muted-foreground)",
+          }}
+          title={status}
+        />
+      </div>
+      <div className="mt-3 flex items-baseline gap-2">
+        {loading ? (
+          <Skeleton className="h-7 w-24" />
+        ) : (
+          <span className="font-display text-2xl font-semibold">
+            {formatMetric(metric, value)}
+          </span>
+        )}
+        {target != null && (
+          <span className="text-[11px] text-muted-foreground">
+            meta {formatMetric(metric, target)}
+          </span>
+        )}
+      </div>
+      {pct != null && (
+        <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all"
+            style={{
+              width: `${Math.min(100, pct)}%`,
+              background: status === "hit" ? "oklch(0.72 0.18 145)" : color,
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
