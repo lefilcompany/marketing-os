@@ -8,6 +8,8 @@ import {
   callMcpTool,
   disconnectMcp,
 } from "@/lib/mcp.functions";
+import { McpResourceExplorer } from "@/components/mcp-resource-explorer";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
