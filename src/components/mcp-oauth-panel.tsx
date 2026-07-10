@@ -8,6 +8,8 @@ import {
   callMcpTool,
   disconnectMcp,
 } from "@/lib/mcp.functions";
+import { McpResourceExplorer } from "@/components/mcp-resource-explorer";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -184,17 +186,13 @@ export function McpOAuthPanel({ provider }: { provider: string }) {
                 Erro ao listar tools: {(tools.error as Error).message}
               </p>
             ) : (
-              <ToolsList
-                tools={tools.data?.tools ?? []}
-                onRun={async (name, args) => {
-                  const res = await callFn({
-                    data: { provider, name, arguments: args as Record<string, never> },
-                  });
-                  return res.result;
-                }}
-
+              <McpResourceExplorer
+                provider={provider}
+                tools={((tools.data?.tools ?? []) as unknown) as Parameters<typeof McpResourceExplorer>[0]["tools"]}
               />
             )}
+
+
           </div>
         )}
       </div>
