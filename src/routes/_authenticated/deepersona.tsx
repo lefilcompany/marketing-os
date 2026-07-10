@@ -499,5 +499,6 @@ function DeePersonaIndex() {
         </section>
       </div>
     </div>
+    </>
   );
 }
