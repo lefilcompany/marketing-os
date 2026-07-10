@@ -285,7 +285,6 @@ function DeePersonaIndex() {
               <li key={s.key}>
                 <Link
                   to={s.to}
-                  to={s.to}
                   className="group surface-card relative flex h-full flex-col gap-3 overflow-hidden p-5 transition hover:border-white/25 hover:shadow-elevated"
                 >
                   <div
