@@ -12,7 +12,7 @@ function DeePersonaIndex() {
   const mod = getModule("deepersona")!;
   return (
     <>
-      <ModulePlatformShell module={mod} />
+      <ModulePlatformShell module={mod} hideMcpPanel />
       <McpOAuthPanel provider="deepersona" />
     </>
   );
