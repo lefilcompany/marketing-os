@@ -51,6 +51,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ModulePlatformShell } from "@/components/module-platform-shell";
 
 const METHODOLOGY: Array<{
   step: string;
