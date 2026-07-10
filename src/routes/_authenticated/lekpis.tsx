@@ -206,6 +206,7 @@ function LeKpisPage() {
         />
       )}
     </div>
+    </>
   );
 }
 
