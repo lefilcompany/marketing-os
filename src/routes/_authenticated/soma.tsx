@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ModuleShell } from "@/components/module-shell";
+import { ModulePlatformShell } from "@/components/module-platform-shell";
 import { getModule } from "@/lib/modules";
 import { useWorkspace } from "@/lib/workspace-context";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,8 @@ function SomaPage() {
   const mod = getModule("soma")!;
   return (
     <div>
-      <ModuleShell module={mod} />
-      <div className="mx-auto max-w-6xl px-6 pb-14 -mt-6">
+      <ModulePlatformShell module={mod} />
+      <div className="mx-auto max-w-6xl px-6 pb-14">
         <TasksCsvPanel />
       </div>
     </div>
