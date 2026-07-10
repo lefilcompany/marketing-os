@@ -35,6 +35,10 @@ export type ModuleDef = {
   status: "active" | "beta" | "soon";
   /** Chave usada em `copilot_recommendations.module` para filtrar. */
   moduleKey: string;
+  /** URL externa da plataforma dedicada do módulo, quando existir. */
+  platformUrl?: string;
+  /** Sugestão de URL MCP externa (o usuário pode sobrescrever na UI). */
+  suggestedMcpUrl?: string;
 };
 
 export const MODULES: ModuleDef[] = [
