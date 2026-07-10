@@ -343,7 +343,9 @@ export function ModulePlatformShell({
           })}
         </div>
       </div>
+      )}
     </section>
+
   );
 }
 
