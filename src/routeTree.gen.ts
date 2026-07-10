@@ -31,6 +31,7 @@ import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
 import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authenticated/aplicacoes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiMcpCallbackRouteImport } from './routes/api/mcp/callback'
 import { Route as AuthenticatedLekpisTemplatesRouteImport } from './routes/_authenticated/lekpis.templates'
 import { Route as AuthenticatedDeepersonaSegmentacaoRouteImport } from './routes/_authenticated/deepersona.segmentacao'
 import { Route as AuthenticatedDeepersonaPriorizacaoRouteImport } from './routes/_authenticated/deepersona.priorizacao'
@@ -156,6 +157,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiMcpCallbackRoute = ApiMcpCallbackRouteImport.update({
+  id: '/api/mcp/callback',
+  path: '/api/mcp/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedLekpisTemplatesRoute =
   AuthenticatedLekpisTemplatesRouteImport.update({
     id: '/templates',
@@ -256,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
   '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
+  '/api/mcp/callback': typeof ApiMcpCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -290,6 +297,7 @@ export interface FileRoutesByTo {
   '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
   '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
+  '/api/mcp/callback': typeof ApiMcpCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -326,6 +334,7 @@ export interface FileRoutesById {
   '/_authenticated/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/_authenticated/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
   '/_authenticated/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
+  '/api/mcp/callback': typeof ApiMcpCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -362,6 +371,7 @@ export interface FileRouteTypes {
     | '/deepersona/priorizacao'
     | '/deepersona/segmentacao'
     | '/lekpis/templates'
+    | '/api/mcp/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -396,6 +406,7 @@ export interface FileRouteTypes {
     | '/deepersona/priorizacao'
     | '/deepersona/segmentacao'
     | '/lekpis/templates'
+    | '/api/mcp/callback'
   id:
     | '__root__'
     | '/'
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/_authenticated/deepersona/priorizacao'
     | '/_authenticated/deepersona/segmentacao'
     | '/_authenticated/lekpis/templates'
+    | '/api/mcp/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -438,6 +450,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiMcpCallbackRoute: typeof ApiMcpCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -595,6 +608,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/mcp/callback': {
+      id: '/api/mcp/callback'
+      path: '/api/mcp/callback'
+      fullPath: '/api/mcp/callback'
+      preLoaderRoute: typeof ApiMcpCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/lekpis/templates': {
       id: '/_authenticated/lekpis/templates'
@@ -792,6 +812,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiMcpCallbackRoute: ApiMcpCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

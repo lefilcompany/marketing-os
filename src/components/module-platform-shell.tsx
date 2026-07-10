@@ -50,6 +50,7 @@ function writeConfig(slug: string, cfg: SavedConfig | null) {
 export function ModulePlatformShell({
   module,
   actions,
+  hideMcpPanel,
 }: {
   module: ModuleDef;
   /** Ações que ficam habilitadas quando o MCP está conectado. */
@@ -58,7 +59,10 @@ export function ModulePlatformShell({
     title: string;
     description: string;
   }>;
+  /** Oculta o painel MCP genérico (útil quando uma integração OAuth real é usada abaixo). */
+  hideMcpPanel?: boolean;
 }) {
+
   const Icon = module.icon;
   const [config, setConfig] = useState<SavedConfig | null>(() => readConfig(module.slug));
   const [url, setUrl] = useState<string>(config?.url ?? module.suggestedMcpUrl ?? "");
@@ -211,7 +215,9 @@ export function ModulePlatformShell({
       </div>
 
       {/* Painel MCP + Ações */}
+      {!hideMcpPanel && (
       <div className="mx-auto max-w-6xl px-6 py-6 space-y-6">
+
         <div className="surface-card p-5 space-y-4">
           <header className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
@@ -337,7 +343,9 @@ export function ModulePlatformShell({
           })}
         </div>
       </div>
+      )}
     </section>
+
   );
 }
 
