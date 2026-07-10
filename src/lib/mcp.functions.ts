@@ -111,6 +111,8 @@ async function loadAccessToken(userId: string, providerSlug: string): Promise<{
   return { accessToken: tokens.access_token, resource: row.resource };
 }
 
+type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
+
 export const listMcpTools = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { provider: string }) => input)
@@ -118,24 +120,24 @@ export const listMcpTools = createServerFn({ method: "POST" })
     const { mcpInitializeAndListTools } = await import("./mcp.server");
     const { accessToken, resource } = await loadAccessToken(context.userId, data.provider);
     const { tools, serverInfo } = await mcpInitializeAndListTools(resource, accessToken);
-    // Force plain JSON to satisfy the RPC serialization contract.
     return JSON.parse(JSON.stringify({ tools, serverInfo })) as {
-      tools: Array<{ name: string; title?: string; description?: string; inputSchema?: unknown }>;
-      serverInfo?: unknown;
+      tools: Array<{ name: string; title?: string; description?: string; inputSchema?: JsonValue }>;
+      serverInfo?: JsonValue;
     };
   });
 
 export const callMcpTool = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { provider: string; name: string; arguments: Record<string, unknown> }) => input,
+    (input: { provider: string; name: string; arguments: Record<string, JsonValue> }) => input,
   )
   .handler(async ({ data, context }) => {
     const { mcpCallTool } = await import("./mcp.server");
     const { accessToken, resource } = await loadAccessToken(context.userId, data.provider);
     const result = await mcpCallTool(resource, accessToken, data.name, data.arguments);
-    return JSON.parse(JSON.stringify({ result })) as { result: unknown };
+    return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
   });
+
 
 
 export const disconnectMcp = createServerFn({ method: "POST" })
