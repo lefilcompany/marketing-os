@@ -118,7 +118,11 @@ export const listMcpTools = createServerFn({ method: "POST" })
     const { mcpInitializeAndListTools } = await import("./mcp.server");
     const { accessToken, resource } = await loadAccessToken(context.userId, data.provider);
     const { tools, serverInfo } = await mcpInitializeAndListTools(resource, accessToken);
-    return { tools, serverInfo };
+    // Force plain JSON to satisfy the RPC serialization contract.
+    return JSON.parse(JSON.stringify({ tools, serverInfo })) as {
+      tools: Array<{ name: string; title?: string; description?: string; inputSchema?: unknown }>;
+      serverInfo?: unknown;
+    };
   });
 
 export const callMcpTool = createServerFn({ method: "POST" })
@@ -130,8 +134,9 @@ export const callMcpTool = createServerFn({ method: "POST" })
     const { mcpCallTool } = await import("./mcp.server");
     const { accessToken, resource } = await loadAccessToken(context.userId, data.provider);
     const result = await mcpCallTool(resource, accessToken, data.name, data.arguments);
-    return { result };
+    return JSON.parse(JSON.stringify({ result })) as { result: unknown };
   });
+
 
 export const disconnectMcp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
