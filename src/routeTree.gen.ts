@@ -21,6 +21,7 @@ import { Route as AuthenticatedLekpisRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedIaRouteImport } from './routes/_authenticated/ia'
 import { Route as AuthenticatedEstrategiaRouteImport } from './routes/_authenticated/estrategia'
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
+import { Route as AuthenticatedDeepersonaRouteImport } from './routes/_authenticated/deepersona'
 import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
@@ -105,6 +106,11 @@ const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
   path: '/equipe',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDeepersonaRoute = AuthenticatedDeepersonaRouteImport.update({
+  id: '/deepersona',
+  path: '/deepersona',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardsRoute = AuthenticatedDashboardsRouteImport.update({
   id: '/dashboards',
   path: '/dashboards',
@@ -154,9 +160,9 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 } as any)
 const AuthenticatedDeepersonaIndexRoute =
   AuthenticatedDeepersonaIndexRouteImport.update({
-    id: '/deepersona/',
-    path: '/deepersona/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
   } as any)
 const ApiMcpCallbackRoute = ApiMcpCallbackRouteImport.update({
   id: '/api/mcp/callback',
@@ -171,39 +177,39 @@ const AuthenticatedLekpisTemplatesRoute =
   } as any)
 const AuthenticatedDeepersonaSegmentacaoRoute =
   AuthenticatedDeepersonaSegmentacaoRouteImport.update({
-    id: '/deepersona/segmentacao',
-    path: '/deepersona/segmentacao',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/segmentacao',
+    path: '/segmentacao',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
   } as any)
 const AuthenticatedDeepersonaPriorizacaoRoute =
   AuthenticatedDeepersonaPriorizacaoRouteImport.update({
-    id: '/deepersona/priorizacao',
-    path: '/deepersona/priorizacao',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/priorizacao',
+    path: '/priorizacao',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
   } as any)
 const AuthenticatedDeepersonaCsdRoute =
   AuthenticatedDeepersonaCsdRouteImport.update({
-    id: '/deepersona/csd',
-    path: '/deepersona/csd',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/csd',
+    path: '/csd',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
   } as any)
 const AuthenticatedDeepersonaColetaRoute =
   AuthenticatedDeepersonaColetaRouteImport.update({
-    id: '/deepersona/coleta',
-    path: '/deepersona/coleta',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/coleta',
+    path: '/coleta',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
   } as any)
 const AuthenticatedDeepersonaAgentesRoute =
   AuthenticatedDeepersonaAgentesRouteImport.update({
-    id: '/deepersona/agentes',
-    path: '/deepersona/agentes',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/agentes',
+    path: '/agentes',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
   } as any)
 const AuthenticatedDeepersonaIdRoute =
   AuthenticatedDeepersonaIdRouteImport.update({
-    id: '/deepersona/$id',
-    path: '/deepersona/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
   } as any)
 const AuthenticatedAplicacoesSlugRoute =
   AuthenticatedAplicacoesSlugRouteImport.update({
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/creator': typeof AuthenticatedCreatorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
+  '/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
   '/equipe': typeof AuthenticatedEquipeRoute
   '/estrategia': typeof AuthenticatedEstrategiaRoute
   '/ia': typeof AuthenticatedIaRoute
@@ -315,6 +322,7 @@ export interface FileRoutesById {
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
+  '/_authenticated/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/estrategia': typeof AuthenticatedEstrategiaRoute
   '/_authenticated/ia': typeof AuthenticatedIaRoute
@@ -352,6 +360,7 @@ export interface FileRouteTypes {
     | '/creator'
     | '/dashboard'
     | '/dashboards'
+    | '/deepersona'
     | '/equipe'
     | '/estrategia'
     | '/ia'
@@ -423,6 +432,7 @@ export interface FileRouteTypes {
     | '/_authenticated/creator'
     | '/_authenticated/dashboard'
     | '/_authenticated/dashboards'
+    | '/_authenticated/deepersona'
     | '/_authenticated/equipe'
     | '/_authenticated/estrategia'
     | '/_authenticated/ia'
@@ -540,6 +550,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEquipeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/deepersona': {
+      id: '/_authenticated/deepersona'
+      path: '/deepersona'
+      fullPath: '/deepersona'
+      preLoaderRoute: typeof AuthenticatedDeepersonaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboards': {
       id: '/_authenticated/dashboards'
       path: '/dashboards'
@@ -605,10 +622,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/deepersona/': {
       id: '/_authenticated/deepersona/'
-      path: '/deepersona'
+      path: '/'
       fullPath: '/deepersona/'
       preLoaderRoute: typeof AuthenticatedDeepersonaIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDeepersonaRoute
     }
     '/api/mcp/callback': {
       id: '/api/mcp/callback'
@@ -626,45 +643,45 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/deepersona/segmentacao': {
       id: '/_authenticated/deepersona/segmentacao'
-      path: '/deepersona/segmentacao'
+      path: '/segmentacao'
       fullPath: '/deepersona/segmentacao'
       preLoaderRoute: typeof AuthenticatedDeepersonaSegmentacaoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDeepersonaRoute
     }
     '/_authenticated/deepersona/priorizacao': {
       id: '/_authenticated/deepersona/priorizacao'
-      path: '/deepersona/priorizacao'
+      path: '/priorizacao'
       fullPath: '/deepersona/priorizacao'
       preLoaderRoute: typeof AuthenticatedDeepersonaPriorizacaoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDeepersonaRoute
     }
     '/_authenticated/deepersona/csd': {
       id: '/_authenticated/deepersona/csd'
-      path: '/deepersona/csd'
+      path: '/csd'
       fullPath: '/deepersona/csd'
       preLoaderRoute: typeof AuthenticatedDeepersonaCsdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDeepersonaRoute
     }
     '/_authenticated/deepersona/coleta': {
       id: '/_authenticated/deepersona/coleta'
-      path: '/deepersona/coleta'
+      path: '/coleta'
       fullPath: '/deepersona/coleta'
       preLoaderRoute: typeof AuthenticatedDeepersonaColetaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDeepersonaRoute
     }
     '/_authenticated/deepersona/agentes': {
       id: '/_authenticated/deepersona/agentes'
-      path: '/deepersona/agentes'
+      path: '/agentes'
       fullPath: '/deepersona/agentes'
       preLoaderRoute: typeof AuthenticatedDeepersonaAgentesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDeepersonaRoute
     }
     '/_authenticated/deepersona/$id': {
       id: '/_authenticated/deepersona/$id'
-      path: '/deepersona/$id'
+      path: '/$id'
       fullPath: '/deepersona/$id'
       preLoaderRoute: typeof AuthenticatedDeepersonaIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDeepersonaRoute
     }
     '/_authenticated/aplicacoes/$slug': {
       id: '/_authenticated/aplicacoes/$slug'
@@ -726,6 +743,34 @@ const AuthenticatedAplicacoesRouteWithChildren =
     AuthenticatedAplicacoesRouteChildren,
   )
 
+interface AuthenticatedDeepersonaRouteChildren {
+  AuthenticatedDeepersonaIdRoute: typeof AuthenticatedDeepersonaIdRoute
+  AuthenticatedDeepersonaAgentesRoute: typeof AuthenticatedDeepersonaAgentesRoute
+  AuthenticatedDeepersonaColetaRoute: typeof AuthenticatedDeepersonaColetaRoute
+  AuthenticatedDeepersonaCsdRoute: typeof AuthenticatedDeepersonaCsdRoute
+  AuthenticatedDeepersonaPriorizacaoRoute: typeof AuthenticatedDeepersonaPriorizacaoRoute
+  AuthenticatedDeepersonaSegmentacaoRoute: typeof AuthenticatedDeepersonaSegmentacaoRoute
+  AuthenticatedDeepersonaIndexRoute: typeof AuthenticatedDeepersonaIndexRoute
+}
+
+const AuthenticatedDeepersonaRouteChildren: AuthenticatedDeepersonaRouteChildren =
+  {
+    AuthenticatedDeepersonaIdRoute: AuthenticatedDeepersonaIdRoute,
+    AuthenticatedDeepersonaAgentesRoute: AuthenticatedDeepersonaAgentesRoute,
+    AuthenticatedDeepersonaColetaRoute: AuthenticatedDeepersonaColetaRoute,
+    AuthenticatedDeepersonaCsdRoute: AuthenticatedDeepersonaCsdRoute,
+    AuthenticatedDeepersonaPriorizacaoRoute:
+      AuthenticatedDeepersonaPriorizacaoRoute,
+    AuthenticatedDeepersonaSegmentacaoRoute:
+      AuthenticatedDeepersonaSegmentacaoRoute,
+    AuthenticatedDeepersonaIndexRoute: AuthenticatedDeepersonaIndexRoute,
+  }
+
+const AuthenticatedDeepersonaRouteWithChildren =
+  AuthenticatedDeepersonaRoute._addFileChildren(
+    AuthenticatedDeepersonaRouteChildren,
+  )
+
 interface AuthenticatedLekpisRouteChildren {
   AuthenticatedLekpisTemplatesRoute: typeof AuthenticatedLekpisTemplatesRoute
 }
@@ -747,6 +792,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
+  AuthenticatedDeepersonaRoute: typeof AuthenticatedDeepersonaRouteWithChildren
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedEstrategiaRoute: typeof AuthenticatedEstrategiaRoute
   AuthenticatedIaRoute: typeof AuthenticatedIaRoute
@@ -755,13 +801,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedSolicitacoesRoute: typeof AuthenticatedSolicitacoesRoute
   AuthenticatedSomaRoute: typeof AuthenticatedSomaRoute
-  AuthenticatedDeepersonaIdRoute: typeof AuthenticatedDeepersonaIdRoute
-  AuthenticatedDeepersonaAgentesRoute: typeof AuthenticatedDeepersonaAgentesRoute
-  AuthenticatedDeepersonaColetaRoute: typeof AuthenticatedDeepersonaColetaRoute
-  AuthenticatedDeepersonaCsdRoute: typeof AuthenticatedDeepersonaCsdRoute
-  AuthenticatedDeepersonaPriorizacaoRoute: typeof AuthenticatedDeepersonaPriorizacaoRoute
-  AuthenticatedDeepersonaSegmentacaoRoute: typeof AuthenticatedDeepersonaSegmentacaoRoute
-  AuthenticatedDeepersonaIndexRoute: typeof AuthenticatedDeepersonaIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -774,6 +813,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
+  AuthenticatedDeepersonaRoute: AuthenticatedDeepersonaRouteWithChildren,
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
   AuthenticatedEstrategiaRoute: AuthenticatedEstrategiaRoute,
   AuthenticatedIaRoute: AuthenticatedIaRoute,
@@ -782,15 +822,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedSolicitacoesRoute: AuthenticatedSolicitacoesRoute,
   AuthenticatedSomaRoute: AuthenticatedSomaRoute,
-  AuthenticatedDeepersonaIdRoute: AuthenticatedDeepersonaIdRoute,
-  AuthenticatedDeepersonaAgentesRoute: AuthenticatedDeepersonaAgentesRoute,
-  AuthenticatedDeepersonaColetaRoute: AuthenticatedDeepersonaColetaRoute,
-  AuthenticatedDeepersonaCsdRoute: AuthenticatedDeepersonaCsdRoute,
-  AuthenticatedDeepersonaPriorizacaoRoute:
-    AuthenticatedDeepersonaPriorizacaoRoute,
-  AuthenticatedDeepersonaSegmentacaoRoute:
-    AuthenticatedDeepersonaSegmentacaoRoute,
-  AuthenticatedDeepersonaIndexRoute: AuthenticatedDeepersonaIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -806,3 +837,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
