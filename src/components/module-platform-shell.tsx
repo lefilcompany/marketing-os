@@ -215,7 +215,9 @@ export function ModulePlatformShell({
       </div>
 
       {/* Painel MCP + Ações */}
+      {!hideMcpPanel && (
       <div className="mx-auto max-w-6xl px-6 py-6 space-y-6">
+
         <div className="surface-card p-5 space-y-4">
           <header className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
