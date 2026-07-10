@@ -50,6 +50,7 @@ function writeConfig(slug: string, cfg: SavedConfig | null) {
 export function ModulePlatformShell({
   module,
   actions,
+  hideMcpPanel,
 }: {
   module: ModuleDef;
   /** Ações que ficam habilitadas quando o MCP está conectado. */
@@ -58,7 +59,10 @@ export function ModulePlatformShell({
     title: string;
     description: string;
   }>;
+  /** Oculta o painel MCP genérico (útil quando uma integração OAuth real é usada abaixo). */
+  hideMcpPanel?: boolean;
 }) {
+
   const Icon = module.icon;
   const [config, setConfig] = useState<SavedConfig | null>(() => readConfig(module.slug));
   const [url, setUrl] = useState<string>(config?.url ?? module.suggestedMcpUrl ?? "");
