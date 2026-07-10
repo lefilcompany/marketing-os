@@ -26,7 +26,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/deepersona")({
+export const Route = createFileRoute("/_authenticated/deepersona/")({
   head: () => ({ meta: [{ title: "DeePersona — Marketing OS" }] }),
   component: DeePersonaIndex,
 });
