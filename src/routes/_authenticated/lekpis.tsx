@@ -16,6 +16,8 @@ import { listKpisByKeys } from "@/lib/kpis.functions";
 import { SeedTemplateButton } from "@/components/seed-template-button";
 import { EditKpiDialog } from "@/components/edit-kpi-dialog";
 import { Pencil } from "lucide-react";
+import { ModulePlatformShell } from "@/components/module-platform-shell";
+import { getModule } from "@/lib/modules";
 
 export const Route = createFileRoute("/_authenticated/lekpis")({
   head: () => ({ meta: [{ title: "LeKPIs — Marketing OS" }] }),
@@ -72,7 +74,9 @@ function LeKpisPage() {
   const editingSnapshot = editingKey ? byKey.get(editingKey) : undefined;
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)]">
+    <>
+      <ModulePlatformShell module={getModule("lekpis")!} />
+      <div className="relative min-h-[calc(100vh-4rem)]">
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-64 -z-10 opacity-50"
         style={{
@@ -204,6 +208,7 @@ function LeKpisPage() {
         />
       )}
     </div>
+    </>
   );
 }
 

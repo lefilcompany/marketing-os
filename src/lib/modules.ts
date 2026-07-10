@@ -35,6 +35,10 @@ export type ModuleDef = {
   status: "active" | "beta" | "soon";
   /** Chave usada em `copilot_recommendations.module` para filtrar. */
   moduleKey: string;
+  /** URL externa da plataforma dedicada do módulo, quando existir. */
+  platformUrl?: string;
+  /** Sugestão de URL MCP externa (o usuário pode sobrescrever na UI). */
+  suggestedMcpUrl?: string;
 };
 
 export const MODULES: ModuleDef[] = [
@@ -48,6 +52,8 @@ export const MODULES: ModuleDef[] = [
     route: "/deepersona",
     status: "active",
     moduleKey: "deepersona",
+    platformUrl: "https://pla.deepersona.lefil.com.br",
+    suggestedMcpUrl: "https://pla.deepersona.lefil.com.br/mcp",
   },
   {
     slug: "estrategia",
@@ -70,6 +76,8 @@ export const MODULES: ModuleDef[] = [
     route: "/creator",
     status: "active",
     moduleKey: "creator",
+    platformUrl: "https://pla.creator.lefil.com.br",
+    suggestedMcpUrl: "https://pla.creator.lefil.com.br/mcp",
   },
   {
     slug: "soma",
@@ -81,6 +89,8 @@ export const MODULES: ModuleDef[] = [
     route: "/soma",
     status: "active",
     moduleKey: "soma",
+    platformUrl: "https://pla.soma.lefil.com.br",
+    suggestedMcpUrl: "https://pla.soma.lefil.com.br/mcp",
   },
   {
     slug: "comunidades",
@@ -103,6 +113,8 @@ export const MODULES: ModuleDef[] = [
     route: "/lekpis",
     status: "active",
     moduleKey: "lekpis",
+    platformUrl: "https://pla.lekpis.lefil.com.br",
+    suggestedMcpUrl: "https://pla.lekpis.lefil.com.br/mcp",
   },
   {
     slug: "ia",

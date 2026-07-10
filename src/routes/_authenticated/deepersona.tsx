@@ -51,6 +51,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ModulePlatformShell } from "@/components/module-platform-shell";
 
 const METHODOLOGY: Array<{
   step: string;
@@ -200,7 +201,9 @@ function DeePersonaIndex() {
   });
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)]">
+    <>
+      <ModulePlatformShell module={mod} />
+      <div className="relative min-h-[calc(100vh-4rem)]">
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-64 -z-10 opacity-50"
         style={{
@@ -497,5 +500,6 @@ function DeePersonaIndex() {
         </section>
       </div>
     </div>
+    </>
   );
 }
