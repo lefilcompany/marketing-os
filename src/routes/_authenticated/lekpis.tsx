@@ -16,6 +16,8 @@ import { listKpisByKeys } from "@/lib/kpis.functions";
 import { SeedTemplateButton } from "@/components/seed-template-button";
 import { EditKpiDialog } from "@/components/edit-kpi-dialog";
 import { Pencil } from "lucide-react";
+import { ModulePlatformShell } from "@/components/module-platform-shell";
+import { getModule } from "@/lib/modules";
 
 export const Route = createFileRoute("/_authenticated/lekpis")({
   head: () => ({ meta: [{ title: "LeKPIs — Marketing OS" }] }),
