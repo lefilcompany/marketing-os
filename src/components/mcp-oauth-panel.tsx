@@ -187,9 +187,12 @@ export function McpOAuthPanel({ provider }: { provider: string }) {
               <ToolsList
                 tools={tools.data?.tools ?? []}
                 onRun={async (name, args) => {
-                  const res = await callFn({ data: { provider, name, arguments: args } });
+                  const res = await callFn({
+                    data: { provider, name, arguments: args as Record<string, never> },
+                  });
                   return res.result;
                 }}
+
               />
             )}
           </div>
