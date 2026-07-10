@@ -184,17 +184,12 @@ export function McpOAuthPanel({ provider }: { provider: string }) {
                 Erro ao listar tools: {(tools.error as Error).message}
               </p>
             ) : (
-              <ToolsList
-                tools={tools.data?.tools ?? []}
-                onRun={async (name, args) => {
-                  const res = await callFn({
-                    data: { provider, name, arguments: args as Record<string, never> },
-                  });
-                  return res.result;
-                }}
-
+              <McpResourceExplorer
+                provider={provider}
+                tools={(tools.data?.tools ?? []) as Tool[]}
               />
             )}
+
           </div>
         )}
       </div>
