@@ -158,7 +158,8 @@ function DeePersonaIndex() {
     { label: "Orçamento", value: icp.budget_range as string | undefined },
   ].filter((c) => c.value);
 
-  const linkSearch = active ? { personaId: active.id } : undefined;
+  // O ID da persona ativa fica em localStorage (STORAGE_KEY); as sub-rotas leem
+  // de lá — evita depender de search params tipados em cada rota.
 
   return (
     <>
