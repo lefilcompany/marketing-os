@@ -742,6 +742,87 @@ export type Database = {
           },
         ]
       }
+      mcp_connections: {
+        Row: {
+          access_token: string
+          authorization_server: string
+          client_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          provider: string
+          refresh_token: string | null
+          resource: string
+          scope: string | null
+          token_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          authorization_server: string
+          client_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider: string
+          refresh_token?: string | null
+          resource: string
+          scope?: string | null
+          token_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          authorization_server?: string
+          client_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          provider?: string
+          refresh_token?: string | null
+          resource?: string
+          scope?: string | null
+          token_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mcp_oauth_states: {
+        Row: {
+          client_id: string
+          code_verifier: string
+          created_at: string
+          provider: string
+          redirect_uri: string
+          return_to: string | null
+          state: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          code_verifier: string
+          created_at?: string
+          provider: string
+          redirect_uri: string
+          return_to?: string | null
+          state: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          code_verifier?: string
+          created_at?: string
+          provider?: string
+          redirect_uri?: string
+          return_to?: string | null
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
