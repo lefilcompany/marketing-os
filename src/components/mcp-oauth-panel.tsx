@@ -188,9 +188,10 @@ export function McpOAuthPanel({ provider }: { provider: string }) {
             ) : (
               <McpResourceExplorer
                 provider={provider}
-                tools={(tools.data?.tools ?? []) as Tool[]}
+                tools={((tools.data?.tools ?? []) as unknown) as Parameters<typeof McpResourceExplorer>[0]["tools"]}
               />
             )}
+
 
           </div>
         )}
