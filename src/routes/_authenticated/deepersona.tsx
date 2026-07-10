@@ -200,7 +200,9 @@ function DeePersonaIndex() {
   });
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)]">
+    <>
+      <ModulePlatformShell module={mod} />
+      <div className="relative min-h-[calc(100vh-4rem)]">
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-64 -z-10 opacity-50"
         style={{
