@@ -31,6 +31,7 @@ import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
 import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authenticated/aplicacoes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedDeepersonaIndexRouteImport } from './routes/_authenticated/deepersona.index'
 import { Route as ApiMcpCallbackRouteImport } from './routes/api/mcp/callback'
 import { Route as AuthenticatedLekpisTemplatesRouteImport } from './routes/_authenticated/lekpis.templates'
 import { Route as AuthenticatedDeepersonaSegmentacaoRouteImport } from './routes/_authenticated/deepersona.segmentacao'
@@ -157,6 +158,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDeepersonaIndexRoute =
+  AuthenticatedDeepersonaIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDeepersonaRoute,
+  } as any)
 const ApiMcpCallbackRoute = ApiMcpCallbackRouteImport.update({
   id: '/api/mcp/callback',
   path: '/api/mcp/callback',
@@ -263,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
   '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
   '/api/mcp/callback': typeof ApiMcpCallbackRoute
+  '/deepersona/': typeof AuthenticatedDeepersonaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -277,7 +285,6 @@ export interface FileRoutesByTo {
   '/creator': typeof AuthenticatedCreatorRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
-  '/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
   '/equipe': typeof AuthenticatedEquipeRoute
   '/estrategia': typeof AuthenticatedEstrategiaRoute
   '/ia': typeof AuthenticatedIaRoute
@@ -298,6 +305,7 @@ export interface FileRoutesByTo {
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
   '/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
   '/api/mcp/callback': typeof ApiMcpCallbackRoute
+  '/deepersona': typeof AuthenticatedDeepersonaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -335,6 +343,7 @@ export interface FileRoutesById {
   '/_authenticated/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
   '/_authenticated/lekpis/templates': typeof AuthenticatedLekpisTemplatesRoute
   '/api/mcp/callback': typeof ApiMcpCallbackRoute
+  '/_authenticated/deepersona/': typeof AuthenticatedDeepersonaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -372,6 +381,7 @@ export interface FileRouteTypes {
     | '/deepersona/segmentacao'
     | '/lekpis/templates'
     | '/api/mcp/callback'
+    | '/deepersona/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -386,7 +396,6 @@ export interface FileRouteTypes {
     | '/creator'
     | '/dashboard'
     | '/dashboards'
-    | '/deepersona'
     | '/equipe'
     | '/estrategia'
     | '/ia'
@@ -407,6 +416,7 @@ export interface FileRouteTypes {
     | '/deepersona/segmentacao'
     | '/lekpis/templates'
     | '/api/mcp/callback'
+    | '/deepersona'
   id:
     | '__root__'
     | '/'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/_authenticated/deepersona/segmentacao'
     | '/_authenticated/lekpis/templates'
     | '/api/mcp/callback'
+    | '/_authenticated/deepersona/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -609,6 +620,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/deepersona/': {
+      id: '/_authenticated/deepersona/'
+      path: '/'
+      fullPath: '/deepersona/'
+      preLoaderRoute: typeof AuthenticatedDeepersonaIndexRouteImport
+      parentRoute: typeof AuthenticatedDeepersonaRoute
+    }
     '/api/mcp/callback': {
       id: '/api/mcp/callback'
       path: '/api/mcp/callback'
@@ -732,6 +750,7 @@ interface AuthenticatedDeepersonaRouteChildren {
   AuthenticatedDeepersonaCsdRoute: typeof AuthenticatedDeepersonaCsdRoute
   AuthenticatedDeepersonaPriorizacaoRoute: typeof AuthenticatedDeepersonaPriorizacaoRoute
   AuthenticatedDeepersonaSegmentacaoRoute: typeof AuthenticatedDeepersonaSegmentacaoRoute
+  AuthenticatedDeepersonaIndexRoute: typeof AuthenticatedDeepersonaIndexRoute
 }
 
 const AuthenticatedDeepersonaRouteChildren: AuthenticatedDeepersonaRouteChildren =
@@ -744,6 +763,7 @@ const AuthenticatedDeepersonaRouteChildren: AuthenticatedDeepersonaRouteChildren
       AuthenticatedDeepersonaPriorizacaoRoute,
     AuthenticatedDeepersonaSegmentacaoRoute:
       AuthenticatedDeepersonaSegmentacaoRoute,
+    AuthenticatedDeepersonaIndexRoute: AuthenticatedDeepersonaIndexRoute,
   }
 
 const AuthenticatedDeepersonaRouteWithChildren =
@@ -817,3 +837,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
