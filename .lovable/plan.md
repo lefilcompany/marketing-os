@@ -1,55 +1,49 @@
-# Reformular fluxo LeKPIs: Conectar → Escolher cliente → Home
+# Diagnóstico: lentidão ao trocar de rota no LeKPIs
 
-## Problema atual
-- `/lekpis` (home) trava porque `ClienteAtivoProvider` chama automaticamente `cliente.ensure_default` no boot, e enquanto isso a Home renderiza estados intermediários com queries que podem ficar suspensas ou disparar antes do cliente existir.
-- Não há uma etapa explícita para o usuário escolher qual cliente monitorar; hoje ele "cai" num cliente default, o que confunde e trava quando `ensure_default` demora ou falha.
+## Sintoma
+Ao entrar em `/lekpis` (ou voltar a ele de fora), o layout mostra um spinner por vários segundos antes de renderizar a Home. Trocar entre `/lekpis`, `/lekpis/integracoes` e `/lekpis/perfil` também dá impressão de "recarregar" o layout.
 
-## Novo fluxo (3 gates no layout `/lekpis`)
+## O que está causando
 
-```text
-[Conta LeKPIs conectada?] -- não --> Tela "Conectar LeKPIs" (já existe)
-        | sim
-        v
-[Cliente ativo selecionado?] -- não --> Tela "Escolher cliente"
-        | sim                             (lista clientes, botão selecionar,
-        v                                  botão criar novo em Perfil)
-Home + TopBar + rotas filhas
-```
+Três chamadas seriais bloqueiam o primeiro render do layout:
 
-Cada gate é resolvido no layout `src/routes/_authenticated/lekpis.tsx` antes de montar `ClienteAtivoProvider` + `<Outlet />`. Assim, a Home nunca renderiza sem cliente ativo — elimina o travamento.
+1. **`getMcpConnection` (server function)** em `src/routes/_authenticated/lekpis.tsx` — sem `staleTime`, `retry: 0`. Como não tem cache configurado, ao entrar em `/lekpis` o layout fica preso no `if (connection.isLoading)` até a resposta do server → ida ao servidor → consulta ao Supabase. Isso é o principal fator do delay percebido.
+2. **`clienteListOptions()`** dentro de `SelecionarClienteGate` — dispara `cliente.list` no MCP LeKPIs (round-trip completo pelo server fn `callMcpTool` → HTTPS externo). Enquanto não responde, o gate mostra outro spinner. Mesmo com `staleTime: 30_000`, a primeira montagem em cada sessão custa esse round trip inteiro antes do layout aparecer.
+3. **Sem preload**: o router não está com `defaultPreload: "intent"`. Hover num link não pré-busca a rota nem os dados. Toda navegação paga o custo do lazy-load do chunk + queries.
 
-## Mudanças
+Além disso, existem sinais menores:
+- Aviso de hydration mismatch no `__root.tsx` (não causa lentidão, mas o React descarta a árvore e re-renderiza, o que pode piorar a percepção do primeiro paint).
+- `LekpisTopBar` chama `useProfile()` — profile.get roda em outro round trip MCP; hoje já tem `staleTime: 60s`, ok, mas na primeira entrada bloqueia o header.
 
-### 1. `src/routes/_authenticated/lekpis.tsx` (layout)
-- Manter gate 1 (conexão MCP) como está.
-- Após conectado, montar um novo componente `SelecionarClienteGate` que:
-  - Usa `useQuery(clienteListOptions())` para listar clientes.
-  - Lê `clienteId` do `localStorage` (chave `lekpis:cliente-id`).
-  - Se `clienteId` já existe e está na lista → renderiza `ClienteAtivoProvider` + `LekpisTopBar` + `<Outlet />`.
-  - Se lista vazia → card "Você ainda não tem clientes" com CTA "Criar primeiro cliente" (link para `/lekpis/perfil`).
-  - Se lista tem itens mas nenhum selecionado → tela "Escolher cliente para monitorar" com cards/lista dos clientes; clique salva no `localStorage` e entra na Home.
-- Loading e erro tratados com skeleton simples + botão "Tentar novamente".
+Entre rotas filhas (`/lekpis` ↔ `/lekpis/integracoes`), o layout **não** desmonta (é um layout route). O que "trava" nesse caso é a Home/Integrações começando a rodar suas próprias queries (`useIntegracoes`, `instagramKpisOptions`, etc.) — todas em série no MCP, cada uma um round trip.
 
-### 2. `src/contexts/cliente-ativo-context.tsx`
-- Remover chamada automática de `ensureDefault` no boot (`useEffect` que dispara sem `clienteId`).
-- Remover a lógica de fallback `cliente.ensure_default` / `cliente.list` do provider — agora o layout garante que só entra aqui com `clienteId` válido.
-- Simplificar: provider vira um mero holder de `clienteId` (do localStorage) + `cliente` (via `cliente.get`) + `setClienteId` + novo `clearClienteId` (para trocar de cliente).
-- Manter export de `useClienteAtivo` com a mesma API mínima usada pelos componentes (`clienteId`, `cliente`, `setClienteId`). Campos hoje pouco usados (`ensureDefault`, `ensuring`, `ensureError`, `hasNoClientes`, `loading`) deixam de existir.
+## Plano para corrigir
 
-### 3. Componentes que liam campos removidos
-- `src/routes/_authenticated/lekpis.index.tsx`: remover os blocos "Nenhum cliente ativo" / "Selecione um cliente ativo" (agora impossíveis — o gate garante cliente). O componente pressupõe `clienteId` presente.
-- Verificar `lekpis.integracoes.tsx`, `lekpis.perfil.tsx`, `lekpis.canal.$slug.tsx` e ajustar qualquer referência a `ensureDefault`/`ensuring`/`hasNoClientes` (trocar por lógica baseada apenas em `clienteId`).
+### 1. Cachear a conexão MCP
+Em `src/routes/_authenticated/lekpis.tsx`, adicionar `staleTime: 5 * 60_000` (ou mais) e `gcTime` maior no `useQuery` de `getMcpConnection`. A conexão muda raramente; invalidar só após `mcp:connected`/`disconnect` (já feito).
 
-### 4. TopBar: trocar cliente
-- Em `src/components/lekpis/top-bar.tsx`, o `ClienteSelector` já permite trocar. Manter — apenas garantir que ele usa `setClienteId` do provider simplificado.
-- Adicionar uma opção no dropdown "Trocar cliente…" que chama `clearClienteId` e volta para a tela de seleção (útil quando o usuário quer voltar à listagem).
+### 2. Fazer as pré-buscas no `loader` do layout
+Adicionar `loader` na rota `lekpis.tsx` usando `context.queryClient.ensureQueryData` para:
+- `getMcpConnection` (chave `["mcp-connection","lekpis"]`)
+- `clienteListOptions()` (só se o `getMcpConnection` retornar conectado — checar cache pós-ensure)
 
-## Detalhes técnicos (para revisão)
-- A Home fica travada porque `ensureDefault` roda antes das queries e mantém `clienteId` nulo até completar; se o wrapper MCP demorasse ou retornasse envelope, o boot ficava em loop de retentativas. Retirando esse auto-ensure e movendo a escolha para uma tela explícita, o render fica determinístico.
-- Persistência do cliente ativo continua em `localStorage` sob `lekpis:cliente-id`.
-- Nenhuma mudança no `callLekpis` / `unwrapEnvelope` — o desembrulho segue como está.
+Assim as duas queries rodam **em paralelo** e o navegador só transiciona para `/lekpis` quando estão prontas — usuário vê a página inteira aparecer de uma vez, sem duplo spinner.
+
+### 3. Habilitar preload no router
+Em `src/router.tsx`, setar `defaultPreload: "intent"`, `defaultPreloadDelay: 50` e (com Query) `defaultPreloadStaleTime: 0`. Hover em qualquer `<Link>` que aponte para `/lekpis*` pré-carrega o chunk + dados via loader.
+
+### 4. Persistir e otimizar leitura do cliente ativo
+`SelecionarClienteGate` hoje só decide após `cliente.list` responder. Com o loader do passo 2, a lista já vem no cache — o gate lê síncrono e decide sem spinner. Sem `localStorage` prévio → tela de escolha; com `localStorage` válido → entra direto na Home.
+
+### 5. Pré-buscar dados da Home no seu próprio loader (opcional, incremental)
+Nas rotas filhas (`lekpis.index.tsx`, `lekpis.integracoes.tsx`), adicionar `loader` que faz `ensureQueryData` para `integracaoListOptions(clienteId)`, `instagramKpisOptions(clienteId)`, etc., em paralelo. Requer ler `clienteId` via `context` (injetar via `beforeLoad` do layout que resolveu o cliente). Isso elimina o "aparecendo aos poucos" ao trocar de aba.
+
+## Detalhes técnicos
+- `beforeLoad` do layout resolve `clienteId` a partir de `localStorage` + validação contra `cliente.list` do cache, e injeta em `context.clienteId`. Filhos usam `context.clienteId` no loader para chamar as options funcs correspondentes.
+- `getMcpConnection` continua rodando via `useQuery` no componente para reagir a `mcp:connected` postMessage; o loader apenas garante que a primeira leitura já vem quente.
+- Hydration mismatch (`data-tsd-source` diverge entre server e client) é ruído do plugin de dev/anotação de fonte — não vamos tocar; se piorar, tratamos separado.
 
 ## Não muda
-- Layout visual da Home, Integrações, Perfil.
-- Fluxo de OAuth do MCP.
-- Server functions e API do LeKPIs.
+- Fluxo funcional (conectar → escolher cliente → home).
+- Wrapper `callLekpis` / `unwrapEnvelope`.
+- Componentes visuais.
