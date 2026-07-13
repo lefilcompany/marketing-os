@@ -136,7 +136,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                         <img
                           src={creatorLogo.url}
                           alt="Creator"
-                          className="h-3 w-auto object-contain dark:invert"
+                          className="h-5 w-auto object-contain dark:invert"
                         />
                       ) : (
                         <>
