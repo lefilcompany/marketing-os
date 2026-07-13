@@ -1,87 +1,57 @@
-# Plano — Marketing OS v1 (MVP até 19/jul)
+# Wizard unificado em `/deepersona` (single-route)
 
-Reposicionar a home e a navegação como o "sistema operacional de marketing" descrito no PRD, com **7 módulos** reais (DeePersona, Estratégia, Creator, Soma, Comunidades, LeKPIs, IA), estrutura real no banco e IA copiloto ativa via Lovable AI.
+Reescrever `/deepersona` como um **wizard de etapa única** com 6 estados. Nada de sub-rotas: tudo acontece na mesma rota, com transição de estado. As sub-rotas atuais (`csd`, `coleta`, `segmentacao`, `priorizacao`, `agentes`) deixam de ser navegadas — cada uma vira um **painel de etapa** renderizado condicionalmente dentro da própria página.
 
-Vou executar em **4 fases**. Cada fase entrega valor sozinha e pode ser revisada antes da próxima.
+## Comportamento
 
----
+- Stepper horizontal fixo no topo com 6 pills (Alinhamento → Coleta → Segmentação → Personas → Priorização → Agentes).
+  - Pills passadas: check verde, clicáveis para revisitar.
+  - Pill atual: destacada com a cor da etapa, linha de progresso animada preenchendo até ela.
+  - Pills futuras: cadeado, disabled.
+- Header persistente com o **ICP ativo** (mantém o bloco de seleção de persona que já existe hoje) — o ICP guia todas as etapas.
+- Área central: uma etapa por vez, transição fade + slide horizontal ao avançar/voltar (CSS puro, sem dep nova).
+- Rodapé fixo com **Voltar** / **Avançar** — Avançar só habilita quando a etapa atual está marcada como concluída.
+- Ao concluir a etapa 6: tela "Fluxo concluído" com resumo (persona ativa, quantos segmentos, etc.), atalho para abrir chat, e botão "Recomeçar".
 
-## Fase 1 — Fundação (esta iteração)
+## Conteúdo de cada etapa (painéis inline)
 
-Objetivo: transformar a home atual (que mostra "aplicações") em uma home Marketing OS com os 7 módulos, e criar o esqueleto navegável de todos eles.
+Cada painel é um componente local dentro de `deepersona.index.tsx`, recebe `{ personaId, onComplete }`. Reaproveita **as queries e mutations já existentes** em `src/lib/*.functions.ts` (csd, segments, personas, priorities, agents) — nenhum backend novo.
 
-**Home nova (`/dashboard`)**
-- Cabeçalho compacto à esquerda: "Marketing OS · LeFil" + saudação + Marketing Score (mock por enquanto).
-- Grid dos **7 módulos** como cards de vidro grandes (mantém o efeito atual: glass, reflexo, glow por cor de módulo).
-- Cada card: ícone, nome, subtítulo curto ("Conheça seus clientes", "Transforme conhecimento em plano", etc.), status ("Ativo"/"Em breve") e um KPI vivo do módulo (ex.: nº de personas, nº de campanhas).
-- Bloco lateral pequeno "IA Copiloto" com 2–3 recomendações geradas pela IA (real, via gateway).
-- Sem scroll na home; abaixo dos cards, timeline compacta das últimas atividades.
+1. **Alinhamento (CSD)** — matriz 3 colunas (Certezas / Suposições / Dúvidas). Input inline com "adicionar item" e chips removíveis. Botão "Gerar sugestões com IA" (usa `generateCsdSuggestions` existente). Concluído quando existe ≥1 item em cada coluna.
+2. **Coleta de Dados** — drop zone para CSV/planilha + lista de fontes já adicionadas + campo para descrever fonte manual. Concluído com ≥1 fonte registrada.
+3. **Segmentação** — trigger "Analisar clusters" (usa função existente), lista de segmentos detectados com badges de aderência ao ICP. Concluído com ≥1 segmento salvo.
+4. **Criação de Personas** — canvas editável (nome, papel, dores, objetivos, gatilhos, comportamento). Botão "Gerar canvas com IA a partir dos segmentos". Concluído quando canvas tem campos-chave preenchidos.
+5. **Priorização** — matriz 2×2 (Importância × Urgência) drag-and-drop simples (ou seletores por item) sobre os segmentos/personas. Concluído com todos os itens posicionados.
+6. **Agentes IA** — lista das personas criadas como cards de chat, cada uma abre um painel de conversa inline (reusa `agents.functions.ts`). Concluído ao enviar primeira mensagem.
 
-**Sidebar**
-- Reorganizada para: Home · DeePersona · Estratégia · Creator · Soma · Comunidades · LeKPIs · Biblioteca · IA · Configurações. Mantém grupos de Gestão e Administração já existentes.
+Cada painel mostra no topo uma faixa "Conexão com o ICP" resumindo como aquela etapa se apoia no ICP da persona ativa.
 
-**Rotas (shells navegáveis)**
-- `/deepersona`, `/estrategia`, `/creator`, `/soma`, `/comunidades`, `/lekpis`, `/biblioteca`, `/ia`.
-- Cada shell: header do módulo, tabs vazias com placeholders "Em construção" claros — nada de botão fake.
-- `/aplicacoes` continua existindo (agora é a integração com plataformas externas da LeFil, não o produto principal).
+## Progressão sem erros
 
-**IA copiloto (mínimo funcional já nesta fase)**
-- Server function `generateCopilotRecommendations` usando `google/gemini-3-flash-preview` via Lovable AI Gateway.
-- Recebe contexto do workspace (nome da org, contagens de personas/estratégias/etc.) e devolve 3 recomendações estruturadas (`{ title, body, module, severity }`) usando `Output.object`.
-- Home consome via TanStack Query.
+- Progresso em `localStorage`: `deepersona:flow:<personaId> = { currentStep, completed: number[] }`.
+- Detecção automática de conclusão via as queries existentes (se já há CSD/segmentos/canvas/priorização, marca como completo ao carregar).
+- Fallback: botão manual "Marcar etapa como concluída" em cada painel — garante que ninguém trava se a detecção automática falhar.
+- Trocar de persona ativa no header recarrega o progresso daquela persona (chave por `personaId`).
+- Sem `<Link>` para sub-rotas — apenas mudança de estado `currentStep`.
 
-**DB — migrações fase 1**
-- `personas` (workspace, nome, descrição, dados demográficos jsonb, dores jsonb, ganhos jsonb, canais jsonb, status).
-- `strategies` (workspace, nome, objetivo, posicionamento, proposta_valor, canais jsonb, frameworks jsonb, status, persona_id).
-- `campaigns` (workspace, nome, estratégia_id, objetivo, canal, status, kpis jsonb).
-- `projects` (workspace, campanha_id, nome, status, prazo).
-- `tasks` (project_id, título, status, responsável, prazo).
-- `communities` (workspace, nome, tipo, plataforma, membros_estimados).
-- `kpi_snapshots` (workspace, chave, valor, meta, período).
-- `copilot_recommendations` (workspace, título, corpo, módulo, severidade, dismissed).
-- `library_items` (workspace, tipo, nome, payload jsonb) — para a Biblioteca única.
+## Design
 
-Todas com RLS scoped por `organization_members` + GRANTs corretos.
+- Layout centrado (`max-w-4xl`), respiração generosa, `surface-card` com gradient sutil na cor da etapa.
+- Stepper no estilo do `guided-flow-bar.tsx` já existente (mesma linguagem visual: pills, check, linha de progresso).
+- Cada painel: ícone grande + eyebrow "Etapa 0X" + título display + descrição + faixa "Conexão com ICP" + conteúdo interativo.
+- Tokens já existentes (`font-display`, `surface-card`, `oklch` tints por etapa definidos no arquivo atual).
+- Transição entre etapas: fade opacity + translate-x 12px, `duration-300`.
 
----
+## Arquivos afetados
 
-## Fase 2 — DeePersona e Estratégia completos
+- **`src/routes/_authenticated/deepersona.index.tsx`** — reescrito. Toda a lógica de wizard + os 6 painéis inline vivem aqui (com componentes locais no mesmo arquivo, ou pequenos componentes vizinhos em `src/components/deepersona/` se ficar grande).
+- **Possível novo diretório `src/components/deepersona/`** contendo `step-csd.tsx`, `step-coleta.tsx`, `step-segmentacao.tsx`, `step-personas.tsx`, `step-priorizacao.tsx`, `step-agentes.tsx` — cada um exporta um componente puro que recebe `{ personaId, onComplete }`. Divisão apenas por legibilidade; nada de rotas novas.
+- **Sub-rotas atuais `deepersona.csd.tsx`, `deepersona.coleta.tsx`, `deepersona.segmentacao.tsx`, `deepersona.priorizacao.tsx`, `deepersona.agentes.tsx`** — mantidas no repo por ora (não removo para não quebrar links externos/bookmarks), mas simplificadas para apenas redirecionar para `/deepersona` (`<Navigate to="/deepersona" replace />`). Assim garanto zero navegação para elas a partir do wizard e o usuário sempre volta ao fluxo unificado.
+- **`deepersona.$id.tsx`** — mantida como está (canvas detalhado de uma persona individual, útil fora do fluxo).
+- **Nenhum backend/schema alterado.** Reuso das server functions existentes.
 
-- CRUD de Personas com wizard guiado (etapas do PRD).
-- CRUD de Estratégias com frameworks AEIOU/CRISC/PARTE em formulários guiados.
-- Templates iniciais e biblioteca sendo populada.
-- IA: gerar rascunho de persona a partir de descrição livre; gerar estratégia a partir de persona.
+## Fora do escopo
 
-## Fase 3 — Creator e Soma
-
-- Creator: gerar conteúdo (post, email, roteiro, landing copy) puxando persona + estratégia como contexto de prompt.
-- Soma: transformar campanha em tarefas automaticamente (server fn que cria `project` + `tasks` a partir de um `campaign_id`), kanban simples.
-
-## Fase 4 — Comunidades, LeKPIs, IA plena
-
-- Comunidades: CRUD + jornadas e eventos (sem integração WhatsApp real).
-- LeKPIs: dashboards com dados agregados dos módulos + insights da IA sobre os snapshots.
-- IA: chat contextual persistente (histórico salvo por workspace).
-
----
-
-## Decisões técnicas
-
-- **Stack**: mantém TanStack Start + Supabase + shadcn. Todas as leituras via `createServerFn` com `requireSupabaseAuth`; RLS por membership.
-- **IA**: Lovable AI Gateway, provider `createLovableAiGatewayProvider` em `src/lib/ai-gateway.server.ts`. Model default `google/gemini-3-flash-preview`. Erros 402/429 exibidos como toast claro.
-- **Ícones/cores dos módulos**: paleta já parcialmente presente (`--brand-creator`, `--brand-deepersona`, `--brand-lekpi`); vou estender com tokens para os 4 restantes em `styles.css`.
-- **Nada mock invisível**: onde um número for simulado (ex.: Marketing Score fase 1), exibirei rótulo "demo" e nunca disfarçarei botão sem função.
-
----
-
-## O que vou entregar **nesta rodada** (Fase 1)
-
-1. Migração criando as 9 tabelas + RLS + GRANTs.
-2. Server functions: `getModuleOverview`, `listPersonas/Strategies/... (contagens)`, `generateCopilotRecommendations`, `dismissRecommendation`.
-3. Provider Lovable AI em `src/lib/ai-gateway.server.ts`.
-4. Home nova com 7 cards + painel IA + timeline.
-5. Sidebar atualizada.
-6. Shells de rota para os 7 módulos + Biblioteca + IA.
-7. Tokens de cor de módulo em `styles.css`.
-
-Se aprovar, sigo. Depois combinamos por qual módulo aprofundar na Fase 2.
+- Não crio novas tabelas nem migrações.
+- Não altero `guided-flow-bar` global.
+- Não removo os arquivos de sub-rota (só neutralizo com redirect) — remoção pode ser feita depois com segurança.
