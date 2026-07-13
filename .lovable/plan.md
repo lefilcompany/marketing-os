@@ -1,36 +1,48 @@
+
 ## Diagnóstico
 
-A toast "Nenhum cliente ativo. Crie ou selecione um cliente em Perfil." é disparada pelo próprio `useLekpisConnect`, no ramo em que `ensureDefault()` retorna `null`. No screenshot, a lista "Selecionar cliente..." está vazia e os cards estão todos "Não conectado" — ou seja, **o usuário ainda não tem nenhum cliente cadastrado no LeKPIs**. Como `cliente.list` volta vazio e `cliente.ensure_default` não cria automaticamente, `clienteId` fica `null` para sempre e o botão Conectar só serve para mostrar o toast.
+Chamei o MCP do LeKPIs diretamente com o token OAuth salvo do usuário e confirmei:
 
-Isso não é bug de OAuth: é UX. O fluxo precisa levar o usuário a criar/selecionar um cliente antes de tentar conectar plataforma.
+- A conexão está gravada corretamente em `mcp_connections` (provider `lekpis`, resource ok).
+- `tools/list` expõe todas as tools esperadas (`cliente.list`, `cliente.ensure_default`, `cliente.get`, `integracao.list`, `profile.get`, `instagram.get_kpis`, etc.).
+- `cliente.list` retorna **28 clientes** reais (Intrador, PetTop, Lefil Company, Comunidade RDF, Lumi, Paiva, Morada da Paz, Branding, Juq, etc.).
 
-## Mudanças
+Mesmo assim a UI mostra "Nenhum cliente cadastrado ainda." e nenhum canal / KPI aparece. O motivo é o formato da resposta.
 
-### 1. `src/hooks/use-lekpis-connect.ts`
-Quando `ensureDefault()` retorna `null`, em vez de só toastar:
-- Mostrar toast com ação "Ir para Perfil" (usar `toast.error(msg, { action: { label, onClick } })` do sonner) que navega para `/lekpis/perfil`.
-- Fechar o popup silenciosamente (já faz).
-- Não mudar o restante do fluxo OAuth.
+O servidor MCP do LeKPIs anuncia (no `initialize`):
 
-Receberá `navigate` via `useNavigate()` do TanStack Router.
+> "Every tool follows the resource.action naming convention and returns `{ success, data|error, requestId, timestamp }`."
 
-### 2. `src/routes/_authenticated/lekpis.integracoes.tsx`
-Adicionar o mesmo padrão de banner que a Home já tem, mas para o caso `!clienteId && !ensureError` (sem erro, apenas sem cliente):
-- Card em destaque acima do grid: "Você ainda não tem um cliente ativo. Crie um em Perfil antes de conectar plataformas."
-- Botão "Ir para Perfil" (Link para `/lekpis/perfil`).
-- Desabilitar visualmente os `IntegracaoCard` (passar prop `disabled`) enquanto `!clienteId`.
+Ou seja, a payload real de `cliente.list` é:
 
-### 3. `src/routes/_authenticated/lekpis.index.tsx`
-Mesmo tratamento: quando `!clienteId && !ensureError`, exibir banner "Crie seu primeiro cliente" com CTA para `/lekpis/perfil`. Os `CanalCard` continuam mostrando "Conectar", mas com `disabled` visual.
+```json
+{ "success": true, "data": { "items": [...], "nextCursor": "..." }, "requestId": "...", "timestamp": "..." }
+```
 
-### 4. `src/components/lekpis/integracao-card.tsx` e `canal-card.tsx`
-Aceitar prop opcional `disabled?: boolean`; quando true, botão Conectar fica desabilitado com tooltip/hint "Selecione um cliente primeiro". Nenhuma outra mudança visual.
+Nosso `unwrap` em `src/lib/lekpis-client.ts` faz `JSON.parse(content[0].text)` e retorna o objeto inteiro. O código consumidor (`useClienteList`, `useIntegracoes`, `useProfile`, `cliente.ensure_default`, todos os KPIs) espera `{ items: [...] }` / o próprio recurso no topo — então lê `undefined` e trata como lista vazia. Nada aparece.
 
-### 5. `src/contexts/cliente-ativo-context.tsx`
-Ajuste pequeno: quando `cliente.list` retorna `items: []` (não é erro), ainda assim expor um estado `hasNoClientes: boolean` para diferenciar "erro" de "sem clientes". `ensureError` continua só para falhas reais.
+## Correção
 
-## Fora de escopo
+Ajustar apenas `callLekpis` em `src/lib/lekpis-client.ts` para desembrulhar o envelope antes de devolver — sem tocar nas queries.
 
-- Não altera `mcp-proxy`, `callMcpTool`, tabela `lekpis_connections`, callback OAuth.
-- Não muda shape de tools do LeKPIs.
-- Não adiciona criação automática de cliente (mantém opt-in via Perfil).
+Depois de parsear o JSON do MCP:
+
+1. Se o objeto tem `success: false`, lançar `new Error(payload.error?.message ?? payload.error ?? "Erro LeKPIs")` (o toast atual em `use-lekpis-connect` já cuida).
+2. Se o objeto tem `success: true` e possui `data`, retornar `payload.data`.
+3. Caso contrário, retornar o objeto como está (compatibilidade defensiva).
+
+Isso corrige de uma vez:
+- `ClienteAtivoProvider.ensureDefault()` → `extractId` volta a encontrar `items[0].id` e grava `lekpis:cliente-id`.
+- `useClienteList` → dropdown de clientes populado.
+- `useIntegracoes`, `useProfile`, `instagram.get_kpis`, `facebook.get_kpis`, `meta_ads.list_campaigns` → todos passam a ver os campos reais.
+- `useDisconnectIntegracao`, `useCreateCliente`, `useUpdateProfile` (mutations) → também retornam `data` corretamente.
+
+## Verificação
+
+1. Recarregar `/lekpis` — o dropdown "Meus clientes" em `/lekpis/perfil` deve listar os clientes ativos (Intrador, PetTop, Lefil Company, Lumi, Paiva, etc.).
+2. Home `/lekpis` deve deixar de mostrar o banner "Crie seu primeiro cliente" e ativar os cards de canal.
+3. Confirmar via replay/screenshot que os dados aparecem.
+
+## Detalhe técnico
+
+Arquivo alterado: `src/lib/lekpis-client.ts` (apenas função `unwrap`, ~10 linhas). Sem migrações, sem alterações de UI, sem tocar em `mcp.functions.ts` ou `mcp.server.ts` — o "envelope" é uma convenção específica do servidor LeKPIs, então a normalização pertence ao wrapper `callLekpis`.
