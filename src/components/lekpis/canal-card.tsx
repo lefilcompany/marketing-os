@@ -26,6 +26,7 @@ export function CanalCard({
   deltaPct,
   comingSoon,
   onConnect,
+  disabled,
 }: {
   slug: Slug;
   connected: boolean;
@@ -35,7 +36,9 @@ export function CanalCard({
   deltaPct?: number | null;
   comingSoon?: boolean;
   onConnect?: () => void;
+  disabled?: boolean;
 }) {
+
   const meta = META[slug];
   const Icon = meta.icon;
 
