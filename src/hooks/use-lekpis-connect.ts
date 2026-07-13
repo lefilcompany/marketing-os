@@ -102,7 +102,7 @@ export function useLekpisConnect() {
       handlerRef.current = handler;
       window.addEventListener("message", handler);
     },
-    [qc, clienteId, ensureDefault, navigate],
+    [qc, clienteId, navigate],
   );
 }
 
