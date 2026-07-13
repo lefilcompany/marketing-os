@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   useProfile,
   useUpdateProfile,
@@ -7,9 +9,21 @@ import {
   useCreateCliente,
 } from "@/hooks/use-lekpis-queries";
 import { useClienteAtivo } from "@/contexts/cliente-ativo-context";
+import { startMcpAuth, getMcpConnection, disconnectMcp } from "@/lib/mcp.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +32,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Check, Plus, Loader2 } from "lucide-react";
+import { Check, Plus, Loader2, Plug, Unplug, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/lekpis/perfil")({
   head: () => ({ meta: [{ title: "Perfil — LeKPIs" }] }),
