@@ -122,6 +122,7 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, id);
     setClienteIdState(id);
     setEnsureError(null);
+    setHasNoClientes(false);
     qc.invalidateQueries({ queryKey: ["lekpis"] });
   };
 
@@ -135,12 +136,14 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
         ensureError,
         ensuring,
         loading: !clienteId && ensuring,
+        hasNoClientes,
       }}
     >
       {children}
     </ClienteAtivoCtx.Provider>
   );
 }
+
 
 export function useClienteAtivo() {
   const c = useContext(ClienteAtivoCtx);
