@@ -12,7 +12,7 @@ const TABS = [
 
 export function LekpisTopBar() {
   const { data: profile } = useProfile();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({ select: (s: { location: { pathname: string } }) => s.location.pathname });
   const nome = profile?.nome ?? "";
   const first = nome ? nome.split(" ")[0] : "";
   const initials = (nome || "L")
