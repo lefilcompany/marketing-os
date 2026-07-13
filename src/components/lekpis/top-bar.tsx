@@ -17,9 +17,9 @@ export function LekpisTopBar() {
   const first = nome ? nome.split(" ")[0] : "";
   const initials = (nome || "L")
     .split(" ")
-    .filter(Boolean)
+    .filter((s: string) => s.length > 0)
     .slice(0, 2)
-    .map((s) => s[0])
+    .map((s: string) => s[0])
     .join("")
     .toUpperCase();
 
