@@ -150,7 +150,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                         <img
                           src={lekpisLogo.url}
                           alt="LeKPIs"
-                          className="h-7 w-auto object-contain dark:invert"
+                          className="h-6 w-auto object-contain dark:invert"
                         />
                       ) : (
                         <>
