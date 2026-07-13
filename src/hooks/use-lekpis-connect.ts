@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { callLekpis } from "@/lib/lekpis-client";
 import { useClienteAtivo } from "@/contexts/cliente-ativo-context";
 import { toast } from "sonner";
+
 
 export type LekpisPlatform = "instagram" | "facebook" | "meta_ads";
 
