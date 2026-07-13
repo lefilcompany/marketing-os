@@ -1,5 +1,9 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/deepersona")({
-  component: () => <Outlet />,
+  component: () => (
+    <div className="deepersona-theme min-h-full">
+      <Outlet />
+    </div>
+  ),
 });

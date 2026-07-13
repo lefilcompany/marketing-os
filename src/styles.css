@@ -175,3 +175,91 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
 }
+
+/* ============================================================
+ * DeePersona — Identidade visual escopada
+ * Cores da marca: #2D79DE (azul), #CC4B6E (rosa), #1E1E1E, #FFFFFF
+ * ============================================================ */
+.deepersona-theme {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.24 0 0);
+  --surface: oklch(1 0 0);
+  --surface-elevated: oklch(0.995 0 0);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0 0);
+
+  /* Primária: azul #2D79DE */
+  --primary: oklch(0.58 0.17 258);
+  --primary-foreground: oklch(1 0 0);
+
+  /* Rosa #CC4B6E entra como accent/secondary */
+  --secondary: oklch(0.96 0.02 5);
+  --secondary-foreground: oklch(0.35 0.14 5);
+  --accent: oklch(0.94 0.04 5);
+  --accent-foreground: oklch(0.45 0.18 5);
+
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.58 0.17 258);
+
+  --gradient-hero: linear-gradient(135deg, oklch(0.58 0.17 258) 0%, oklch(0.60 0.19 5) 100%);
+  --gradient-mesh:
+    radial-gradient(at 18% 12%, oklch(0.58 0.17 258 / 0.12) 0px, transparent 55%),
+    radial-gradient(at 82% 8%, oklch(0.60 0.19 5 / 0.10) 0px, transparent 55%),
+    radial-gradient(at 50% 100%, oklch(0.60 0.19 5 / 0.06) 0px, transparent 60%);
+
+  --shadow-soft: 0 1px 2px oklch(0.24 0 0 / 0.05), 0 2px 8px oklch(0.24 0 0 / 0.04);
+  --shadow-elevated: 0 4px 12px oklch(0.24 0 0 / 0.06), 0 16px 40px oklch(0.58 0.17 258 / 0.10);
+  --shadow-glow: 0 0 0 1px oklch(0.58 0.17 258 / 0.25), 0 12px 36px oklch(0.58 0.17 258 / 0.22);
+
+  background:
+    radial-gradient(at 18% 12%, oklch(0.58 0.17 258 / 0.08) 0px, transparent 55%),
+    radial-gradient(at 82% 8%, oklch(0.60 0.19 5 / 0.07) 0px, transparent 55%),
+    oklch(1 0 0);
+  color: var(--foreground);
+}
+
+.deepersona-theme .surface-card {
+  background-color: oklch(1 0 0);
+  border: 1px solid oklch(0.9 0 0);
+  box-shadow: 0 1px 2px oklch(0.24 0 0 / 0.04), 0 8px 24px oklch(0.24 0 0 / 0.05);
+}
+
+.dark .deepersona-theme {
+  --background: oklch(0.18 0 0);
+  --foreground: oklch(0.98 0 0);
+  --surface: oklch(0.22 0 0);
+  --surface-elevated: oklch(0.26 0 0);
+  --card: oklch(0.22 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.24 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: oklch(0.68 0.17 258);
+  --primary-foreground: oklch(0.15 0 0);
+  --secondary: oklch(0.28 0.05 5);
+  --secondary-foreground: oklch(0.95 0 0);
+  --accent: oklch(0.32 0.09 5);
+  --accent-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.26 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.68 0.17 258);
+
+  background:
+    radial-gradient(at 18% 12%, oklch(0.58 0.17 258 / 0.20) 0px, transparent 55%),
+    radial-gradient(at 82% 8%, oklch(0.60 0.19 5 / 0.16) 0px, transparent 55%),
+    oklch(0.18 0 0);
+}
+
+.dark .deepersona-theme .surface-card {
+  background-color: oklch(0.22 0 0);
+  border: 1px solid oklch(1 0 0 / 8%);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.3), 0 8px 24px oklch(0 0 0 / 0.35);
+}
