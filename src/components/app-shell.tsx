@@ -25,6 +25,7 @@ import { MODULES } from "@/lib/modules";
 import deePersonaLogo from "@/assets/deepersona-logo.png.asset.json";
 import creatorLogo from "@/assets/creator-logo.png.asset.json";
 import somaLogo from "@/assets/soma-logo.png.asset.json";
+import lekpisLogo from "@/assets/lekpis-logo.png.asset.json";
 import { CommandPalette } from "@/components/command-palette";
 import { NotificationBell } from "@/components/notification-bell";
 import { GuidedFlowBar } from "@/components/guided-flow-bar";
