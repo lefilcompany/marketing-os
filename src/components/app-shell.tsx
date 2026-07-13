@@ -129,7 +129,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                         <img
                           src={deePersonaLogo.url}
                           alt="DeePersona"
-                          className="h-4 w-auto object-contain"
+                          className="h-3 w-auto object-contain"
                         />
                       ) : (
                         <>
