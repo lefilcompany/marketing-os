@@ -210,7 +210,10 @@ function LeKpisPage() {
           <p className="text-sm text-muted-foreground mb-5">
             Conecte via OAuth para acessar as ferramentas MCP do LeKPIs diretamente daqui.
           </p>
-          <McpOAuthPanel provider="lekpis" />
+          <div className="space-y-4">
+            <McpStatusCard provider="lekpis" providerName="LeKPIs" />
+            <McpOAuthPanel provider="lekpis" />
+          </div>
         </section>
       </div>
 
