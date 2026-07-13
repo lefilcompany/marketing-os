@@ -146,6 +146,12 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                           alt="SoMA"
                           className="h-7 w-auto object-contain dark:invert"
                         />
+                      ) : it.to === "/lekpis" ? (
+                        <img
+                          src={lekpisLogo.url}
+                          alt="LeKPIs"
+                          className="h-6 w-auto object-contain dark:invert"
+                        />
                       ) : (
                         <>
                           <it.icon className="h-4 w-4" style={{ color: it.color }} />
