@@ -29,6 +29,8 @@ function AuthPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState<null | "login" | "signup" | "magic" | "google" | "reset">(null);
 
