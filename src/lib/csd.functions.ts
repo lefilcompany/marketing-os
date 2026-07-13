@@ -96,26 +96,54 @@ export const generateCsdSuggestions = createServerFn({ method: "POST" })
       doubts: z.array(z.string()),
     });
 
+    const extractJson = (raw: string): unknown => {
+      let s = raw.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
+      const start = s.search(/[\{\[]/);
+      const end = Math.max(s.lastIndexOf("}"), s.lastIndexOf("]"));
+      if (start === -1 || end === -1) throw new Error("Sem JSON na resposta");
+      s = s.slice(start, end + 1)
+        .replace(/,\s*}/g, "}")
+        .replace(/,\s*]/g, "]")
+        .replace(/[\x00-\x1F\x7F]/g, " ");
+      return JSON.parse(s);
+    };
+
+    const coerce = (v: unknown): z.infer<typeof Schema> => {
+      const o = (v ?? {}) as Record<string, unknown>;
+      const arr = (x: unknown) =>
+        Array.isArray(x)
+          ? x.map((i) => (typeof i === "string" ? i : String((i as any)?.text ?? ""))).filter(Boolean)
+          : [];
+      return {
+        certainties: arr(o.certainties ?? (o as any).certezas),
+        assumptions: arr(o.assumptions ?? (o as any).suposicoes ?? (o as any)["suposições"]),
+        doubts: arr(o.doubts ?? (o as any).duvidas ?? (o as any)["dúvidas"]),
+      };
+    };
+
     const attempt = async (extra = "") => {
-      const result = await generateText({
-        model,
-        system:
-          "Você é o DeePersona, especialista em pesquisa de audiência. Gere itens realistas para a Matriz CSD (Certezas, Suposições, Dúvidas) sobre o público-alvo, em português do Brasil, com detalhes concretos e verossímeis.",
-        prompt: `Contexto do negócio:\n${data.businessContext}\n\nRetorne 4 a 6 itens em cada categoria. Certezas = o que já sabemos com segurança. Suposições = o que acreditamos, mas precisa validar. Dúvidas = perguntas abertas.${extra ? "\n\n" + extra : ""}`,
-        output: Output.object({ schema: Schema }),
-      });
-      return result.output as z.infer<typeof Schema>;
+      try {
+        const result = await generateText({
+          model,
+          system:
+            "Você é o DeePersona, especialista em pesquisa de audiência. Gere itens realistas para a Matriz CSD (Certezas, Suposições, Dúvidas) sobre o público-alvo, em português do Brasil, com detalhes concretos e verossímeis.",
+          prompt: `Contexto do negócio:\n${data.businessContext}\n\nRetorne 4 a 6 itens em cada categoria como arrays de strings nas chaves "certainties", "assumptions" e "doubts".${extra ? "\n\n" + extra : ""}`,
+          output: Output.object({ schema: Schema }),
+        });
+        return coerce(result.output);
+      } catch (err) {
+        if (NoObjectGeneratedError.isInstance(err) && (err as any).text) {
+          return coerce(extractJson((err as any).text));
+        }
+        throw err;
+      }
     };
 
     let out: z.infer<typeof Schema>;
     try {
       out = await attempt();
-    } catch (err) {
-      if (NoObjectGeneratedError.isInstance(err)) {
-        out = await attempt(
-          "IMPORTANTE: Retorne APENAS um JSON válido no schema pedido.",
-        );
-      } else throw err;
+    } catch {
+      out = await attempt("IMPORTANTE: Retorne APENAS um JSON válido no schema pedido.");
     }
 
     const rows = [
