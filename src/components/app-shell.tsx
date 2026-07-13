@@ -139,6 +139,12 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                           alt="Creator"
                           className="h-5 w-auto object-contain dark:invert"
                         />
+                      ) : it.to === "/soma" ? (
+                        <img
+                          src={somaLogo.url}
+                          alt="SoMA"
+                          className="h-5 w-auto object-contain dark:invert"
+                        />
                       ) : (
                         <>
                           <it.icon className="h-4 w-4" style={{ color: it.color }} />
