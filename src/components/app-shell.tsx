@@ -22,6 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
 import { MODULES } from "@/lib/modules";
+import deePersonaLogo from "@/assets/deepersona-logo.png.asset.json";
 import { CommandPalette } from "@/components/command-palette";
 import { NotificationBell } from "@/components/notification-bell";
 import { GuidedFlowBar } from "@/components/guided-flow-bar";
@@ -124,8 +125,18 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                 <SidebarMenuItem key={it.to}>
                   <SidebarMenuButton asChild isActive={pathname === it.to}>
                     <Link to={it.to}>
-                      <it.icon className="h-4 w-4" style={{ color: it.color }} />
-                      <span>{it.label}</span>
+                      {it.to === "/deepersona" ? (
+                        <img
+                          src={deePersonaLogo.url}
+                          alt="DeePersona"
+                          className="h-4 w-auto object-contain"
+                        />
+                      ) : (
+                        <>
+                          <it.icon className="h-4 w-4" style={{ color: it.color }} />
+                          <span>{it.label}</span>
+                        </>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
