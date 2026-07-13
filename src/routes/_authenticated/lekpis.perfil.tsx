@@ -111,7 +111,9 @@ function PerfilPage() {
         </form>
       </section>
 
+      <LekpisConnectionSection />
       <ClientesSection />
+
     </div>
   );
 }
