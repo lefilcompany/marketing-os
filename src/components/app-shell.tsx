@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
 import { MODULES } from "@/lib/modules";
 import deePersonaLogo from "@/assets/deepersona-logo.png.asset.json";
+import creatorLogo from "@/assets/creator-logo.png.asset.json";
 import { CommandPalette } from "@/components/command-palette";
 import { NotificationBell } from "@/components/notification-bell";
 import { GuidedFlowBar } from "@/components/guided-flow-bar";
@@ -130,6 +131,12 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                           src={deePersonaLogo.url}
                           alt="DeePersona"
                           className="h-3 w-auto object-contain"
+                        />
+                      ) : it.to === "/creator" ? (
+                        <img
+                          src={creatorLogo.url}
+                          alt="Creator"
+                          className="h-3 w-auto object-contain dark:invert"
                         />
                       ) : (
                         <>
