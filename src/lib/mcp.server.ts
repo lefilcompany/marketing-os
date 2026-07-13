@@ -137,7 +137,9 @@ export async function exchangeCode(
   });
   const res = await fetch(provider.tokenEndpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: withApiKey(provider, {
+      "Content-Type": "application/x-www-form-urlencoded",
+    }),
     body,
   });
   const text = await res.text();
