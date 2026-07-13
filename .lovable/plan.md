@@ -1,48 +1,55 @@
+# Reformular fluxo LeKPIs: Conectar → Escolher cliente → Home
 
-## Diagnóstico
+## Problema atual
+- `/lekpis` (home) trava porque `ClienteAtivoProvider` chama automaticamente `cliente.ensure_default` no boot, e enquanto isso a Home renderiza estados intermediários com queries que podem ficar suspensas ou disparar antes do cliente existir.
+- Não há uma etapa explícita para o usuário escolher qual cliente monitorar; hoje ele "cai" num cliente default, o que confunde e trava quando `ensure_default` demora ou falha.
 
-Chamei o MCP do LeKPIs diretamente com o token OAuth salvo do usuário e confirmei:
+## Novo fluxo (3 gates no layout `/lekpis`)
 
-- A conexão está gravada corretamente em `mcp_connections` (provider `lekpis`, resource ok).
-- `tools/list` expõe todas as tools esperadas (`cliente.list`, `cliente.ensure_default`, `cliente.get`, `integracao.list`, `profile.get`, `instagram.get_kpis`, etc.).
-- `cliente.list` retorna **28 clientes** reais (Intrador, PetTop, Lefil Company, Comunidade RDF, Lumi, Paiva, Morada da Paz, Branding, Juq, etc.).
-
-Mesmo assim a UI mostra "Nenhum cliente cadastrado ainda." e nenhum canal / KPI aparece. O motivo é o formato da resposta.
-
-O servidor MCP do LeKPIs anuncia (no `initialize`):
-
-> "Every tool follows the resource.action naming convention and returns `{ success, data|error, requestId, timestamp }`."
-
-Ou seja, a payload real de `cliente.list` é:
-
-```json
-{ "success": true, "data": { "items": [...], "nextCursor": "..." }, "requestId": "...", "timestamp": "..." }
+```text
+[Conta LeKPIs conectada?] -- não --> Tela "Conectar LeKPIs" (já existe)
+        | sim
+        v
+[Cliente ativo selecionado?] -- não --> Tela "Escolher cliente"
+        | sim                             (lista clientes, botão selecionar,
+        v                                  botão criar novo em Perfil)
+Home + TopBar + rotas filhas
 ```
 
-Nosso `unwrap` em `src/lib/lekpis-client.ts` faz `JSON.parse(content[0].text)` e retorna o objeto inteiro. O código consumidor (`useClienteList`, `useIntegracoes`, `useProfile`, `cliente.ensure_default`, todos os KPIs) espera `{ items: [...] }` / o próprio recurso no topo — então lê `undefined` e trata como lista vazia. Nada aparece.
+Cada gate é resolvido no layout `src/routes/_authenticated/lekpis.tsx` antes de montar `ClienteAtivoProvider` + `<Outlet />`. Assim, a Home nunca renderiza sem cliente ativo — elimina o travamento.
 
-## Correção
+## Mudanças
 
-Ajustar apenas `callLekpis` em `src/lib/lekpis-client.ts` para desembrulhar o envelope antes de devolver — sem tocar nas queries.
+### 1. `src/routes/_authenticated/lekpis.tsx` (layout)
+- Manter gate 1 (conexão MCP) como está.
+- Após conectado, montar um novo componente `SelecionarClienteGate` que:
+  - Usa `useQuery(clienteListOptions())` para listar clientes.
+  - Lê `clienteId` do `localStorage` (chave `lekpis:cliente-id`).
+  - Se `clienteId` já existe e está na lista → renderiza `ClienteAtivoProvider` + `LekpisTopBar` + `<Outlet />`.
+  - Se lista vazia → card "Você ainda não tem clientes" com CTA "Criar primeiro cliente" (link para `/lekpis/perfil`).
+  - Se lista tem itens mas nenhum selecionado → tela "Escolher cliente para monitorar" com cards/lista dos clientes; clique salva no `localStorage` e entra na Home.
+- Loading e erro tratados com skeleton simples + botão "Tentar novamente".
 
-Depois de parsear o JSON do MCP:
+### 2. `src/contexts/cliente-ativo-context.tsx`
+- Remover chamada automática de `ensureDefault` no boot (`useEffect` que dispara sem `clienteId`).
+- Remover a lógica de fallback `cliente.ensure_default` / `cliente.list` do provider — agora o layout garante que só entra aqui com `clienteId` válido.
+- Simplificar: provider vira um mero holder de `clienteId` (do localStorage) + `cliente` (via `cliente.get`) + `setClienteId` + novo `clearClienteId` (para trocar de cliente).
+- Manter export de `useClienteAtivo` com a mesma API mínima usada pelos componentes (`clienteId`, `cliente`, `setClienteId`). Campos hoje pouco usados (`ensureDefault`, `ensuring`, `ensureError`, `hasNoClientes`, `loading`) deixam de existir.
 
-1. Se o objeto tem `success: false`, lançar `new Error(payload.error?.message ?? payload.error ?? "Erro LeKPIs")` (o toast atual em `use-lekpis-connect` já cuida).
-2. Se o objeto tem `success: true` e possui `data`, retornar `payload.data`.
-3. Caso contrário, retornar o objeto como está (compatibilidade defensiva).
+### 3. Componentes que liam campos removidos
+- `src/routes/_authenticated/lekpis.index.tsx`: remover os blocos "Nenhum cliente ativo" / "Selecione um cliente ativo" (agora impossíveis — o gate garante cliente). O componente pressupõe `clienteId` presente.
+- Verificar `lekpis.integracoes.tsx`, `lekpis.perfil.tsx`, `lekpis.canal.$slug.tsx` e ajustar qualquer referência a `ensureDefault`/`ensuring`/`hasNoClientes` (trocar por lógica baseada apenas em `clienteId`).
 
-Isso corrige de uma vez:
-- `ClienteAtivoProvider.ensureDefault()` → `extractId` volta a encontrar `items[0].id` e grava `lekpis:cliente-id`.
-- `useClienteList` → dropdown de clientes populado.
-- `useIntegracoes`, `useProfile`, `instagram.get_kpis`, `facebook.get_kpis`, `meta_ads.list_campaigns` → todos passam a ver os campos reais.
-- `useDisconnectIntegracao`, `useCreateCliente`, `useUpdateProfile` (mutations) → também retornam `data` corretamente.
+### 4. TopBar: trocar cliente
+- Em `src/components/lekpis/top-bar.tsx`, o `ClienteSelector` já permite trocar. Manter — apenas garantir que ele usa `setClienteId` do provider simplificado.
+- Adicionar uma opção no dropdown "Trocar cliente…" que chama `clearClienteId` e volta para a tela de seleção (útil quando o usuário quer voltar à listagem).
 
-## Verificação
+## Detalhes técnicos (para revisão)
+- A Home fica travada porque `ensureDefault` roda antes das queries e mantém `clienteId` nulo até completar; se o wrapper MCP demorasse ou retornasse envelope, o boot ficava em loop de retentativas. Retirando esse auto-ensure e movendo a escolha para uma tela explícita, o render fica determinístico.
+- Persistência do cliente ativo continua em `localStorage` sob `lekpis:cliente-id`.
+- Nenhuma mudança no `callLekpis` / `unwrapEnvelope` — o desembrulho segue como está.
 
-1. Recarregar `/lekpis` — o dropdown "Meus clientes" em `/lekpis/perfil` deve listar os clientes ativos (Intrador, PetTop, Lefil Company, Lumi, Paiva, etc.).
-2. Home `/lekpis` deve deixar de mostrar o banner "Crie seu primeiro cliente" e ativar os cards de canal.
-3. Confirmar via replay/screenshot que os dados aparecem.
-
-## Detalhe técnico
-
-Arquivo alterado: `src/lib/lekpis-client.ts` (apenas função `unwrap`, ~10 linhas). Sem migrações, sem alterações de UI, sem tocar em `mcp.functions.ts` ou `mcp.server.ts` — o "envelope" é uma convenção específica do servidor LeKPIs, então a normalização pertence ao wrapper `callLekpis`.
+## Não muda
+- Layout visual da Home, Integrações, Perfil.
+- Fluxo de OAuth do MCP.
+- Server functions e API do LeKPIs.

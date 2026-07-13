@@ -16,7 +16,7 @@ export type LekpisPlatform = "instagram" | "facebook" | "meta_ads";
 export function useLekpisConnect() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { clienteId, ensureDefault } = useClienteAtivo();
+  const { clienteId } = useClienteAtivo();
   const handlerRef = useRef<((e: MessageEvent) => void) | null>(null);
 
   useEffect(() => () => {
@@ -35,16 +35,13 @@ export function useLekpisConnect() {
         return;
       }
 
-      let effectiveClienteId = clienteIdArg ?? clienteId ?? null;
-      if (!effectiveClienteId) {
-        effectiveClienteId = await ensureDefault();
-      }
+      const effectiveClienteId = clienteIdArg ?? clienteId ?? null;
       if (!effectiveClienteId) {
         popup.close();
-        toast.error("Nenhum cliente ativo. Crie um em Perfil antes de conectar.", {
+        toast.error("Nenhum cliente ativo. Selecione um cliente antes de conectar.", {
           action: {
-            label: "Ir para Perfil",
-            onClick: () => void navigate({ to: "/lekpis/perfil" }),
+            label: "Selecionar cliente",
+            onClick: () => void navigate({ to: "/lekpis" }),
           },
         });
         return;
@@ -105,7 +102,7 @@ export function useLekpisConnect() {
       handlerRef.current = handler;
       window.addEventListener("message", handler);
     },
-    [qc, clienteId, ensureDefault, navigate],
+    [qc, clienteId, navigate],
   );
 }
 
