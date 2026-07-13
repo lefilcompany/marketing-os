@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { callLekpis } from "@/lib/lekpis-client";
+import { useClienteAtivo } from "@/contexts/cliente-ativo-context";
 import { toast } from "sonner";
 
 export type LekpisPlatform = "instagram" | "facebook" | "meta_ads";
@@ -12,6 +13,7 @@ export type LekpisPlatform = "instagram" | "facebook" | "meta_ads";
  */
 export function useLekpisConnect() {
   const qc = useQueryClient();
+  const { clienteId, ensureDefault } = useClienteAtivo();
   const handlerRef = useRef<((e: MessageEvent) => void) | null>(null);
 
   useEffect(() => () => {
@@ -22,28 +24,51 @@ export function useLekpisConnect() {
   }, []);
 
   return useCallback(
-    async (platform: LekpisPlatform, clienteId: string) => {
-      if (!clienteId) {
-        toast.error("Nenhum cliente ativo selecionado.");
+    async (platform: LekpisPlatform, clienteIdArg?: string | null) => {
+      // Abre o popup IMEDIATAMENTE (dentro do gesto do usuário) para não ser bloqueado.
+      const popup = window.open("about:blank", "lekpis-connect", "width=600,height=720");
+      if (!popup) {
+        toast.error("Popup bloqueado. Habilite popups para este site.");
         return;
       }
+
+      let effectiveClienteId = clienteIdArg ?? clienteId ?? null;
+      if (!effectiveClienteId) {
+        effectiveClienteId = await ensureDefault();
+      }
+      if (!effectiveClienteId) {
+        popup.close();
+        toast.error("Nenhum cliente ativo. Crie ou selecione um cliente em Perfil.");
+        return;
+      }
+
       let url: string | undefined;
       try {
         const res = await callLekpis<{ url?: string; items?: Array<{ url: string }> }>(
           "integracao.get_connect_url",
-          { platform, cliente_id: clienteId },
+          { platform, cliente_id: effectiveClienteId },
         );
         url = res?.url ?? res?.items?.[0]?.url;
       } catch (e) {
+        console.error("[lekpis] integracao.get_connect_url falhou:", e);
+        popup.close();
         toast.error((e as Error).message ?? "Falha ao obter URL de conexão.");
         return;
       }
       if (!url) {
-        toast.error("URL de conexão não retornada.");
+        console.error("[lekpis] integracao.get_connect_url sem URL. platform=", platform);
+        popup.close();
+        toast.error("URL de conexão não retornada pelo LeKPIs.");
         return;
       }
 
-      const popup = window.open(url, "lekpis-connect", "width=600,height=720");
+      try {
+        popup.location.href = url;
+      } catch (e) {
+        console.error("[lekpis] falha ao setar popup.location:", e);
+        // Fallback: reabrir com a URL final.
+        window.open(url, "lekpis-connect", "width=600,height=720");
+      }
 
       if (handlerRef.current) window.removeEventListener("message", handlerRef.current);
       const handler = (e: MessageEvent) => {
@@ -71,7 +96,7 @@ export function useLekpisConnect() {
       handlerRef.current = handler;
       window.addEventListener("message", handler);
     },
-    [qc],
+    [qc, clienteId, ensureDefault],
   );
 }
 

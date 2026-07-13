@@ -28,7 +28,7 @@ const PERIODS = [
 ];
 
 function LekpisHome() {
-  const { clienteId } = useClienteAtivo();
+  const { clienteId, ensureError, ensuring, ensureDefault } = useClienteAtivo();
   const { data: profile } = useProfile();
   const [period, setPeriod] = useState<string>("30d");
   const connect = useLekpisConnect();
@@ -88,6 +88,26 @@ function LekpisHome() {
         </div>
       </section>
 
+      {ensureError && !clienteId && (
+        <div className="lekpis-card border-amber-300 bg-amber-50/60">
+          <p className="lekpis-display font-semibold text-amber-900">
+            Nenhum cliente ativo
+          </p>
+          <p className="mt-1 text-sm text-amber-800/80">
+            Não foi possível carregar um cliente padrão do LeKPIs.
+            {ensureError.message ? ` (${ensureError.message})` : ""}
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Button size="sm" onClick={() => ensureDefault()} disabled={ensuring}>
+              {ensuring ? "Tentando..." : "Tentar novamente"}
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/lekpis/perfil">Ir para Perfil</Link>
+            </Button>
+          </div>
+        </div>
+      )}
+
       <section className="grid gap-4 sm:grid-cols-2">
         <CanalCard
           slug="instagram"
@@ -96,7 +116,7 @@ function LekpisHome() {
           headlineLabel="Seguidores"
           headline={ig?.seguidores != null ? fmtNum(ig.seguidores) : null}
           deltaPct={pctDelta(ig?.seguidores, igPrev?.seguidores)}
-          onConnect={() => clienteId && connect("instagram", clienteId)}
+          onConnect={() => connect("instagram", clienteId)}
         />
         <CanalCard
           slug="facebook"
@@ -104,7 +124,7 @@ function LekpisHome() {
           loading={fbQ.isLoading}
           headlineLabel="Fãs"
           headline={fb?.fas != null ? fmtNum(fb.fas) : null}
-          onConnect={() => clienteId && connect("facebook", clienteId)}
+          onConnect={() => connect("facebook", clienteId)}
         />
         <CanalCard
           slug="meta-ads"
@@ -112,7 +132,7 @@ function LekpisHome() {
           loading={maQ.isLoading}
           headlineLabel="Investimento"
           headline={totalInvest ? fmtBRL(totalInvest) : null}
-          onConnect={() => clienteId && connect("meta_ads", clienteId)}
+          onConnect={() => connect("meta_ads", clienteId)}
         />
         <CanalCard slug="google-ads" connected={false} comingSoon />
       </section>
