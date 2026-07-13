@@ -263,10 +263,16 @@ function LekpisConnectionSection() {
         (d?.type === "mcp:connected" && d.provider === "lekpis") ||
         d?.type === "lekpis:connected"
       ) {
+        try {
+          window.localStorage.removeItem("lekpis:cliente-id");
+        } catch { /* noop */ }
         qc.invalidateQueries({ queryKey: ["mcp-connection", "lekpis"] });
         qc.invalidateQueries({ queryKey: ["lekpis"] });
         toast.success("LeKPIs conectado.");
+        // Recarrega para reinicializar o cliente ativo com a nova conta.
+        setTimeout(() => window.location.reload(), 300);
       }
+
     }
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
