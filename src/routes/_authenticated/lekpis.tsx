@@ -19,6 +19,7 @@ import { Pencil } from "lucide-react";
 import { ModulePlatformShell } from "@/components/module-platform-shell";
 import { getModule } from "@/lib/modules";
 import { McpOAuthPanel } from "@/components/mcp-oauth-panel";
+import { McpStatusCard } from "@/components/mcp-status-card";
 import { Plug } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/lekpis")({
@@ -209,7 +210,10 @@ function LeKpisPage() {
           <p className="text-sm text-muted-foreground mb-5">
             Conecte via OAuth para acessar as ferramentas MCP do LeKPIs diretamente daqui.
           </p>
-          <McpOAuthPanel provider="lekpis" />
+          <div className="space-y-4">
+            <McpStatusCard provider="lekpis" providerName="LeKPIs" />
+            <McpOAuthPanel provider="lekpis" />
+          </div>
         </section>
       </div>
 
