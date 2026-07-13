@@ -28,7 +28,7 @@ const PERIODS = [
 ];
 
 function LekpisHome() {
-  const { clienteId, ensureError, ensuring, ensureDefault, hasNoClientes } = useClienteAtivo();
+  const { clienteId } = useClienteAtivo();
   const { data: profile } = useProfile();
   const [period, setPeriod] = useState<string>("30d");
   const connect = useLekpisConnect();
