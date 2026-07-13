@@ -17,15 +17,13 @@ export const Route = createFileRoute("/_authenticated/lekpis/integracoes")({
 const PLATFORMS: LekpisPlatform[] = ["instagram", "facebook", "meta_ads"];
 
 function IntegracoesPage() {
-  const { clienteId, ensureError, ensuring, ensureDefault, hasNoClientes } = useClienteAtivo();
+  const { clienteId } = useClienteAtivo();
   const { data, isLoading } = useIntegracoes(clienteId);
   const connect = useLekpisConnect();
   const disconnect = useDisconnectIntegracao();
 
   const byPlatform = new Map<string, Integracao>();
   for (const i of data?.items ?? []) byPlatform.set(i.platform, i);
-
-  const noCliente = !clienteId && !ensureError;
 
   return (
     <div className="space-y-6">
