@@ -1,43 +1,36 @@
 ## Diagnóstico
 
-No preview, `localStorage["lekpis:cliente-id"]` está `null`. O hook `useLekpisConnect` tem esta guarda logo no início:
+A toast "Nenhum cliente ativo. Crie ou selecione um cliente em Perfil." é disparada pelo próprio `useLekpisConnect`, no ramo em que `ensureDefault()` retorna `null`. No screenshot, a lista "Selecionar cliente..." está vazia e os cards estão todos "Não conectado" — ou seja, **o usuário ainda não tem nenhum cliente cadastrado no LeKPIs**. Como `cliente.list` volta vazio e `cliente.ensure_default` não cria automaticamente, `clienteId` fica `null` para sempre e o botão Conectar só serve para mostrar o toast.
 
-```ts
-if (!clienteId) { toast.error("Nenhum cliente ativo selecionado."); return; }
-```
+Isso não é bug de OAuth: é UX. O fluxo precisa levar o usuário a criar/selecionar um cliente antes de tentar conectar plataforma.
 
-Como o `ClienteAtivoProvider` chama `cliente.ensure_default` no boot mas engole qualquer erro (`.catch(() => {})`), quando o tool falha (ou retorna um shape diferente do esperado) o `clienteId` permanece `null` para sempre — e o clique no botão Conectar simplesmente mostra um toast e volta. Do ponto de vista do usuário, "não acontece nada".
+## Mudanças
 
-Confirmado: MCP do LeKPIs está conectado (`mcp_connections.provider = 'lekpis'` presente), então o problema não é OAuth — é o cliente ativo.
+### 1. `src/hooks/use-lekpis-connect.ts`
+Quando `ensureDefault()` retorna `null`, em vez de só toastar:
+- Mostrar toast com ação "Ir para Perfil" (usar `toast.error(msg, { action: { label, onClick } })` do sonner) que navega para `/lekpis/perfil`.
+- Fechar o popup silenciosamente (já faz).
+- Não mudar o restante do fluxo OAuth.
 
-## Correções
+Receberá `navigate` via `useNavigate()` do TanStack Router.
 
-**1. `src/contexts/cliente-ativo-context.tsx`**
-- Não engolir mais o erro do `cliente.ensure_default`: guardar em estado `ensureError` e expor no contexto.
-- Expor `ensureDefault()` como método público para reexecutar sob demanda.
-- Aceitar mais shapes de retorno: `{ id }`, `{ items: [...] }`, `{ cliente: {...} }`, ou array direto.
-- Se `cliente.ensure_default` falhar, tentar fallback com `cliente.list` e usar `items[0].id`.
+### 2. `src/routes/_authenticated/lekpis.integracoes.tsx`
+Adicionar o mesmo padrão de banner que a Home já tem, mas para o caso `!clienteId && !ensureError` (sem erro, apenas sem cliente):
+- Card em destaque acima do grid: "Você ainda não tem um cliente ativo. Crie um em Perfil antes de conectar plataformas."
+- Botão "Ir para Perfil" (Link para `/lekpis/perfil`).
+- Desabilitar visualmente os `IntegracaoCard` (passar prop `disabled`) enquanto `!clienteId`.
 
-**2. `src/hooks/use-lekpis-connect.ts`**
-- Se `clienteId` estiver ausente no momento do clique, chamar `ensureDefault()` antes de abortar.
-- Abrir `window.open(...)` **antes** do `await` (com `about:blank` e depois `popup.location.href = url`) para não ser bloqueado pelo browser como popup não-iniciado por gesto.
-- Se `integracao.get_connect_url` não retornar URL, mostrar toast com a mensagem real (não apenas "URL não retornada").
-- Logar erros no `console.error` para diagnóstico futuro.
+### 3. `src/routes/_authenticated/lekpis.index.tsx`
+Mesmo tratamento: quando `!clienteId && !ensureError`, exibir banner "Crie seu primeiro cliente" com CTA para `/lekpis/perfil`. Os `CanalCard` continuam mostrando "Conectar", mas com `disabled` visual.
 
-**3. `src/routes/_authenticated/lekpis.index.tsx` e `lekpis.integracoes.tsx`**
-- Quando `clienteId` for `null` e houver `ensureError`, mostrar um banner acima dos cards com botão "Tentar novamente" (chama `ensureDefault()`) e um atalho para `/lekpis/perfil` (que já tem seletor/criador de cliente).
-- Desabilitar visualmente o botão "Conectar" nesse estado (tooltip: "Selecione um cliente primeiro").
+### 4. `src/components/lekpis/integracao-card.tsx` e `canal-card.tsx`
+Aceitar prop opcional `disabled?: boolean`; quando true, botão Conectar fica desabilitado com tooltip/hint "Selecione um cliente primeiro". Nenhuma outra mudança visual.
 
-**4. `src/components/lekpis/canal-card.tsx` e `integracao-card.tsx`**
-- Aceitar prop `disabled` e refletir no `<Button>`; passar `disabled={!clienteId}` das telas.
+### 5. `src/contexts/cliente-ativo-context.tsx`
+Ajuste pequeno: quando `cliente.list` retorna `items: []` (não é erro), ainda assim expor um estado `hasNoClientes: boolean` para diferenciar "erro" de "sem clientes". `ensureError` continua só para falhas reais.
 
 ## Fora de escopo
 
-- Não vou reimplementar OAuth, `callMcpTool` nem `mcp.server.ts`.
-- Não vou alterar o shape das tools do MCP LeKPIs.
-
-## Como validar
-
-1. Após o fix, abrir `/lekpis` com `localStorage` limpo: se `ensure_default` falhar, aparece banner com erro real e botão de retry.
-2. Se `ensure_default` funcionar, `clienteId` fica populado e o botão "Conectar" abre popup do OAuth.
-3. Popup não é bloqueado (aberto no clique, URL setada depois).
+- Não altera `mcp-proxy`, `callMcpTool`, tabela `lekpis_connections`, callback OAuth.
+- Não muda shape de tools do LeKPIs.
+- Não adiciona criação automática de cliente (mantém opt-in via Perfil).

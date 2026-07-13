@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { callLekpis } from "@/lib/lekpis-client";
 import { useClienteAtivo } from "@/contexts/cliente-ativo-context";
 import { toast } from "sonner";
+
 
 export type LekpisPlatform = "instagram" | "facebook" | "meta_ads";
 
@@ -13,6 +15,7 @@ export type LekpisPlatform = "instagram" | "facebook" | "meta_ads";
  */
 export function useLekpisConnect() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { clienteId, ensureDefault } = useClienteAtivo();
   const handlerRef = useRef<((e: MessageEvent) => void) | null>(null);
 
@@ -38,9 +41,15 @@ export function useLekpisConnect() {
       }
       if (!effectiveClienteId) {
         popup.close();
-        toast.error("Nenhum cliente ativo. Crie ou selecione um cliente em Perfil.");
+        toast.error("Nenhum cliente ativo. Crie um em Perfil antes de conectar.", {
+          action: {
+            label: "Ir para Perfil",
+            onClick: () => void navigate({ to: "/lekpis/perfil" }),
+          },
+        });
         return;
       }
+
 
       let url: string | undefined;
       try {
@@ -96,7 +105,7 @@ export function useLekpisConnect() {
       handlerRef.current = handler;
       window.addEventListener("message", handler);
     },
-    [qc, clienteId, ensureDefault],
+    [qc, clienteId, ensureDefault, navigate],
   );
 }
 

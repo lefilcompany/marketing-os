@@ -26,6 +26,7 @@ export function CanalCard({
   deltaPct,
   comingSoon,
   onConnect,
+  disabled,
 }: {
   slug: Slug;
   connected: boolean;
@@ -35,7 +36,9 @@ export function CanalCard({
   deltaPct?: number | null;
   comingSoon?: boolean;
   onConnect?: () => void;
+  disabled?: boolean;
 }) {
+
   const meta = META[slug];
   const Icon = meta.icon;
 
@@ -80,13 +83,22 @@ export function CanalCard({
         ) : !connected ? (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Não conectado. Ligue esta plataforma para ver seus indicadores.
+              {disabled
+                ? "Selecione um cliente ativo em Perfil para conectar."
+                : "Não conectado. Ligue esta plataforma para ver seus indicadores."}
             </p>
-            <Button size="sm" onClick={onConnect} className="gap-1.5">
+            <Button
+              size="sm"
+              onClick={onConnect}
+              className="gap-1.5"
+              disabled={disabled}
+              title={disabled ? "Selecione um cliente primeiro" : undefined}
+            >
               <Plug className="h-3.5 w-3.5" />
               Conectar {meta.label}
             </Button>
           </div>
+
         ) : loading ? (
           <div className="lekpis-shimmer h-10 w-32 rounded-md" />
         ) : (

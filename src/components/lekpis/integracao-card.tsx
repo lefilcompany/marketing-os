@@ -26,13 +26,16 @@ export function IntegracaoCard({
   onConnect,
   onDisconnect,
   disconnecting,
+  disabled,
 }: {
   platform: LekpisPlatform;
   integracao: Integracao | null;
   onConnect: () => void;
   onDisconnect: (id: string) => void;
   disconnecting?: boolean;
+  disabled?: boolean;
 }) {
+
   const meta = META[platform];
   const Icon = meta.icon;
   const conta = integracao?.account_name ?? integracao?.conta ?? null;
@@ -83,11 +86,18 @@ export function IntegracaoCard({
             </Button>
           </>
         ) : (
-          <Button size="sm" onClick={onConnect} className="gap-1.5">
+          <Button
+            size="sm"
+            onClick={onConnect}
+            className="gap-1.5"
+            disabled={disabled}
+            title={disabled ? "Selecione um cliente primeiro" : undefined}
+          >
             <Plug className="h-3.5 w-3.5" />
             Conectar
           </Button>
         )}
+
       </div>
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>

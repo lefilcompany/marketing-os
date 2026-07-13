@@ -28,7 +28,7 @@ const PERIODS = [
 ];
 
 function LekpisHome() {
-  const { clienteId, ensureError, ensuring, ensureDefault } = useClienteAtivo();
+  const { clienteId, ensureError, ensuring, ensureDefault, hasNoClientes } = useClienteAtivo();
   const { data: profile } = useProfile();
   const [period, setPeriod] = useState<string>("30d");
   const connect = useLekpisConnect();
@@ -108,6 +108,24 @@ function LekpisHome() {
         </div>
       )}
 
+      {!clienteId && !ensureError && (
+        <div className="lekpis-card border-amber-300 bg-amber-50/60">
+          <p className="lekpis-display font-semibold text-amber-900">
+            {hasNoClientes ? "Crie seu primeiro cliente" : "Selecione um cliente ativo"}
+          </p>
+          <p className="mt-1 text-sm text-amber-800/80">
+            {hasNoClientes
+              ? "Você ainda não tem clientes no LeKPIs. Crie um em Perfil para começar a conectar plataformas."
+              : "Escolha um cliente ativo em Perfil antes de conectar plataformas."}
+          </p>
+          <div className="mt-3">
+            <Button asChild size="sm">
+              <Link to="/lekpis/perfil">Ir para Perfil</Link>
+            </Button>
+          </div>
+        </div>
+      )}
+
       <section className="grid gap-4 sm:grid-cols-2">
         <CanalCard
           slug="instagram"
@@ -117,6 +135,7 @@ function LekpisHome() {
           headline={ig?.seguidores != null ? fmtNum(ig.seguidores) : null}
           deltaPct={pctDelta(ig?.seguidores, igPrev?.seguidores)}
           onConnect={() => connect("instagram", clienteId)}
+          disabled={!clienteId}
         />
         <CanalCard
           slug="facebook"
@@ -125,6 +144,7 @@ function LekpisHome() {
           headlineLabel="Fãs"
           headline={fb?.fas != null ? fmtNum(fb.fas) : null}
           onConnect={() => connect("facebook", clienteId)}
+          disabled={!clienteId}
         />
         <CanalCard
           slug="meta-ads"
@@ -133,9 +153,11 @@ function LekpisHome() {
           headlineLabel="Investimento"
           headline={totalInvest ? fmtBRL(totalInvest) : null}
           onConnect={() => connect("meta_ads", clienteId)}
+          disabled={!clienteId}
         />
         <CanalCard slug="google-ads" connected={false} comingSoon />
       </section>
+
 
       <section className="lekpis-card flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">

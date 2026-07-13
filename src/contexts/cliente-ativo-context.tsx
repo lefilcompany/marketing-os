@@ -18,7 +18,9 @@ type Ctx = {
   ensureError: Error | null;
   ensuring: boolean;
   loading: boolean;
+  hasNoClientes: boolean;
 };
+
 
 const ClienteAtivoCtx = createContext<Ctx | null>(null);
 
@@ -40,7 +42,9 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
   });
   const [ensureError, setEnsureError] = useState<Error | null>(null);
   const [ensuring, setEnsuring] = useState(false);
+  const [hasNoClientes, setHasNoClientes] = useState(false);
   const inFlight = useRef<Promise<string | null> | null>(null);
+
 
   const ensureDefault = useCallback(async (): Promise<string | null> => {
     if (inFlight.current) return inFlight.current;
@@ -48,9 +52,13 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
     setEnsureError(null);
     const p = (async () => {
       let id: string | null = null;
+      let listedEmpty = false;
       try {
         const res = await callLekpis<any>("cliente.ensure_default", {});
         id = extractId(res);
+        if (!id && Array.isArray((res as any)?.items) && (res as any).items.length === 0) {
+          listedEmpty = true;
+        }
       } catch (e) {
         console.error("[lekpis] cliente.ensure_default falhou:", e);
         // Fallback: tentar cliente.list
@@ -58,7 +66,11 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
           const list = await callLekpis<any>("cliente.list", {});
           id = extractId(list);
           if (!id) {
-            setEnsureError(e as Error);
+            if (Array.isArray((list as any)?.items) && (list as any).items.length === 0) {
+              listedEmpty = true;
+            } else {
+              setEnsureError(e as Error);
+            }
           }
         } catch (e2) {
           console.error("[lekpis] cliente.list fallback falhou:", e2);
@@ -68,6 +80,10 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
       if (id) {
         window.localStorage.setItem(STORAGE_KEY, id);
         setClienteIdState(id);
+        setEnsureError(null);
+        setHasNoClientes(false);
+      } else if (listedEmpty) {
+        setHasNoClientes(true);
         setEnsureError(null);
       }
       return id;
@@ -80,6 +96,7 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
       setEnsuring(false);
     }
   }, []);
+
 
   // Boot: se não tem cliente ativo, chama ensureDefault.
   useEffect(() => {
@@ -105,6 +122,7 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, id);
     setClienteIdState(id);
     setEnsureError(null);
+    setHasNoClientes(false);
     qc.invalidateQueries({ queryKey: ["lekpis"] });
   };
 
@@ -118,12 +136,14 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
         ensureError,
         ensuring,
         loading: !clienteId && ensuring,
+        hasNoClientes,
       }}
     >
       {children}
     </ClienteAtivoCtx.Provider>
   );
 }
+
 
 export function useClienteAtivo() {
   const c = useContext(ClienteAtivoCtx);
