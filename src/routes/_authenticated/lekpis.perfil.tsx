@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   useProfile,
   useUpdateProfile,
@@ -7,9 +9,21 @@ import {
   useCreateCliente,
 } from "@/hooks/use-lekpis-queries";
 import { useClienteAtivo } from "@/contexts/cliente-ativo-context";
+import { startMcpAuth, getMcpConnection, disconnectMcp } from "@/lib/mcp.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +32,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Check, Plus, Loader2 } from "lucide-react";
+import { Check, Plus, Loader2, Plug, Unplug, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/lekpis/perfil")({
   head: () => ({ meta: [{ title: "Perfil — LeKPIs" }] }),
@@ -95,7 +111,9 @@ function PerfilPage() {
         </form>
       </section>
 
+      <LekpisConnectionSection />
       <ClientesSection />
+
     </div>
   );
 }
@@ -196,3 +214,166 @@ function ClientesSection() {
     </section>
   );
 }
+
+function LekpisConnectionSection() {
+  const qc = useQueryClient();
+  const connFn = useServerFn(getMcpConnection);
+  const startFn = useServerFn(startMcpAuth);
+  const disconnectFn = useServerFn(disconnectMcp);
+
+  const connection = useQuery({
+    queryKey: ["mcp-connection", "lekpis"],
+    queryFn: () => connFn({ data: { provider: "lekpis" } }),
+  });
+  const connected = !!connection.data?.connection;
+  const conn = connection.data?.connection as
+    | { resource?: string | null; updated_at?: string | null; expires_at?: string | null }
+    | null
+    | undefined;
+
+  const start = useMutation({
+    mutationFn: () => startFn({ data: { provider: "lekpis", returnTo: "/lekpis/perfil" } }),
+    onSuccess: ({ authorizeUrl }) => {
+      const w = window.open(authorizeUrl, "mcp-oauth", "width=520,height=720");
+      if (!w) window.location.href = authorizeUrl;
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const disconnect = useMutation({
+    mutationFn: () => disconnectFn({ data: { provider: "lekpis" } }),
+    onSuccess: () => {
+      try {
+        window.localStorage.removeItem("lekpis:cliente-id");
+      } catch { /* noop */ }
+      toast.success("LeKPIs desconectado.");
+      qc.invalidateQueries({ queryKey: ["mcp-connection", "lekpis"] });
+      qc.invalidateQueries({ queryKey: ["lekpis"] });
+      // Recarrega para limpar o cliente ativo em memória.
+      setTimeout(() => window.location.reload(), 300);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Recarrega ao autorizar via popup.
+  useEffect(() => {
+    function onMsg(e: MessageEvent) {
+      const d = e.data as { type?: string; provider?: string } | null;
+      if (
+        (d?.type === "mcp:connected" && d.provider === "lekpis") ||
+        d?.type === "lekpis:connected"
+      ) {
+        try {
+          window.localStorage.removeItem("lekpis:cliente-id");
+        } catch { /* noop */ }
+        qc.invalidateQueries({ queryKey: ["mcp-connection", "lekpis"] });
+        qc.invalidateQueries({ queryKey: ["lekpis"] });
+        toast.success("LeKPIs conectado.");
+        // Recarrega para reinicializar o cliente ativo com a nova conta.
+        setTimeout(() => window.location.reload(), 300);
+      }
+
+    }
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [qc]);
+
+  return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="lekpis-display text-lg font-semibold">Conexão LeKPIs</h2>
+        <p className="text-sm text-muted-foreground">
+          A conta usada para buscar dados do LeKPIs via MCP.
+        </p>
+      </div>
+
+      <div className="lekpis-card flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="grid h-10 w-10 place-items-center rounded-xl border border-black/5 bg-[oklch(0.96_0.005_80)]">
+            {connected ? (
+              <CheckCircle2 className="h-5 w-5 text-[oklch(0.55_0.16_145)]" />
+            ) : (
+              <Plug className="h-5 w-5 text-muted-foreground" />
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium">
+              {connection.isLoading
+                ? "Carregando…"
+                : connected
+                  ? "Conectado ao LeKPIs"
+                  : "Não conectado"}
+            </p>
+            {connected && conn?.updated_at && (
+              <p className="text-xs text-muted-foreground truncate">
+                Autorizado em {new Date(conn.updated_at).toLocaleString("pt-BR")}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {connected ? (
+            <>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-1.5" disabled={disconnect.isPending}>
+                    {disconnect.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Unplug className="h-3.5 w-3.5" />
+                    )}
+                    Desconectar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Desconectar do LeKPIs?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Você deixará de ver dados do LeKPIs até reconectar. Suas integrações de plataformas continuam salvas no LeKPIs.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => disconnect.mutate()}>
+                      Desconectar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="gap-1.5"
+                onClick={() => start.mutate()}
+                disabled={start.isPending}
+              >
+                {start.isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Plug className="h-3.5 w-3.5" />
+                )}
+                Conectar outra conta
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="sm"
+              className="gap-1.5"
+              onClick={() => start.mutate()}
+              disabled={start.isPending}
+            >
+              {start.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Plug className="h-3.5 w-3.5" />
+              )}
+              Conectar LeKPIs
+            </Button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
