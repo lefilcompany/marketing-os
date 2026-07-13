@@ -11,6 +11,8 @@ export type McpProviderConfig = {
   tokenEndpoint: string;
   registrationEndpoint: string;
   scope: string;
+  /** Env var name whose value is sent as the Supabase `apikey` header on OAuth calls. */
+  apiKeyEnv?: string;
 };
 
 export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
@@ -25,6 +27,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     registrationEndpoint:
       "https://poplveakypbszmltpjco.supabase.co/auth/v1/oauth/clients/register",
     scope: "openid profile email",
+    apiKeyEnv: "DEEPERSONA_SUPABASE_ANON_KEY",
   },
   lekpis: {
     slug: "lekpis",
@@ -37,8 +40,21 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     registrationEndpoint:
       "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/register",
     scope: "openid profile email",
+    apiKeyEnv: "LEKPIS_SUPABASE_ANON_KEY",
   },
 };
+
+function providerApiKey(provider: McpProviderConfig): string | undefined {
+  return provider.apiKeyEnv ? process.env[provider.apiKeyEnv] : undefined;
+}
+
+function withApiKey(
+  provider: McpProviderConfig,
+  headers: Record<string, string>,
+): Record<string, string> {
+  const key = providerApiKey(provider);
+  return key ? { ...headers, apikey: key, Authorization: `Bearer ${key}` } : headers;
+}
 
 export function getProvider(slug: string): McpProviderConfig {
   const p = MCP_PROVIDERS[slug];
