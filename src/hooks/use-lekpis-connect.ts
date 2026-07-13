@@ -35,16 +35,13 @@ export function useLekpisConnect() {
         return;
       }
 
-      let effectiveClienteId = clienteIdArg ?? clienteId ?? null;
-      if (!effectiveClienteId) {
-        effectiveClienteId = await ensureDefault();
-      }
+      const effectiveClienteId = clienteIdArg ?? clienteId ?? null;
       if (!effectiveClienteId) {
         popup.close();
-        toast.error("Nenhum cliente ativo. Crie um em Perfil antes de conectar.", {
+        toast.error("Nenhum cliente ativo. Selecione um cliente antes de conectar.", {
           action: {
-            label: "Ir para Perfil",
-            onClick: () => void navigate({ to: "/lekpis/perfil" }),
+            label: "Selecionar cliente",
+            onClick: () => void navigate({ to: "/lekpis" }),
           },
         });
         return;
