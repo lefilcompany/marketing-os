@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/lekpis/integracoes")({
 const PLATFORMS: LekpisPlatform[] = ["instagram", "facebook", "meta_ads"];
 
 function IntegracoesPage() {
-  const { clienteId } = useClienteAtivo();
+  const { clienteId, ensureError, ensuring, ensureDefault } = useClienteAtivo();
   const { data, isLoading } = useIntegracoes(clienteId);
   const connect = useLekpisConnect();
   const disconnect = useDisconnectIntegracao();
@@ -39,6 +39,26 @@ function IntegracoesPage() {
         </p>
       </div>
 
+      {ensureError && !clienteId && (
+        <div className="lekpis-card border-amber-300 bg-amber-50/60">
+          <p className="lekpis-display font-semibold text-amber-900">
+            Nenhum cliente ativo
+          </p>
+          <p className="mt-1 text-sm text-amber-800/80">
+            Não foi possível carregar um cliente padrão do LeKPIs.
+            {ensureError.message ? ` (${ensureError.message})` : ""}
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Button size="sm" onClick={() => ensureDefault()} disabled={ensuring}>
+              {ensuring ? "Tentando..." : "Tentar novamente"}
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/lekpis/perfil">Ir para Perfil</Link>
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading
           ? PLATFORMS.map((p) => <div key={p} className="lekpis-card lekpis-shimmer h-32" />)
@@ -47,7 +67,7 @@ function IntegracoesPage() {
                 key={p}
                 platform={p}
                 integracao={byPlatform.get(p) ?? null}
-                onConnect={() => clienteId && connect(p, clienteId)}
+                onConnect={() => connect(p, clienteId)}
                 onDisconnect={(id) => disconnect.mutate(id)}
                 disconnecting={disconnect.isPending}
               />
