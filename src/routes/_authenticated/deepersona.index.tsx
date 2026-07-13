@@ -267,7 +267,7 @@ function DeePersonaWizard() {
 
       {/* Stepper */}
       <section className="mx-auto max-w-5xl px-6 pt-6">
-        <div className="surface-card p-4">
+        <div className="surface-card p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Fluxo guiado</p>
             <p className="text-[11px] text-muted-foreground tabular-nums">
@@ -277,11 +277,11 @@ function DeePersonaWizard() {
               )}
             </p>
           </div>
-          <div className="h-1 rounded-full bg-white/5 overflow-hidden mb-3">
+          <div className="h-1 rounded-full bg-white/5 overflow-hidden mb-4">
             <div className="h-full rounded-full transition-all duration-500"
               style={{ width: `${progressPct}%`, background: `linear-gradient(90deg, ${currentStep.tint}, color-mix(in oklab, ${currentStep.tint} 55%, white))` }} />
           </div>
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1 -mx-1 px-1">
             {STEPS.map((s, i) => {
               const done = flow.completed.includes(i);
               const isActive = i === currentIdx;
@@ -296,14 +296,14 @@ function DeePersonaWizard() {
                   disabled={!canClick}
                   className={`group shrink-0 flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1.5 text-[11px] font-medium transition-all border ${
                     isActive
-                      ? "bg-white/10 text-foreground border-white/20 ring-1"
+                      ? "bg-white/10 text-foreground border-white/25 shadow-[0_0_0_1px_var(--step-tint)_inset]"
                       : done
                         ? "bg-white/5 text-foreground/85 border-white/10 hover:bg-white/10"
                         : canClick
                           ? "bg-transparent text-muted-foreground border-white/8 hover:bg-white/5 hover:text-foreground"
                           : "bg-transparent text-muted-foreground/50 border-white/5 cursor-not-allowed"
                   }`}
-                  style={isActive ? ({ ["--tw-ring-color" as never]: s.tint } as Record<string, string>) : undefined}
+                  style={isActive ? ({ ["--step-tint" as never]: s.tint } as Record<string, string>) : undefined}
                 >
                   <span
                     className="grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold shrink-0"
