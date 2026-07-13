@@ -16,7 +16,7 @@ export type LekpisPlatform = "instagram" | "facebook" | "meta_ads";
 export function useLekpisConnect() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { clienteId, ensureDefault } = useClienteAtivo();
+  const { clienteId } = useClienteAtivo();
   const handlerRef = useRef<((e: MessageEvent) => void) | null>(null);
 
   useEffect(() => () => {
