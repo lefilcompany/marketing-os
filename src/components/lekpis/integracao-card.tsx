@@ -26,13 +26,16 @@ export function IntegracaoCard({
   onConnect,
   onDisconnect,
   disconnecting,
+  disabled,
 }: {
   platform: LekpisPlatform;
   integracao: Integracao | null;
   onConnect: () => void;
   onDisconnect: (id: string) => void;
   disconnecting?: boolean;
+  disabled?: boolean;
 }) {
+
   const meta = META[platform];
   const Icon = meta.icon;
   const conta = integracao?.account_name ?? integracao?.conta ?? null;
