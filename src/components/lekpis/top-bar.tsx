@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { BarChart3, Home, Plug, UserRound } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ClienteSelector } from "./cliente-selector";
@@ -12,7 +12,7 @@ const TABS = [
 
 export function LekpisTopBar() {
   const { data: profile } = useProfile();
-  const pathname = useRouterState({ select: (s: { location: { pathname: string } }) => s.location.pathname });
+  const pathname = useLocation({ select: (l) => l.pathname });
   const nome = profile?.nome ?? "";
   const first = nome ? nome.split(" ")[0] : "";
   const initials = (nome || "L")
