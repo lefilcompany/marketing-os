@@ -18,7 +18,9 @@ type Ctx = {
   ensureError: Error | null;
   ensuring: boolean;
   loading: boolean;
+  hasNoClientes: boolean;
 };
+
 
 const ClienteAtivoCtx = createContext<Ctx | null>(null);
 
