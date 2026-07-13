@@ -38,7 +38,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
       "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/authorize",
     tokenEndpoint: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
-      "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/register",
+      "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/clients/register",
     scope: "openid profile email",
     apiKeyEnv: "LEKPIS_SUPABASE_ANON_KEY",
   },
