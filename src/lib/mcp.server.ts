@@ -92,7 +92,7 @@ export async function registerClient(
 ): Promise<string> {
   const res = await fetch(provider.registrationEndpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: withApiKey(provider, { "Content-Type": "application/json" }),
     body: JSON.stringify({
       client_name: "Marketing OS",
       redirect_uris: [redirectUri],
