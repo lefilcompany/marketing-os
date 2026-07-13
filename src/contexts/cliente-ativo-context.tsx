@@ -42,7 +42,9 @@ export function ClienteAtivoProvider({ children }: { children: ReactNode }) {
   });
   const [ensureError, setEnsureError] = useState<Error | null>(null);
   const [ensuring, setEnsuring] = useState(false);
+  const [hasNoClientes, setHasNoClientes] = useState(false);
   const inFlight = useRef<Promise<string | null> | null>(null);
+
 
   const ensureDefault = useCallback(async (): Promise<string | null> => {
     if (inFlight.current) return inFlight.current;
