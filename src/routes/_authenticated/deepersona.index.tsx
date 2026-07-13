@@ -296,14 +296,14 @@ function DeePersonaWizard() {
                   disabled={!canClick}
                   className={`group shrink-0 flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1.5 text-[11px] font-medium transition-all border ${
                     isActive
-                      ? "bg-white/10 text-foreground border-white/20 ring-1"
+                      ? "bg-white/10 text-foreground border-white/25 shadow-[0_0_0_1px_var(--step-tint)_inset]"
                       : done
                         ? "bg-white/5 text-foreground/85 border-white/10 hover:bg-white/10"
                         : canClick
                           ? "bg-transparent text-muted-foreground border-white/8 hover:bg-white/5 hover:text-foreground"
                           : "bg-transparent text-muted-foreground/50 border-white/5 cursor-not-allowed"
                   }`}
-                  style={isActive ? ({ ["--tw-ring-color" as never]: s.tint } as Record<string, string>) : undefined}
+                  style={isActive ? ({ ["--step-tint" as never]: s.tint } as Record<string, string>) : undefined}
                 >
                   <span
                     className="grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold shrink-0"
