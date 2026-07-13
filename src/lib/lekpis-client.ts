@@ -8,17 +8,33 @@ type McpResult = {
   isError?: boolean;
 };
 
+function unwrapEnvelope(payload: any): any {
+  // LeKPIs MCP responses follow { success, data|error, requestId, timestamp }.
+  if (payload && typeof payload === "object" && "success" in payload) {
+    if (payload.success === false) {
+      const err = (payload as any).error;
+      const msg =
+        (err && typeof err === "object" && (err.message || err.code)) ||
+        (typeof err === "string" ? err : null) ||
+        "Erro LeKPIs";
+      throw new Error(String(msg));
+    }
+    if (payload.success === true && "data" in payload) return (payload as any).data;
+  }
+  return payload;
+}
+
 function unwrap(result: McpResult | unknown): any {
   const r = result as McpResult;
   if (r?.isError) {
     const msg = r.content?.map((c) => c.text).filter(Boolean).join("\n") || "Erro na tool MCP";
     throw new Error(msg);
   }
-  if (r?.structuredContent !== undefined) return r.structuredContent;
+  if (r?.structuredContent !== undefined) return unwrapEnvelope(r.structuredContent);
   const text = r?.content?.[0]?.text;
   if (typeof text === "string") {
     try {
-      return JSON.parse(text);
+      return unwrapEnvelope(JSON.parse(text));
     } catch {
       return { text };
     }
