@@ -143,7 +143,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                         <img
                           src={somaLogo.url}
                           alt="SoMA"
-                          className="h-5 w-auto object-contain dark:invert"
+                          className="h-7 w-auto object-contain dark:invert"
                         />
                       ) : (
                         <>
