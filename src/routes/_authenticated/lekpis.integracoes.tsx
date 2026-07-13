@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   useIntegracoes,
   useDisconnectIntegracao,
@@ -7,7 +7,6 @@ import {
 import { useClienteAtivo } from "@/contexts/cliente-ativo-context";
 import { useLekpisConnect, type LekpisPlatform } from "@/hooks/use-lekpis-connect";
 import { IntegracaoCard } from "@/components/lekpis/integracao-card";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/lekpis/integracoes")({
   head: () => ({ meta: [{ title: "Integrações — LeKPIs" }] }),
