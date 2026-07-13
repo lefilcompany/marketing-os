@@ -197,6 +197,20 @@ function LeKpisPage() {
             indicadores no workspace — depois clique em cada indicador para editar nome, período e meta.
           </p>
         </section>
+
+        <section className="surface-card p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Plug className="h-4 w-4 text-muted-foreground" />
+            <h2 className="font-display text-lg font-semibold">Integração MCP</h2>
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
+              LeKPIs
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mb-5">
+            Conecte via OAuth para acessar as ferramentas MCP do LeKPIs diretamente daqui.
+          </p>
+          <McpOAuthPanel provider="lekpis" />
+        </section>
       </div>
 
       {editingMetric && currentOrgId && (
