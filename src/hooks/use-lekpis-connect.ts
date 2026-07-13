@@ -52,7 +52,11 @@ export function useLekpisConnect() {
       try {
         const res = await callLekpis<{ url?: string; items?: Array<{ url: string }> }>(
           "integracao.get_connect_url",
-          { platform, cliente_id: effectiveClienteId },
+          {
+            plataforma: platform,
+            cliente_id: effectiveClienteId,
+            return_to: `${window.location.origin}/lekpis/integracoes`,
+          },
         );
         url = res?.url ?? res?.items?.[0]?.url;
       } catch (e) {
