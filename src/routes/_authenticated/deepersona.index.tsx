@@ -267,7 +267,7 @@ function DeePersonaWizard() {
 
       {/* Stepper */}
       <section className="mx-auto max-w-5xl px-6 pt-6">
-        <div className="surface-card p-4">
+        <div className="surface-card p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Fluxo guiado</p>
             <p className="text-[11px] text-muted-foreground tabular-nums">
@@ -277,11 +277,11 @@ function DeePersonaWizard() {
               )}
             </p>
           </div>
-          <div className="h-1 rounded-full bg-white/5 overflow-hidden mb-3">
+          <div className="h-1 rounded-full bg-white/5 overflow-hidden mb-4">
             <div className="h-full rounded-full transition-all duration-500"
               style={{ width: `${progressPct}%`, background: `linear-gradient(90deg, ${currentStep.tint}, color-mix(in oklab, ${currentStep.tint} 55%, white))` }} />
           </div>
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1 -mx-1 px-1">
             {STEPS.map((s, i) => {
               const done = flow.completed.includes(i);
               const isActive = i === currentIdx;
