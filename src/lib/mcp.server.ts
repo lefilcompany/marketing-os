@@ -26,6 +26,18 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
       "https://poplveakypbszmltpjco.supabase.co/auth/v1/oauth/clients/register",
     scope: "openid profile email",
   },
+  lekpis: {
+    slug: "lekpis",
+    name: "LeKPIs",
+    authorizationServer: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1",
+    resource: "https://phsqbgdjsohmjjoeeqqc.supabase.co/functions/v1/mcp",
+    authorizationEndpoint:
+      "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/authorize",
+    tokenEndpoint: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/token",
+    registrationEndpoint:
+      "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/register",
+    scope: "openid profile email",
+  },
 };
 
 export function getProvider(slug: string): McpProviderConfig {
