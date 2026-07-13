@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -10,21 +10,33 @@ import { clienteListOptions } from "@/hooks/use-lekpis-queries";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plug, Users, ArrowRight } from "lucide-react";
 
+const mcpConnectionOptions = () =>
+  queryOptions({
+    queryKey: ["mcp-connection", "lekpis"] as const,
+    queryFn: () => getMcpConnection({ data: { provider: "lekpis" } }),
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    retry: 0,
+  });
+
 export const Route = createFileRoute("/_authenticated/lekpis")({
   head: () => ({ meta: [{ title: "LeKPIs — Marketing OS" }] }),
+  loader: async ({ context }) => {
+    const conn = await context.queryClient.ensureQueryData(mcpConnectionOptions());
+    if (conn?.connection) {
+      // Pré-busca lista de clientes em paralelo (não bloqueia mais que precisa).
+      await context.queryClient.ensureQueryData(clienteListOptions());
+    }
+    return null;
+  },
   component: LekpisLayout,
 });
 
 function LekpisLayout() {
   const qc = useQueryClient();
-  const connFn = useServerFn(getMcpConnection);
   const startFn = useServerFn(startMcpAuth);
 
-  const connection = useQuery({
-    queryKey: ["mcp-connection", "lekpis"],
-    queryFn: () => connFn({ data: { provider: "lekpis" } }),
-    retry: 0,
-  });
+  const connection = useQuery(mcpConnectionOptions());
 
   const start = useMutation({
     mutationFn: () => startFn({ data: { provider: "lekpis", returnTo: "/lekpis" } }),
