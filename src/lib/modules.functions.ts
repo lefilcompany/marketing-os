@@ -147,7 +147,6 @@ export const generateCopilotRecommendations = createServerFn({ method: "POST" })
               "creator",
               "soma",
               "comunidades",
-              "lekpis",
               "ia",
             ]),
             severity: zod.z.enum(["info", "opportunity", "warning"]),
