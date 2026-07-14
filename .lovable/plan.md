@@ -1,40 +1,44 @@
-## Objetivo
-Fazer a Home do LeKPIs refletir corretamente as integrações e dados do cliente selecionado, como “Lefil Company”, após conectar uma conta/plataforma.
+# Remover integração LeKPIs MCP
 
-## O que deveria aparecer na Home
-- O card do Instagram deveria mudar de “Não conectado” para conectado quando a integração existir para o cliente selecionado.
-- Se o LeKPIs já tiver KPIs para esse cliente, o card deveria mostrar o indicador principal, por exemplo seguidores.
-- O contador em “Integrações” deveria sair de `0 plataforma(s) conectada(s)` para a quantidade real.
-- Se a conta está conectada mas ainda não existem métricas no LeKPIs, a tela deveria pelo menos indicar “conectado” e não continuar pedindo conexão.
+Você vai reformular o MCP do LeKPIs do zero, então o app precisa voltar a um estado sem essa integração — sem rotas, sem hooks, sem contexto de cliente ativo e sem entradas na navegação apontando pra LeKPIs.
 
-## Plano de correção
-1. Adicionar logs temporários no fluxo da Home para confirmar o retorno real de `integracao.list` para o cliente `Lefil Company`.
-   - Logar o payload cru retornado pela chamada.
-   - Logar os itens normalizados e o conjunto usado para decidir se Instagram/Facebook/Meta Ads estão conectados.
+## O que vai ser removido
 
-2. Corrigir o reconhecimento da integração conectada.
-   - Aceitar tanto `platform` quanto `plataforma`, porque a API LeKPIs provavelmente retorna o campo em português.
-   - Normalizar variações como `meta-ads` e `meta_ads` para evitar falso “não conectado”.
-   - Garantir que o contador de integrações use uma lista normalizada, mesmo se o retorno vier envelopado diferente.
+**Rotas (`src/routes/_authenticated/`)**
+- `lekpis.tsx` (layout + gate de conexão)
+- `lekpis.index.tsx`
+- `lekpis.integracoes.tsx`
+- `lekpis.perfil.tsx`
+- `lekpis.canal.$slug.tsx`
 
-3. Melhorar o refresh após conectar.
-   - Após receber o evento de conexão, invalidar/refazer as queries do LeKPIs.
-   - Fazer um segundo refetch com pequeno atraso para cobrir o caso em que o LeKPIs confirma a conexão antes de persistir a integração.
-
-4. Ajustar a Home para estados reais.
-   - Se a integração estiver conectada mas ainda sem KPIs, o card deve mostrar estado conectado sem número, em vez de “Conectar Instagram”.
-   - Manter o botão de conectar apenas quando a plataforma realmente não estiver conectada.
-
-5. Remover os logs temporários depois de confirmar a causa.
-   - Os logs `[DEBUG-ilist]` entram apenas para diagnóstico e saem no fix final.
-
-## Arquivos envolvidos
+**Hooks e contexto**
 - `src/hooks/use-lekpis-queries.ts`
-- `src/routes/_authenticated/lekpis.index.tsx`
-- Possivelmente `src/hooks/use-lekpis-connect.ts`, se o refresh pós-conexão precisar de ajuste fino.
+- `src/hooks/use-lekpis-connect.ts`
+- `src/contexts/cliente-ativo-context.tsx`
+- `src/lib/lekpis-client.ts`
 
-## Validação
-- Selecionar o cliente “Lefil Company”.
-- Conectar Instagram.
-- Verificar se a Home muda o card para conectado e atualiza o contador de integrações.
-- Confirmar no console qual era o formato real retornado por `integracao.list` antes de remover os logs.
+**Componentes**
+- `src/components/lekpis/` inteiro (top-bar, canal-card, integracao-card, cliente-selector)
+
+**Dados persistidos no navegador**
+- A chave `CLIENTE_STORAGE_KEY` (cliente ativo salvo) deixa de ser lida quando o contexto some. Não faço limpeza automática — é lixo inofensivo no `localStorage` do usuário.
+
+**Banco / conexões OAuth MCP**
+- Não removo linhas de `mcp_connections` nem `mcp_oauth_states`. A infra genérica de MCP (`src/lib/mcp.functions.ts`, `mcp.server.ts`, rota `api/mcp/callback`) continua no projeto porque é usada por outros conectores e pelo painel MCP. Só o provider `lekpis` deixa de ter UI que o acione. Quando o novo MCP for ligado, se quiser zerar a linha antiga do provider `lekpis`, faço isso num passo separado.
+
+**Navegação / menus**
+- Verifico `src/components/app-shell.tsx`, `command-palette.tsx`, `module-shell.tsx`, `modules.ts` e `flows.ts` e removo qualquer link/entrada apontando pra `/lekpis*`. Se o "módulo LeKPIs" estiver listado em `src/lib/modules.ts`, tiro dessa lista também.
+
+## O que fica intacto
+
+- Toda a infra genérica de MCP (OAuth start/callback, `getMcpConnection`, `listMcpTools`, `callMcpTool`, `disconnectMcp`, tabelas `mcp_connections` / `mcp_oauth_states`).
+- Painel `mcp-oauth-panel` / `mcp-status-card` / `mcp-resource-explorer` — servem outros providers.
+- Nenhuma migração de banco.
+
+## Verificação depois de aplicar
+
+1. `rg -l lekpis src/` deve voltar vazio (fora de comentários irrelevantes, se houver).
+2. Build passa sem erro de import.
+3. Home e demais rotas continuam abrindo normalmente; `/lekpis` passa a dar 404 (comportamento esperado).
+
+Quando o novo MCP estiver pronto, a gente reintroduz as rotas/hook com base no novo schema de tools.
