@@ -1,33 +1,72 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, useSearch, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { BarChart3 } from "lucide-react";
+import { getModule } from "@/lib/modules";
+import { ModulePlatformShell } from "@/components/module-platform-shell";
+import { LekpisConnection, LekpisProviderCards } from "@/components/lekpis/lekpis-connection";
+import { LekpisDashboard } from "@/components/lekpis/lekpis-dashboard";
+
+type Search = { mcp?: "connected" | "cancelled" | "error" };
 
 export const Route = createFileRoute("/_authenticated/lekpis")({
+  validateSearch: (raw: Record<string, unknown>): Search => {
+    const m = raw.mcp;
+    if (m === "connected" || m === "cancelled" || m === "error") return { mcp: m };
+    return {};
+  },
   head: () => ({
     meta: [
-      { title: "LeKPIs — em reformulação" },
+      { title: "LeKPIs — Marketing OS" },
       {
         name: "description",
-        content: "O módulo LeKPIs está sendo reformulado. Em breve, novas integrações.",
+        content:
+          "Indicadores de marketing consolidados do LeKPIs — Meta Ads, Google Ads e mais, dentro do Marketing OS.",
       },
     ],
   }),
-  component: LekpisPlaceholder,
+  component: LekpisRoute,
 });
 
-function LekpisPlaceholder() {
+function LekpisRoute() {
+  const search = useSearch({ from: "/_authenticated/lekpis" });
+  const navigate = useNavigate();
+  const [ready, setReady] = useState(false);
+  const module = getModule("lekpis")!;
+
+  useEffect(() => {
+    if (!search.mcp) return;
+    if (search.mcp === "connected") toast.success("LeKPIs conectado.");
+    if (search.mcp === "cancelled") toast.info("Autorização cancelada.");
+    if (search.mcp === "error") toast.error("Não foi possível concluir a autorização.");
+    // Clear param
+    navigate({ to: "/lekpis", search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.mcp]);
+
   return (
-    <div className="min-h-[calc(100dvh-4rem)] grid place-items-center px-6">
-      <div className="max-w-md rounded-2xl border bg-card p-8 text-center shadow-sm">
-        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border bg-muted">
-          <BarChart3 className="h-5 w-5 text-muted-foreground" />
-        </div>
-        <h1 className="mt-4 text-xl font-semibold tracking-tight">
-          LeKPIs em reformulação
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          As integrações antigas foram removidas. Um novo MCP está sendo preparado
-          e voltará em breve.
-        </p>
+    <div className="min-h-[calc(100dvh-4rem)]">
+      <ModulePlatformShell module={module} hideMcpPanel />
+      <div className="mx-auto max-w-6xl px-6 py-6 space-y-6">
+        <LekpisConnection onReady={setReady} />
+        {ready && (
+          <>
+            <section className="space-y-2">
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" /> Fontes de dados
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Conecte Meta Ads e Google Ads pelo LeKPIs. Os tokens ficam no LeKPIs; o
+                Marketing OS apenas lê os indicadores consolidados.
+              </p>
+              <LekpisProviderCards />
+            </section>
+            <section className="space-y-2">
+              <h2 className="font-display text-lg font-semibold">Indicadores</h2>
+              <LekpisDashboard enabled={ready} />
+            </section>
+          </>
+        )}
       </div>
     </div>
   );
