@@ -78,7 +78,12 @@ export async function decryptToken(b64: string): Promise<string> {
   if (raw[0] !== VERSION) throw new Error("Versão de criptografia desconhecida");
   const nonce = raw.slice(1, 13);
   const ct = raw.slice(13);
-  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, key, ct);
+  const pt = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: nonce as unknown as ArrayBuffer },
+    key,
+    ct as unknown as ArrayBuffer,
+  );
+
   return new TextDecoder().decode(pt);
 }
 
