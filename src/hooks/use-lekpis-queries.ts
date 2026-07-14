@@ -133,9 +133,11 @@ export function integracaoListOptions(clienteId: string | null) {
     queryKey: ["lekpis", "integracao.list", clienteId],
     enabled: !!clienteId,
     queryFn: async () => {
-      const res = await callLekpis<Items<Integracao> | Integracao[] | Integracao>("integracao.list", {
-        cliente_id: clienteId,
-      });
+      const res = await safeCallLekpis<Items<Integracao> | Integracao[] | Integracao>(
+        "integracao.list",
+        { cliente_id: clienteId },
+        { items: [] },
+      );
       const normalized = normalizeItemsResponse(res);
       return {
         ...(res && !Array.isArray(res) && typeof res === "object" ? res : {}),
@@ -146,6 +148,7 @@ export function integracaoListOptions(clienteId: string | null) {
       } as Items<Integracao>;
     },
     staleTime: 15_000,
+    retry: false,
   });
 }
 
