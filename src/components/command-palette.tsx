@@ -17,7 +17,6 @@ const MODULE_META: Record<SearchHit["module"], { label: string; color: string }>
   deepersona: { label: "DeePersona", color: "var(--brand-deepersona)" },
   creator: { label: "Creator", color: "var(--brand-creator)" },
   soma: { label: "Soma", color: "var(--brand-soma)" },
-  lekpis: { label: "LeKPIs", color: "var(--brand-lekpi)" },
 };
 
 function HitIcon({ kind }: { kind: string }) {
