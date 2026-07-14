@@ -160,7 +160,7 @@ export const lekpisSelectAccount = createServerFn({ method: "POST" })
       "select_account",
       { provider: data.provider, external_account_id: data.externalAccountId },
     );
-    return JSON.parse(JSON.stringify({ result })) as { result: unknown };
+    return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
   });
 
 export const lekpisSyncMetrics = createServerFn({ method: "POST" })
@@ -186,7 +186,7 @@ export const lekpisSyncMetrics = createServerFn({ method: "POST" })
       "sync_metrics",
       args,
     );
-    return JSON.parse(JSON.stringify({ result })) as { result: SyncMetricsResponse | unknown };
+    return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
   });
 
 export const lekpisGetDashboard = createServerFn({ method: "POST" })
@@ -206,7 +206,7 @@ export const lekpisGetDashboard = createServerFn({ method: "POST" })
       "get_dashboard",
       { start_date: data.startDate, end_date: data.endDate },
     );
-    return JSON.parse(JSON.stringify({ result })) as { result: DashboardResponse | unknown };
+    return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
   });
 
 export const lekpisGetMetricSeries = createServerFn({ method: "POST" })
@@ -231,7 +231,7 @@ export const lekpisGetMetricSeries = createServerFn({ method: "POST" })
         end_date: data.endDate,
       },
     );
-    return JSON.parse(JSON.stringify({ result })) as { result: MetricSeriesResponse | unknown };
+    return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
   });
 
 export const lekpisUpdateMetricTarget = createServerFn({ method: "POST" })
