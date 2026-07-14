@@ -236,7 +236,6 @@ function fallbackRecommendations(counts: {
       | "creator"
       | "soma"
       | "comunidades"
-      | "lekpis"
       | "ia";
     severity: "info" | "opportunity" | "warning";
     action_hint: string;
