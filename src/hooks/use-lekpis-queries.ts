@@ -33,11 +33,16 @@ export function profileGetOptions() {
   return queryOptions({
     queryKey: ["lekpis", "profile.get"],
     queryFn: async () => {
-      const res = await callLekpis<LekpisProfile | Items<LekpisProfile>>("profile.get", {});
+      const res = await safeCallLekpis<LekpisProfile | Items<LekpisProfile> | null>(
+        "profile.get",
+        {},
+        null,
+      );
       const items = (res as any)?.items;
       return (Array.isArray(items) ? items[0] : (res as LekpisProfile)) ?? null;
     },
     staleTime: 60_000,
+    retry: false,
   });
 }
 
@@ -64,8 +69,9 @@ export type Cliente = { id: string; nome?: string | null; [k: string]: any };
 export function clienteListOptions() {
   return queryOptions({
     queryKey: ["lekpis", "cliente.list"],
-    queryFn: () => callLekpis<Items<Cliente>>("cliente.list", {}),
+    queryFn: () => safeCallLekpis<Items<Cliente>>("cliente.list", {}, { items: [] }),
     staleTime: 30_000,
+    retry: false,
   });
 }
 
