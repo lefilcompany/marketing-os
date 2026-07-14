@@ -233,7 +233,9 @@ async function mcpFetch(
   }
   const parsed = parseMcpBody(raw) as JsonRpcResponse;
   if (parsed?.error) {
-    throw new Error(`MCP erro: ${parsed.error.message}`);
+    throw new Error(
+      `MCP erro (${payload.method}): ${parsed.error.message}${parsed.error.data ? ` — ${JSON.stringify(parsed.error.data)}` : ""}`,
+    );
   }
   return { body: parsed, sessionId: newSession };
 }
