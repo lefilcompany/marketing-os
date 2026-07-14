@@ -62,7 +62,21 @@ export function useLekpisConnect() {
       } catch (e) {
         console.error("[lekpis] integracao.get_connect_url falhou:", e);
         popup.close();
-        toast.error((e as Error).message ?? "Falha ao obter URL de conexão.");
+        const rawMsg = (e as Error).message ?? "";
+        let friendly = rawMsg || "Falha ao obter URL de conexão.";
+        try {
+          const parsed = JSON.parse(rawMsg);
+          const code = parsed?.error?.code as string | undefined;
+          const msg = parsed?.error?.message as string | undefined;
+          if (code === "VALIDATION_ERROR" && msg?.includes("return_to host")) {
+            friendly = `Este domínio (${window.location.host}) ainda não está autorizado no LeKPIs. Contate o admin do LeKPIs para adicioná-lo à allowlist de return_to.`;
+          } else if (msg) {
+            friendly = msg;
+          }
+        } catch {
+          /* mensagem não é JSON — usa raw */
+        }
+        toast.error(friendly, { duration: 8000 });
         return;
       }
       if (!url) {
