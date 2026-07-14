@@ -1,6 +1,17 @@
 import { useMutation, useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
-import { callLekpis } from "@/lib/lekpis-client";
+import { callLekpis, isLekpisToolUnavailable } from "@/lib/lekpis-client";
 import { toast } from "sonner";
+
+// Swallow "Method not found" (LeKPIs backend under reconstruction) as empty
+// results, so the UI degrades gracefully instead of blowing up.
+async function safeCallLekpis<T>(name: string, args: Record<string, any>, fallback: T): Promise<T> {
+  try {
+    return await callLekpis<T>(name, args);
+  } catch (err) {
+    if (isLekpisToolUnavailable(err)) return fallback;
+    throw err;
+  }
+}
 
 type Items<T> = { items: T[] };
 
@@ -22,11 +33,16 @@ export function profileGetOptions() {
   return queryOptions({
     queryKey: ["lekpis", "profile.get"],
     queryFn: async () => {
-      const res = await callLekpis<LekpisProfile | Items<LekpisProfile>>("profile.get", {});
+      const res = await safeCallLekpis<LekpisProfile | Items<LekpisProfile> | null>(
+        "profile.get",
+        {},
+        null,
+      );
       const items = (res as any)?.items;
       return (Array.isArray(items) ? items[0] : (res as LekpisProfile)) ?? null;
     },
     staleTime: 60_000,
+    retry: false,
   });
 }
 
@@ -53,8 +69,9 @@ export type Cliente = { id: string; nome?: string | null; [k: string]: any };
 export function clienteListOptions() {
   return queryOptions({
     queryKey: ["lekpis", "cliente.list"],
-    queryFn: () => callLekpis<Items<Cliente>>("cliente.list", {}),
+    queryFn: () => safeCallLekpis<Items<Cliente>>("cliente.list", {}, { items: [] }),
     staleTime: 30_000,
+    retry: false,
   });
 }
 
@@ -116,9 +133,11 @@ export function integracaoListOptions(clienteId: string | null) {
     queryKey: ["lekpis", "integracao.list", clienteId],
     enabled: !!clienteId,
     queryFn: async () => {
-      const res = await callLekpis<Items<Integracao> | Integracao[] | Integracao>("integracao.list", {
-        cliente_id: clienteId,
-      });
+      const res = await safeCallLekpis<Items<Integracao> | Integracao[] | Integracao>(
+        "integracao.list",
+        { cliente_id: clienteId },
+        { items: [] },
+      );
       const normalized = normalizeItemsResponse(res);
       return {
         ...(res && !Array.isArray(res) && typeof res === "object" ? res : {}),
@@ -129,6 +148,7 @@ export function integracaoListOptions(clienteId: string | null) {
       } as Items<Integracao>;
     },
     staleTime: 15_000,
+    retry: false,
   });
 }
 
@@ -170,8 +190,9 @@ function kpiOptions(tool: string, clienteId: string | null) {
   return queryOptions({
     queryKey: ["lekpis", tool, clienteId],
     enabled: !!clienteId,
-    queryFn: () => callLekpis<Items<Kpi>>(tool, { cliente_id: clienteId }),
+    queryFn: () => safeCallLekpis<Items<Kpi>>(tool, { cliente_id: clienteId }, { items: [] }),
     staleTime: 30_000,
+    retry: false,
   });
 }
 
@@ -196,8 +217,14 @@ export function metaAdsCampaignsOptions(clienteId: string | null) {
   return queryOptions({
     queryKey: ["lekpis", "meta_ads.list_campaigns", clienteId],
     enabled: !!clienteId,
-    queryFn: () => callLekpis<Items<Campaign>>("meta_ads.list_campaigns", { cliente_id: clienteId }),
+    queryFn: () =>
+      safeCallLekpis<Items<Campaign>>(
+        "meta_ads.list_campaigns",
+        { cliente_id: clienteId },
+        { items: [] },
+      ),
     staleTime: 30_000,
+    retry: false,
   });
 }
 

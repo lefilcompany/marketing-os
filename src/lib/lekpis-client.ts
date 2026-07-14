@@ -42,14 +42,32 @@ function unwrap(result: McpResult | unknown): any {
   return r;
 }
 
+export class LekpisToolUnavailableError extends Error {
+  constructor(public toolName: string) {
+    super(`LeKPIs tool indisponível: ${toolName}`);
+    this.name = "LekpisToolUnavailableError";
+  }
+}
+
+export function isLekpisToolUnavailable(err: unknown): boolean {
+  if (err instanceof LekpisToolUnavailableError) return true;
+  const msg = (err as Error)?.message ?? "";
+  return /Method not found|-32601/i.test(msg);
+}
+
 export async function callLekpis<T = any>(
   name: string,
   args: Record<string, any> = {},
 ): Promise<T> {
-  const { result } = await callMcpTool({
-    data: { provider: "lekpis", name, arguments: args },
-  });
-  return unwrap(result) as T;
+  try {
+    const { result } = await callMcpTool({
+      data: { provider: "lekpis", name, arguments: args },
+    });
+    return unwrap(result) as T;
+  } catch (err) {
+    if (isLekpisToolUnavailable(err)) throw new LekpisToolUnavailableError(name);
+    throw err;
+  }
 }
 
 export class LekpisNotConnectedError extends Error {

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { callLekpis } from "@/lib/lekpis-client";
+import { callLekpis, isLekpisToolUnavailable } from "@/lib/lekpis-client";
 
 const STORAGE_KEY = "lekpis:cliente-id";
 
@@ -32,9 +32,18 @@ export function ClienteAtivoProvider({
   const clienteQ = useQuery({
     queryKey: ["lekpis", "cliente.get", clienteId],
     enabled: !!clienteId,
-    queryFn: () =>
-      callLekpis<{ items?: Cliente[] } | Cliente>("cliente.get", { cliente_id: clienteId }),
+    queryFn: async () => {
+      try {
+        return await callLekpis<{ items?: Cliente[] } | Cliente>("cliente.get", {
+          cliente_id: clienteId,
+        });
+      } catch (err) {
+        if (isLekpisToolUnavailable(err)) return null;
+        throw err;
+      }
+    },
     staleTime: 60_000,
+    retry: false,
   });
 
   const cliente: Cliente | null = (() => {
