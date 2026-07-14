@@ -19,6 +19,18 @@ const TRUSTED_BROKER_HOSTS = new Set<string>([
   "pla.lekpis.lefil.com.br",
 ]);
 
+function unavailableToolResult(tool: string): JsonValue {
+  return {
+    isError: true,
+    content: [
+      {
+        type: "text",
+        text: `O backend do LeKPIs aceitou a autenticação, mas ainda não implementa a chamada MCP tools/call para ${tool}.`,
+      },
+    ],
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function assertWs(supabase: any, userId: string, workspaceId: string | null) {
   if (!workspaceId) return;
@@ -87,7 +99,14 @@ async function callTool(
       .eq("id", row.id);
   }
 
-  return mcpCallTool(row.resource, accessToken, name, args);
+  try {
+    return await mcpCallTool(row.resource, accessToken, name, args);
+  } catch (err) {
+    if (err instanceof Error && /MCP erro \(tools\/call\): Method not found/i.test(err.message)) {
+      return unavailableToolResult(name);
+    }
+    throw err;
+  }
 }
 
 /** Validate a broker URL returned by connect_provider before opening it. */
