@@ -29,19 +29,6 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     scope: "openid profile email",
     apiKeyEnv: "DEEPERSONA_SUPABASE_ANON_KEY",
   },
-  lekpis: {
-    slug: "lekpis",
-    name: "LeKPIs",
-    authorizationServer: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1",
-    resource: "https://phsqbgdjsohmjjoeeqqc.supabase.co/functions/v1/mcp",
-    authorizationEndpoint:
-      "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/authorize",
-    tokenEndpoint: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/token",
-    registrationEndpoint:
-      "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
-    apiKeyEnv: "LEKPIS_SUPABASE_ANON_KEY",
-  },
 };
 
 function providerApiKey(provider: McpProviderConfig): string | undefined {
