@@ -137,8 +137,7 @@ export const lekpisListAvailableAccounts = createServerFn({ method: "POST" })
       "list_available_accounts",
       { provider: data.provider },
     );
-    return JSON.parse(JSON.stringify({ result })) as {
-      result: JsonValue };
+    return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
   });
 
 export const lekpisSelectAccount = createServerFn({ method: "POST" })
@@ -245,6 +244,5 @@ export const lekpisUpdateMetricTarget = createServerFn({ method: "POST" })
       "update_metric_target",
       { metric: data.metric, target: data.target },
     );
-    return JSON.parse(JSON.stringify({ result })) as {
-      result: JsonValue };
+    return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
   });
