@@ -1,30 +1,40 @@
-## Problema
+## Objetivo
+Fazer a Home do LeKPIs refletir corretamente as integrações e dados do cliente selecionado, como “Lefil Company”, após conectar uma conta/plataforma.
 
-Ao clicar em "Conectar Instagram", chamamos a tool MCP `integracao.get_connect_url` com:
+## O que deveria aparecer na Home
+- O card do Instagram deveria mudar de “Não conectado” para conectado quando a integração existir para o cliente selecionado.
+- Se o LeKPIs já tiver KPIs para esse cliente, o card deveria mostrar o indicador principal, por exemplo seguidores.
+- O contador em “Integrações” deveria sair de `0 plataforma(s) conectada(s)` para a quantidade real.
+- Se a conta está conectada mas ainda não existem métricas no LeKPIs, a tela deveria pelo menos indicar “conectado” e não continuar pedindo conexão.
 
-```
-{ platform: "instagram", cliente_id: "..." }
-```
+## Plano de correção
+1. Adicionar logs temporários no fluxo da Home para confirmar o retorno real de `integracao.list` para o cliente `Lefil Company`.
+   - Logar o payload cru retornado pela chamada.
+   - Logar os itens normalizados e o conjunto usado para decidir se Instagram/Facebook/Meta Ads estão conectados.
 
-O servidor do LeKPIs valida com Zod e responde `-32602 Input validation error`:
-- `path: ["plataforma"]` → esperado `plataforma` (não `platform`), enum `instagram | facebook | meta_ads | google_ads | linkedin | youtube | discourse`.
-- `path: ["return_to"]` → esperado `string`, recebemos `undefined`.
+2. Corrigir o reconhecimento da integração conectada.
+   - Aceitar tanto `platform` quanto `plataforma`, porque a API LeKPIs provavelmente retorna o campo em português.
+   - Normalizar variações como `meta-ads` e `meta_ads` para evitar falso “não conectado”.
+   - Garantir que o contador de integrações use uma lista normalizada, mesmo se o retorno vier envelopado diferente.
 
-Ou seja, não tem nada a ver com "não achou os clientes" — é só o contrato do argumento da tool que mudou/está diferente do que estamos enviando. Por isso a Home também parece "sem dados": todo botão de Conectar cai nesse 400 antes de abrir o popup.
+3. Melhorar o refresh após conectar.
+   - Após receber o evento de conexão, invalidar/refazer as queries do LeKPIs.
+   - Fazer um segundo refetch com pequeno atraso para cobrir o caso em que o LeKPIs confirma a conexão antes de persistir a integração.
 
-## Correção
+4. Ajustar a Home para estados reais.
+   - Se a integração estiver conectada mas ainda sem KPIs, o card deve mostrar estado conectado sem número, em vez de “Conectar Instagram”.
+   - Manter o botão de conectar apenas quando a plataforma realmente não estiver conectada.
 
-Arquivo único: `src/hooks/use-lekpis-connect.ts`
+5. Remover os logs temporários depois de confirmar a causa.
+   - Os logs `[DEBUG-ilist]` entram apenas para diagnóstico e saem no fix final.
 
-1. Renomear a chave enviada de `platform` → `plataforma` na chamada `callLekpis("integracao.get_connect_url", …)`.
-2. Adicionar `return_to` como string. Usar a URL absoluta da própria home do módulo para o LeKPIs redirecionar de volta após o OAuth:
-   - `return_to: `${window.location.origin}/lekpis/integracoes``
-3. Manter `cliente_id` como já está.
+## Arquivos envolvidos
+- `src/hooks/use-lekpis-queries.ts`
+- `src/routes/_authenticated/lekpis.index.tsx`
+- Possivelmente `src/hooks/use-lekpis-connect.ts`, se o refresh pós-conexão precisar de ajuste fino.
 
-Nada muda no fluxo visual, no callback (`/api/mcp/callback` continua tratando `postMessage` normal), nem em outras telas. `IntegracaoCard`/`useLekpisConnect` continuam sendo chamados com `platform: LekpisPlatform` internamente; a conversão para `plataforma` acontece só no momento da chamada MCP.
-
-## Verificação
-
-- Build passa (nenhuma outra referência a `platform:` no payload dessa tool).
-- Clicar em "Conectar Instagram" na Home abre o popup do LeKPIs em vez de exibir o toast de erro.
-- Console não mostra mais `MCP error -32602 Input validation error`.
+## Validação
+- Selecionar o cliente “Lefil Company”.
+- Conectar Instagram.
+- Verificar se a Home muda o card para conectado e atualiza o contador de integrações.
+- Confirmar no console qual era o formato real retornado por `integracao.list` antes de remover os logs.
