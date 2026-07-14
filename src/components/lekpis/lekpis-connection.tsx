@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -83,20 +83,21 @@ export function LekpisConnection({ onReady }: { onReady: (ready: boolean) => voi
     retry: 0,
   });
 
+  const listedTools = toolsQuery.data?.tools ?? [];
   const toolsNames = useMemo(
-    () => new Set((toolsQuery.data?.tools ?? []).map((t) => t.name)),
-    [toolsQuery.data],
+    () => new Set(listedTools.map((t) => t.name)),
+    [listedTools],
   );
-  // If the MCP server doesn't expose tools/list, trust the local registry.
-  const listSupported = (toolsQuery.data?.tools?.length ?? 0) > 0;
-  const missing = listSupported ? REQUIRED_TOOLS.filter((n) => !toolsNames.has(n)) : [];
-  const ready = isConnected && !toolsQuery.isLoading && missing.length === 0;
+  const listSupported = listedTools.length > 0;
+  const missing = listSupported
+    ? REQUIRED_TOOLS.filter((n) => !toolsNames.has(n))
+    : REQUIRED_TOOLS;
+  const ready = isConnected && !toolsQuery.isLoading && listSupported && missing.length === 0;
 
   // Signal parent
-  useMemo(() => {
+  useEffect(() => {
     onReady(ready);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
+  }, [onReady, ready]);
 
   const connectMut = useMutation({
     mutationFn: async () => {
@@ -228,8 +229,9 @@ export function LekpisConnection({ onReady }: { onReady: (ready: boolean) => voi
           <strong>Integração LeKPIs incompatível</strong>
         </div>
         <p className="text-sm text-muted-foreground">
-          O servidor MCP do LeKPIs não expõe todas as ferramentas necessárias para esta
-          versão. Continue usando a plataforma dedicada até uma atualização.
+          {listSupported
+            ? "O servidor MCP do LeKPIs não expõe todas as ferramentas necessárias para esta versão. Continue usando a plataforma dedicada até uma atualização."
+            : "A conexão OAuth foi concluída, mas o servidor MCP do LeKPIs ainda não expõe ferramentas executáveis. Continue usando a plataforma dedicada até o backend do LeKPIs publicar tools/list e tools/call."}
         </p>
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm" className="gap-2">
