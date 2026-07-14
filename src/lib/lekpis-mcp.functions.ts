@@ -121,7 +121,7 @@ export const lekpisConnectProvider = createServerFn({ method: "POST" })
       args,
     )) as unknown;
     return JSON.parse(JSON.stringify({ result })) as {
-      result: ConnectProviderResponse | { content?: unknown[]; structuredContent?: unknown };
+      result: JsonValue };
     };
   });
 
@@ -139,8 +139,7 @@ export const lekpisListAvailableAccounts = createServerFn({ method: "POST" })
       { provider: data.provider },
     );
     return JSON.parse(JSON.stringify({ result })) as {
-      result: { accounts?: AvailableAccount[] } | unknown;
-    };
+      result: JsonValue };
   });
 
 export const lekpisSelectAccount = createServerFn({ method: "POST" })
@@ -248,6 +247,5 @@ export const lekpisUpdateMetricTarget = createServerFn({ method: "POST" })
       { metric: data.metric, target: data.target },
     );
     return JSON.parse(JSON.stringify({ result })) as {
-      result: UpdateMetricTargetResponse | unknown;
-    };
+      result: JsonValue };
   });
