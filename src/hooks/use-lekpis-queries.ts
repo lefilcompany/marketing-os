@@ -190,8 +190,9 @@ function kpiOptions(tool: string, clienteId: string | null) {
   return queryOptions({
     queryKey: ["lekpis", tool, clienteId],
     enabled: !!clienteId,
-    queryFn: () => callLekpis<Items<Kpi>>(tool, { cliente_id: clienteId }),
+    queryFn: () => safeCallLekpis<Items<Kpi>>(tool, { cliente_id: clienteId }, { items: [] }),
     staleTime: 30_000,
+    retry: false,
   });
 }
 
@@ -216,8 +217,14 @@ export function metaAdsCampaignsOptions(clienteId: string | null) {
   return queryOptions({
     queryKey: ["lekpis", "meta_ads.list_campaigns", clienteId],
     enabled: !!clienteId,
-    queryFn: () => callLekpis<Items<Campaign>>("meta_ads.list_campaigns", { cliente_id: clienteId }),
+    queryFn: () =>
+      safeCallLekpis<Items<Campaign>>(
+        "meta_ads.list_campaigns",
+        { cliente_id: clienteId },
+        { items: [] },
+      ),
     staleTime: 30_000,
+    retry: false,
   });
 }
 
