@@ -233,9 +233,7 @@ async function mcpFetch(
   }
   const parsed = parseMcpBody(raw) as JsonRpcResponse;
   if (parsed?.error) {
-    throw new Error(
-      `MCP erro (${payload.method}): ${parsed.error.message}${parsed.error.data ? ` — ${JSON.stringify(parsed.error.data)}` : ""}`,
-    );
+    throw new Error(`MCP erro: ${parsed.error.message}`);
   }
   return { body: parsed, sessionId: newSession };
 }
@@ -288,23 +286,15 @@ export async function mcpInitializeAndListTools(
     /* noop */
   }
 
-  try {
-    const listed = await mcpFetch(
-      resource,
-      accessToken,
-      { jsonrpc: "2.0", id: 2, method: "tools/list" },
-      sessionId,
-      PROTOCOL_VERSION,
-    );
-    const result = listed.body.result as { tools?: McpToolDescriptor[] } | undefined;
-    return { tools: result?.tools ?? [], sessionId, serverInfo };
-  } catch (err) {
-    // Some MCP servers (e.g. LeKPIs) don't expose tools/list; callers use a local registry.
-    if (err instanceof Error && /Method not found/i.test(err.message)) {
-      return { tools: [], sessionId, serverInfo };
-    }
-    throw err;
-  }
+  const listed = await mcpFetch(
+    resource,
+    accessToken,
+    { jsonrpc: "2.0", id: 2, method: "tools/list" },
+    sessionId,
+    PROTOCOL_VERSION,
+  );
+  const result = listed.body.result as { tools?: McpToolDescriptor[] } | undefined;
+  return { tools: result?.tools ?? [], sessionId, serverInfo };
 }
 
 export async function mcpCallTool(

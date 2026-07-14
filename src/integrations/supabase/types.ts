@@ -745,7 +745,6 @@ export type Database = {
       mcp_connections: {
         Row: {
           access_token: string
-          access_token_ciphertext: string | null
           authorization_server: string
           client_id: string
           created_at: string
@@ -753,18 +752,14 @@ export type Database = {
           id: string
           provider: string
           refresh_token: string | null
-          refresh_token_ciphertext: string | null
           resource: string
           scope: string | null
-          token_encryption_version: number | null
           token_type: string
           updated_at: string
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           access_token: string
-          access_token_ciphertext?: string | null
           authorization_server: string
           client_id: string
           created_at?: string
@@ -772,18 +767,14 @@ export type Database = {
           id?: string
           provider: string
           refresh_token?: string | null
-          refresh_token_ciphertext?: string | null
           resource: string
           scope?: string | null
-          token_encryption_version?: number | null
           token_type?: string
           updated_at?: string
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           access_token?: string
-          access_token_ciphertext?: string | null
           authorization_server?: string
           client_id?: string
           created_at?: string
@@ -791,71 +782,46 @@ export type Database = {
           id?: string
           provider?: string
           refresh_token?: string | null
-          refresh_token_ciphertext?: string | null
           resource?: string
           scope?: string | null
-          token_encryption_version?: number | null
           token_type?: string
           updated_at?: string
           user_id?: string
-          workspace_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mcp_connections_workspace_id_fkey"
-            columns: ["workspace_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mcp_oauth_states: {
         Row: {
           client_id: string
           code_verifier: string
           created_at: string
-          expires_at: string
           provider: string
           redirect_uri: string
           return_to: string | null
           state: string
           user_id: string
-          workspace_id: string | null
         }
         Insert: {
           client_id: string
           code_verifier: string
           created_at?: string
-          expires_at?: string
           provider: string
           redirect_uri: string
           return_to?: string | null
           state: string
           user_id: string
-          workspace_id?: string | null
         }
         Update: {
           client_id?: string
           code_verifier?: string
           created_at?: string
-          expires_at?: string
           provider?: string
           redirect_uri?: string
           return_to?: string | null
           state?: string
           user_id?: string
-          workspace_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mcp_oauth_states_workspace_id_fkey"
-            columns: ["workspace_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       notifications: {
         Row: {

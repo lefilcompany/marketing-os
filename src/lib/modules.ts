@@ -114,8 +114,7 @@ export const MODULES: ModuleDef[] = [
     status: "active",
     moduleKey: "lekpis",
     platformUrl: "https://pla.lekpis.lefil.com.br",
-    suggestedMcpUrl: "https://phsqbgdjsohmjjoeeqqc.supabase.co/functions/v1/mcp",
-
+    suggestedMcpUrl: "https://pla.lekpis.lefil.com.br/mcp",
   },
   {
     slug: "ia",

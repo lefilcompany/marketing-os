@@ -1,11 +1,8 @@
 // Client-callable server functions for MCP OAuth + tool proxy.
-// Server-only imports are loaded lazily inside handlers.
+// Do NOT put server-only imports at module scope — load them lazily inside handlers.
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-/** Internal paths that may be used as returnTo after OAuth. */
-const RETURN_TO_ALLOWLIST = /^\/(lekpis|deepersona|soma|creator|estrategia|comunidades|biblioteca|ia)(\/|\?|$)/;
 
 function originFromRequest(): string {
   const req = getRequest();
@@ -17,59 +14,31 @@ function originFromRequest(): string {
   return `${proto}://${host}`;
 }
 
-function sanitizeReturnTo(input: string | undefined, fallback: string): string {
-  if (!input || typeof input !== "string") return fallback;
-  // Only same-origin relative paths, and only known internal modules.
-  if (!input.startsWith("/") || input.startsWith("//")) return fallback;
-  return RETURN_TO_ALLOWLIST.test(input) ? input : fallback;
-}
-
-async function assertWorkspaceMembership(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
-  userId: string,
-  workspaceId: string | null,
-): Promise<void> {
-  if (!workspaceId) return;
-  const { data, error } = await supabase.rpc("is_org_member", {
-    _user_id: userId,
-    _org_id: workspaceId,
-  });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Você não é membro deste workspace.");
-}
-
-
-
-/** Starts OAuth: DCR + PKCE + persist state, returns authorize URL. */
+/** Starts OAuth: DCR + PKCE + persist state, returns authorize URL for the browser to open. */
 export const startMcpAuth = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { provider: string; workspaceId?: string | null; returnTo?: string }) => input,
-  )
+  .inputValidator((input: { provider: string; returnTo?: string }) => input)
   .handler(async ({ data, context }) => {
-    const { getProvider, pkcePair, randomToken, registerClient } = await import("./mcp.server");
+    const { getProvider, pkcePair, randomToken, registerClient } = await import(
+      "./mcp.server"
+    );
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const provider = getProvider(data.provider);
     const redirectUri = `${originFromRequest()}/api/mcp/callback`;
 
-    await assertWorkspaceMembership(context.supabase, context.userId, data.workspaceId ?? null);
-
     const clientId = await registerClient(provider, redirectUri);
     const { verifier, challenge } = await pkcePair();
     const state = randomToken(24);
-    const returnTo = sanitizeReturnTo(data.returnTo, `/${provider.slug}`);
 
     const { error } = await supabaseAdmin.from("mcp_oauth_states").insert({
       state,
       user_id: context.userId,
-      workspace_id: data.workspaceId ?? null,
       provider: provider.slug,
       client_id: clientId,
       code_verifier: verifier,
       redirect_uri: redirectUri,
-      return_to: returnTo,
+      return_to: data.returnTo ?? null,
     });
     if (error) throw new Error(`Falha ao gravar state: ${error.message}`);
 
@@ -88,83 +57,52 @@ export const startMcpAuth = createServerFn({ method: "POST" })
 
 export const getMcpConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { provider: string; workspaceId?: string | null }) => input)
+  .inputValidator((input: { provider: string }) => input)
   .handler(async ({ data, context }) => {
-    await assertWorkspaceMembership(context.supabase, context.userId, data.workspaceId ?? null);
-    const q = context.supabase
+    const { data: row, error } = await context.supabase
       .from("mcp_connections")
-      .select("provider, authorization_server, resource, expires_at, scope, created_at, updated_at, workspace_id")
+      .select("provider, authorization_server, resource, expires_at, scope, created_at, updated_at")
       .eq("user_id", context.userId)
-      .eq("provider", data.provider);
-    const { data: row, error } = await (data.workspaceId
-      ? q.eq("workspace_id", data.workspaceId).maybeSingle()
-      : q.is("workspace_id", null).maybeSingle());
+      .eq("provider", data.provider)
+      .maybeSingle();
     if (error) throw new Error(error.message);
     return { connection: row };
   });
 
-async function loadAccessToken(
-  userId: string,
-  providerSlug: string,
-  workspaceId: string | null,
-): Promise<{ accessToken: string; resource: string }> {
+async function loadAccessToken(userId: string, providerSlug: string): Promise<{
+  accessToken: string;
+  resource: string;
+}> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { getProvider, refreshTokens } = await import("./mcp.server");
-  const { encryptToken, decryptToken, TOKEN_ENCRYPTION_VERSION } = await import(
-    "./mcp-crypto.server"
-  );
 
-  const q = supabaseAdmin
+  const { data: row, error } = await supabaseAdmin
     .from("mcp_connections")
     .select("*")
     .eq("user_id", userId)
-    .eq("provider", providerSlug);
-  const { data: row, error } = await (workspaceId
-    ? q.eq("workspace_id", workspaceId).maybeSingle()
-    : q.is("workspace_id", null).maybeSingle());
+    .eq("provider", providerSlug)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!row) throw new Error("MCP não conectado — clique em Conectar.");
-
-  // Prefer ciphertext; fallback to legacy plaintext for backward compat (DeePersona).
-  let accessToken: string;
-  if (row.access_token_ciphertext) {
-    accessToken = await decryptToken(row.access_token_ciphertext);
-  } else {
-    accessToken = row.access_token;
-  }
-  let refreshToken: string | null = null;
-  if (row.refresh_token_ciphertext) {
-    refreshToken = await decryptToken(row.refresh_token_ciphertext);
-  } else if (row.refresh_token) {
-    refreshToken = row.refresh_token;
-  }
 
   const now = Date.now();
   const expMs = row.expires_at ? new Date(row.expires_at).getTime() : Infinity;
   const provider = getProvider(providerSlug);
 
-  if (expMs - now > 30_000 || !refreshToken) {
-    return { accessToken, resource: row.resource };
+  if (expMs - now > 30_000 || !row.refresh_token) {
+    return { accessToken: row.access_token, resource: row.resource };
   }
 
   // Refresh
-  const tokens = await refreshTokens(provider, row.client_id, refreshToken);
+  const tokens = await refreshTokens(provider, row.client_id, row.refresh_token);
   const newExpires = tokens.expires_in
     ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
     : null;
-  const accessCipher = await encryptToken(tokens.access_token);
-  const refreshCipher = tokens.refresh_token
-    ? await encryptToken(tokens.refresh_token)
-    : row.refresh_token_ciphertext ?? null;
-
   const { error: upErr } = await supabaseAdmin
     .from("mcp_connections")
     .update({
-      access_token: "", // legacy column no longer used
-      refresh_token: null,
-      access_token_ciphertext: accessCipher,
-      refresh_token_ciphertext: refreshCipher,
-      token_encryption_version: TOKEN_ENCRYPTION_VERSION,
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token ?? row.refresh_token,
       expires_at: newExpires,
       scope: tokens.scope ?? row.scope,
     })
@@ -177,15 +115,10 @@ type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]:
 
 export const listMcpTools = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { provider: string; workspaceId?: string | null }) => input)
+  .inputValidator((input: { provider: string }) => input)
   .handler(async ({ data, context }) => {
-    await assertWorkspaceMembership(context.supabase, context.userId, data.workspaceId ?? null);
     const { mcpInitializeAndListTools } = await import("./mcp.server");
-    const { accessToken, resource } = await loadAccessToken(
-      context.userId,
-      data.provider,
-      data.workspaceId ?? null,
-    );
+    const { accessToken, resource } = await loadAccessToken(context.userId, data.provider);
     const { tools, serverInfo } = await mcpInitializeAndListTools(resource, accessToken);
     return JSON.parse(JSON.stringify({ tools, serverInfo })) as {
       tools: Array<{ name: string; title?: string; description?: string; inputSchema?: JsonValue }>;
@@ -196,60 +129,26 @@ export const listMcpTools = createServerFn({ method: "POST" })
 export const callMcpTool = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: {
-      provider: string;
-      workspaceId?: string | null;
-      name: string;
-      arguments: Record<string, JsonValue>;
-    }) => input,
+    (input: { provider: string; name: string; arguments: Record<string, JsonValue> }) => input,
   )
   .handler(async ({ data, context }) => {
-    await assertWorkspaceMembership(context.supabase, context.userId, data.workspaceId ?? null);
     const { mcpCallTool } = await import("./mcp.server");
-    const { accessToken, resource } = await loadAccessToken(
-      context.userId,
-      data.provider,
-      data.workspaceId ?? null,
-    );
-    const started = Date.now();
-    try {
-      const result = await mcpCallTool(resource, accessToken, data.name, data.arguments);
-      console.info("[mcp.callTool]", {
-        provider: data.provider,
-        userId: context.userId,
-        workspaceId: data.workspaceId ?? null,
-        tool: data.name,
-        durationMs: Date.now() - started,
-        ok: true,
-      });
-      return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
-    } catch (e) {
-      console.warn("[mcp.callTool]", {
-        provider: data.provider,
-        userId: context.userId,
-        workspaceId: data.workspaceId ?? null,
-        tool: data.name,
-        durationMs: Date.now() - started,
-        ok: false,
-        error: (e as Error).message,
-      });
-      throw e;
-    }
+    const { accessToken, resource } = await loadAccessToken(context.userId, data.provider);
+    const result = await mcpCallTool(resource, accessToken, data.name, data.arguments);
+    return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
   });
+
+
 
 export const disconnectMcp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { provider: string; workspaceId?: string | null }) => input)
+  .inputValidator((input: { provider: string }) => input)
   .handler(async ({ data, context }) => {
-    await assertWorkspaceMembership(context.supabase, context.userId, data.workspaceId ?? null);
-    const q = context.supabase
+    const { error } = await context.supabase
       .from("mcp_connections")
       .delete()
       .eq("user_id", context.userId)
       .eq("provider", data.provider);
-    const { error } = await (data.workspaceId
-      ? q.eq("workspace_id", data.workspaceId)
-      : q.is("workspace_id", null));
     if (error) throw new Error(error.message);
     return { ok: true };
   });
