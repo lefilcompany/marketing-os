@@ -135,34 +135,50 @@ export const Route = createFileRoute("/api/mcp/callback")({
           ? await encryptToken(tokens.refresh_token)
           : null;
 
-        const conflictKey = pending.workspace_id
-          ? "user_id,workspace_id,provider"
-          : "user_id,provider";
+        const connectionPayload = {
+          user_id: pending.user_id,
+          workspace_id: pending.workspace_id,
+          provider: pending.provider,
+          authorization_server: provider.authorizationServer,
+          resource: provider.resource,
+          client_id: pending.client_id,
+          access_token: "", // legacy column
+          refresh_token: null,
+          access_token_ciphertext: accessCipher,
+          refresh_token_ciphertext: refreshCipher,
+          token_encryption_version: TOKEN_ENCRYPTION_VERSION,
+          token_type: tokens.token_type ?? "Bearer",
+          expires_at: expiresAt,
+          scope: tokens.scope ?? provider.scope,
+          updated_at: new Date().toISOString(),
+        };
 
-        const { error: upErr } = await supabaseAdmin.from("mcp_connections").upsert(
-          {
-            user_id: pending.user_id,
-            workspace_id: pending.workspace_id,
-            provider: pending.provider,
-            authorization_server: provider.authorizationServer,
-            resource: provider.resource,
-            client_id: pending.client_id,
-            access_token: "", // legacy column
-            refresh_token: null,
-            access_token_ciphertext: accessCipher,
-            refresh_token_ciphertext: refreshCipher,
-            token_encryption_version: TOKEN_ENCRYPTION_VERSION,
-            token_type: tokens.token_type ?? "Bearer",
-            expires_at: expiresAt,
-            scope: tokens.scope ?? provider.scope,
-          },
-          { onConflict: conflictKey },
-        );
-        if (upErr) {
+        let existingConnectionQuery = supabaseAdmin
+          .from("mcp_connections")
+          .select("id")
+          .eq("user_id", pending.user_id)
+          .eq("provider", pending.provider);
+
+        existingConnectionQuery = pending.workspace_id
+          ? existingConnectionQuery.eq("workspace_id", pending.workspace_id)
+          : existingConnectionQuery.is("workspace_id", null);
+
+        const { data: existingConnection, error: existingErr } = await existingConnectionQuery
+          .maybeSingle();
+
+        const saveResult = existingConnection
+          ? await supabaseAdmin
+              .from("mcp_connections")
+              .update(connectionPayload)
+              .eq("id", existingConnection.id)
+          : await supabaseAdmin.from("mcp_connections").insert(connectionPayload);
+
+        const saveErr = existingErr ?? saveResult.error;
+        if (saveErr) {
           console.error("[mcp.callback] save failed", {
             requestId,
             provider: pending.provider,
-            error: upErr.message,
+            error: saveErr.message,
           });
           return errorPage(returnTo, "Não foi possível salvar a conexão.");
         }
