@@ -57,11 +57,12 @@ export async function encryptToken(plaintext: string): Promise<string> {
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const ct = new Uint8Array(
     await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv: nonce },
+      { name: "AES-GCM", iv: nonce as unknown as ArrayBuffer },
       key,
-      new TextEncoder().encode(plaintext),
+      new TextEncoder().encode(plaintext) as unknown as ArrayBuffer,
     ),
   );
+
   const out = new Uint8Array(1 + nonce.length + ct.length);
   out[0] = VERSION;
   out.set(nonce, 1);
