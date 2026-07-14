@@ -1,6 +1,17 @@
 import { useMutation, useQuery, useQueryClient, queryOptions } from "@tanstack/react-query";
-import { callLekpis } from "@/lib/lekpis-client";
+import { callLekpis, isLekpisToolUnavailable } from "@/lib/lekpis-client";
 import { toast } from "sonner";
+
+// Swallow "Method not found" (LeKPIs backend under reconstruction) as empty
+// results, so the UI degrades gracefully instead of blowing up.
+async function safeCallLekpis<T>(name: string, args: Record<string, any>, fallback: T): Promise<T> {
+  try {
+    return await callLekpis<T>(name, args);
+  } catch (err) {
+    if (isLekpisToolUnavailable(err)) return fallback;
+    throw err;
+  }
+}
 
 type Items<T> = { items: T[] };
 
