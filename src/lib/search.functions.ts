@@ -4,8 +4,8 @@ import { z } from "zod";
 
 export type SearchHit = {
   id: string;
-  module: "deepersona" | "creator" | "soma" | "lekpis";
-  kind: string; // e.g. "persona", "campaign", "task", "project", "kpi", "insight"
+  module: "deepersona" | "creator" | "soma";
+  kind: string; // e.g. "persona", "campaign", "task", "project", "insight"
   title: string;
   subtitle?: string | null;
   route: string;
