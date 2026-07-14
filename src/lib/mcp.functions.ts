@@ -24,25 +24,27 @@ function sanitizeReturnTo(input: string | undefined, fallback: string): string {
   return RETURN_TO_ALLOWLIST.test(input) ? input : fallback;
 }
 
+type SbLike = {
+  rpc: (
+    name: "is_org_member",
+    args: { _user_id: string; _org_id: string },
+  ) => Promise<{ data: boolean | null; error: { message: string } | null }>;
+};
+
 async function assertWorkspaceMembership(
-  supabase: {
-    rpc: (name: string, args: Record<string, unknown>) => {
-      then: <T>(cb: (v: { data: T | null; error: { message: string } | null }) => void) => void;
-    };
-  },
+  supabase: SbLike,
   userId: string,
   workspaceId: string | null,
 ): Promise<void> {
   if (!workspaceId) return;
-  const { data, error } = (await (supabase as unknown as {
-    rpc: (
-      name: string,
-      args: Record<string, unknown>,
-    ) => Promise<{ data: boolean | null; error: { message: string } | null }>;
-  }).rpc("is_org_member", { _user_id: userId, _org_id: workspaceId }));
+  const { data, error } = await supabase.rpc("is_org_member", {
+    _user_id: userId,
+    _org_id: workspaceId,
+  });
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Você não é membro deste workspace.");
 }
+
 
 /** Starts OAuth: DCR + PKCE + persist state, returns authorize URL. */
 export const startMcpAuth = createServerFn({ method: "POST" })
