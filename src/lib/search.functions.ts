@@ -132,19 +132,6 @@ export const globalSearch = createServerFn({ method: "POST" })
       });
     }
 
-    // KPIs → LeKPIs
-    for (const k of kpisR.data ?? []) {
-      hits.push({
-        id: k.id,
-        module: "lekpis",
-        kind: "kpi",
-        title: k.label || k.metric_key,
-        subtitle: [k.module, k.value != null ? `${k.value}${k.unit ?? ""}` : null]
-          .filter(Boolean)
-          .join(" · ") || null,
-        route: `/lekpis`,
-      });
-    }
 
     return { hits, query: q };
   });
