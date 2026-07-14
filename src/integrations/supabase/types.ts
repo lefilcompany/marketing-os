@@ -1522,6 +1522,33 @@ export type Database = {
           },
         ]
       }
+      tool_brand_settings: {
+        Row: {
+          brand: string
+          created_at: string
+          id: string
+          tool_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand?: string
+          created_at?: string
+          id?: string
+          tool_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          id?: string
+          tool_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_application_permissions: {
         Row: {
           application_id: string
