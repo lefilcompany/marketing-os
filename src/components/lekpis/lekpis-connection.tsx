@@ -87,7 +87,9 @@ export function LekpisConnection({ onReady }: { onReady: (ready: boolean) => voi
     () => new Set((toolsQuery.data?.tools ?? []).map((t) => t.name)),
     [toolsQuery.data],
   );
-  const missing = REQUIRED_TOOLS.filter((n) => !toolsNames.has(n));
+  // If the MCP server doesn't expose tools/list, trust the local registry.
+  const listSupported = (toolsQuery.data?.tools?.length ?? 0) > 0;
+  const missing = listSupported ? REQUIRED_TOOLS.filter((n) => !toolsNames.has(n)) : [];
   const ready = isConnected && !toolsQuery.isLoading && missing.length === 0;
 
   // Signal parent
