@@ -19,7 +19,6 @@ export type ModuleSlug =
   | "creator"
   | "soma"
   | "comunidades"
-  | "lekpis"
   | "ia"
   | "biblioteca";
 
