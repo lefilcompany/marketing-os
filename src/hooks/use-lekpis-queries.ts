@@ -78,18 +78,56 @@ export function useCreateCliente() {
 
 export type Integracao = {
   id: string;
-  platform: "instagram" | "facebook" | "meta_ads" | string;
+  platform?: "instagram" | "facebook" | "meta_ads" | string;
+  plataforma?: "instagram" | "facebook" | "meta_ads" | string;
   status?: string;
   conta?: string | null;
   account_name?: string | null;
   [k: string]: any;
 };
 
+export function normalizeLekpisPlatform(value: unknown) {
+  if (typeof value !== "string") return null;
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  if (normalized === "metaads" || normalized === "meta_ads") return "meta_ads";
+  if (normalized === "instagram") return "instagram";
+  if (normalized === "facebook") return "facebook";
+  return normalized || null;
+}
+
+export function getIntegracaoPlatform(integracao: Integracao | null | undefined) {
+  return normalizeLekpisPlatform(integracao?.platform ?? integracao?.plataforma);
+}
+
+function normalizeItemsResponse<T extends Record<string, any>>(res: T[] | Items<T> | T | null | undefined) {
+  if (Array.isArray(res)) return { items: res };
+  if (Array.isArray((res as any)?.items)) return res as Items<T>;
+  if (res && typeof res === "object") return { items: [res as T] };
+  return { items: [] as T[] };
+}
+
 export function integracaoListOptions(clienteId: string | null) {
   return queryOptions({
     queryKey: ["lekpis", "integracao.list", clienteId],
     enabled: !!clienteId,
-    queryFn: () => callLekpis<Items<Integracao>>("integracao.list", { cliente_id: clienteId }),
+    queryFn: async () => {
+      const res = await callLekpis<Items<Integracao> | Integracao[] | Integracao>("integracao.list", {
+        cliente_id: clienteId,
+      });
+      const normalized = normalizeItemsResponse(res);
+      return {
+        ...(res && !Array.isArray(res) && typeof res === "object" ? res : {}),
+        items: normalized.items.map((item) => ({
+          ...item,
+          platform: getIntegracaoPlatform(item) ?? item.platform,
+        })),
+      } as Items<Integracao>;
+    },
     staleTime: 15_000,
   });
 }
