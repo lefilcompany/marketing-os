@@ -2,14 +2,15 @@
 // Each fn requires an active workspace membership.
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type {
-  AvailableAccount,
-  ConnectProviderResponse,
-  DashboardResponse,
-  MetricSeriesResponse,
-  SyncMetricsResponse,
-  UpdateMetricTargetResponse,
-} from "./lekpis-mcp.types";
+
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [k: string]: JsonValue };
+
 
 const PROVIDER = "lekpis" as const;
 
