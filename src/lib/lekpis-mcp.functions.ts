@@ -120,9 +120,8 @@ export const lekpisConnectProvider = createServerFn({ method: "POST" })
       "connect_provider",
       args,
     )) as unknown;
-    return JSON.parse(JSON.stringify({ result })) as {
-      result: JsonValue };
-    };
+    return JSON.parse(JSON.stringify({ result })) as { result: JsonValue };
+
   });
 
 export const lekpisListAvailableAccounts = createServerFn({ method: "POST" })
