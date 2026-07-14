@@ -82,7 +82,7 @@ export function CommandPalette({
 
   const grouped = useMemo(() => {
     const g: Record<SearchHit["module"], SearchHit[]> = {
-      deepersona: [], creator: [], soma: [], lekpis: [],
+      deepersona: [], creator: [], soma: [],
     };
     for (const h of searchQ.data?.hits ?? []) g[h.module].push(h);
     return g;
