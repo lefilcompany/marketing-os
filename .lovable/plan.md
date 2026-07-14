@@ -1,29 +1,55 @@
-## Diagnóstico
+## Objetivo
 
-O erro exibido não é bug do código do app — é uma validação do backend LeKPIs:
+Apagar toda a implementação atual do LeKPIs (rotas, componentes, hooks, client, contexto e referências) para recomeçarmos limpos.
 
-```
-VALIDATION_ERROR: return_to host is not on the allowlist.
-Contact the LeKPIs admin to add it.
-```
+## O que será deletado
 
-Ao chamar `integracao.get_connect_url`, o app envia o `return_to` (URL da preview atual) para o LeKPIs iniciar o OAuth. O LeKPIs só aceita hosts previamente cadastrados numa allowlist por segurança (evita open-redirect). O host atual da preview não está cadastrado, então o LeKPIs rejeita antes mesmo de gerar a URL de conexão.
+**Rotas** (`src/routes/_authenticated/`)
+- `lekpis.tsx`
+- `lekpis.index.tsx`
+- `lekpis.integracoes.tsx`
+- `lekpis.perfil.tsx`
+- `lekpis.canal.$slug.tsx`
 
-Hosts em uso neste projeto:
-- Preview atual (id): `id-preview--c5174e53-8709-44c9-b05a-cb203adeba88.lovable.app`
-- Preview estável: `project--c5174e53-8709-44c9-b05a-cb203adeba88-dev.lovable.app`
-- Publicado: `pla-marketingos-lefil.lovable.app`
+**Componentes** (`src/components/lekpis/`)
+- `canal-card.tsx`, `cliente-selector.tsx`, `integracao-card.tsx`, `top-bar.tsx`
+- Diretório `src/components/lekpis/` removido
 
-## O que fazer
+**Hooks / lib / contexto**
+- `src/hooks/use-lekpis-queries.ts`
+- `src/hooks/use-lekpis-connect.ts`
+- `src/lib/lekpis-client.ts`
+- `src/contexts/cliente-ativo-context.tsx`
 
-Isto precisa ser resolvido do lado do LeKPIs (não há fix no código do app). Peça ao admin do LeKPIs para adicionar à allowlist de `return_to`:
+**Assets**
+- `src/assets/lekpis-logo.png.asset.json` (e o png associado, se houver)
 
-1. `pla-marketingos-lefil.lovable.app` (produção)
-2. `project--c5174e53-8709-44c9-b05a-cb203adeba88-dev.lovable.app` (preview estável — recomendado, não muda)
-3. Opcionalmente `*.lovable.app` ou `id-preview--c5174e53-8709-44c9-b05a-cb203adeba88.lovable.app` (preview efêmera do editor)
+**Plano interno**
+- `.lovable/plan.md` (notas de diagnóstico do LeKPIs)
 
-## Melhoria opcional no app (posso implementar depois da liberação)
+## Referências a limpar (sem quebrar o resto do app)
 
-Tratar esse `VALIDATION_ERROR` em `use-lekpis-connect.ts` com uma mensagem amigável em vez do JSON cru — ex.: "Este domínio ainda não está autorizado no LeKPIs. Contate o admin para liberar `<host>`."
+Remover imports/entradas relacionadas ao LeKPIs em:
+- `src/lib/modules.ts` e `src/lib/modules.functions.ts` — tirar o módulo LeKPIs do catálogo
+- `src/lib/flows.ts` — remover flows do LeKPIs
+- `src/lib/search.functions.ts` — remover entradas de busca do LeKPIs
+- `src/components/command-palette.tsx` — remover comandos do LeKPIs
+- `src/components/app-shell.tsx` — remover item de navegação do LeKPIs
+- `src/components/module-shell.tsx` — remover branch específico do LeKPIs, se houver
+- `src/components/edit-kpi-dialog.tsx` e `src/components/seed-template-button.tsx` — se forem exclusivos do LeKPIs, deletar; caso contrário, remover apenas o acoplamento
+- `src/routes/_authenticated/dashboards.tsx` — remover trechos referentes ao LeKPIs
+- `src/lib/mcp.server.ts` — remover provider `lekpis` (mantendo a infra MCP genérica)
+- `src/styles.css` — remover classes `.lekpis-*`
+- `src/routeTree.gen.ts` — regenerado automaticamente pelo plugin
 
-Confirma que só a mensagem amigável basta, ou quer que eu também force o `return_to` para o domínio publicado (fixo) quando o app rodar na preview?
+## O que NÃO será tocado
+
+- Infra MCP genérica (`src/lib/mcp.functions.ts`, `src/routes/api/mcp/callback.ts`) — continua útil para outras integrações.
+- Auth, Supabase, roteador raiz, layout, outras apps (DeePersona, Creator, Soma, etc.).
+- Conexões/segredos já cadastrados no backend (posso limpar depois, se quiser).
+
+## Depois disso
+
+Fica um estado limpo, sem rota `/lekpis` e sem menções ao módulo. A partir daí, recomeçamos do zero conforme você definir escopo, telas e integrações.
+
+Confirma que posso apagar tudo listado acima?
