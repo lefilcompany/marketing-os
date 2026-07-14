@@ -7,7 +7,16 @@ const VERSION = 1;
 
 let cachedKey: Promise<CryptoKey> | null = null;
 
+function hexToBytes(hex: string): Uint8Array {
+  const clean = hex.startsWith("\\x") || hex.startsWith("\\X") ? hex.slice(2) : hex;
+  const out = new Uint8Array(clean.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(clean.substr(i * 2, 2), 16);
+  return out;
+}
+
 function b64ToBytes(b64: string): Uint8Array {
+  // PostgREST serializes bytea columns as `\xDEADBEEF` hex strings.
+  if (b64.startsWith("\\x") || b64.startsWith("\\X")) return hexToBytes(b64);
   const s = b64.replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(s);
   const out = new Uint8Array(bin.length);
