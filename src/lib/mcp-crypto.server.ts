@@ -32,14 +32,20 @@ async function getKey(): Promise<CryptoKey> {
         keyBytes = b64ToBytes(raw);
         if (keyBytes.length !== 32) throw new Error("wrong length");
       } catch {
-        // Fallback: derive 32 bytes via SHA-256 of the raw string.
-        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+        const digest = await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(raw) as unknown as ArrayBuffer,
+        );
         keyBytes = new Uint8Array(digest);
       }
-      return crypto.subtle.importKey("raw", keyBytes, "AES-GCM", false, [
-        "encrypt",
-        "decrypt",
-      ]);
+      return crypto.subtle.importKey(
+        "raw",
+        keyBytes as unknown as ArrayBuffer,
+        "AES-GCM",
+        false,
+        ["encrypt", "decrypt"],
+      );
+
     })();
   }
   return cachedKey;
