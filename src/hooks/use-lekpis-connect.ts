@@ -91,8 +91,12 @@ export function useLekpisConnect() {
           data?.type === "lekpis:connected" ||
           (data?.type === "mcp:connected" && data.provider === "lekpis")
         ) {
-          qc.invalidateQueries({ queryKey: ["lekpis", "integracao.list"] });
-          qc.invalidateQueries({ queryKey: ["lekpis"] });
+          void qc.invalidateQueries({ queryKey: ["lekpis", "integracao.list"] });
+          void qc.invalidateQueries({ queryKey: ["lekpis"] });
+          window.setTimeout(() => {
+            void qc.refetchQueries({ queryKey: ["lekpis", "integracao.list"] });
+            void qc.invalidateQueries({ queryKey: ["lekpis"] });
+          }, 800);
           toast.success(`${labelFor(platform)} conectado.`);
           try {
             popup?.close();

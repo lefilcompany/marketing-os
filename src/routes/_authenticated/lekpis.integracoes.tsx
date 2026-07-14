@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   useIntegracoes,
   useDisconnectIntegracao,
+  getIntegracaoPlatform,
   type Integracao,
 } from "@/hooks/use-lekpis-queries";
 import { useClienteAtivo } from "@/contexts/cliente-ativo-context";
@@ -22,7 +23,10 @@ function IntegracoesPage() {
   const disconnect = useDisconnectIntegracao();
 
   const byPlatform = new Map<string, Integracao>();
-  for (const i of data?.items ?? []) byPlatform.set(i.platform, i);
+  for (const i of data?.items ?? []) {
+    const platform = getIntegracaoPlatform(i);
+    if (platform) byPlatform.set(platform, i);
+  }
 
   return (
     <div className="space-y-6">

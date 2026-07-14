@@ -6,6 +6,7 @@ import {
   instagramKpisPreviousOptions,
   facebookKpisOptions,
   metaAdsCampaignsOptions,
+  getIntegracaoPlatform,
   pctDelta,
   useProfile,
 } from "@/hooks/use-lekpis-queries";
@@ -41,7 +42,10 @@ function LekpisHome() {
 
   const connectedSet = useMemo(() => {
     const set = new Set<string>();
-    for (const i of integ.data?.items ?? []) set.add(i.platform);
+    for (const i of integ.data?.items ?? []) {
+      const platform = getIntegracaoPlatform(i);
+      if (platform) set.add(platform);
+    }
     return set;
   }, [integ.data]);
 
@@ -132,7 +136,7 @@ function LekpisHome() {
           <div>
             <p className="lekpis-display font-semibold">Integrações</p>
             <p className="text-xs text-muted-foreground">
-              {integ.data?.items?.length ?? 0} plataforma(s) conectada(s)
+              {connectedSet.size} plataforma(s) conectada(s)
             </p>
           </div>
         </div>
