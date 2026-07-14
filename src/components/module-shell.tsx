@@ -95,6 +95,11 @@ function upcoming(slug: ModuleDef["slug"]) {
       { title: "Engajamento", body: "Fórum, WhatsApp e benefícios." },
       { title: "Métodos", body: "NoFunNoGain · CRISC · PARTE." },
     ],
+    lekpis: [
+      { title: "Indicadores vivos", body: "ROI, CAC, LTV, engajamento, conversão." },
+      { title: "Interpretação por IA", body: "A IA lê o gráfico e diz o que fazer." },
+      { title: "Plano de ação", body: "Da queda de KPI à campanha corretiva." },
+    ],
     ia: [
       { title: "Copiloto contextual", body: "A IA acompanha toda a jornada do usuário." },
       { title: "Memória", body: "Marca, mercado, personas, histórico e conteúdos." },

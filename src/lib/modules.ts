@@ -19,6 +19,7 @@ export type ModuleSlug =
   | "creator"
   | "soma"
   | "comunidades"
+  | "lekpis"
   | "ia"
   | "biblioteca";
 
@@ -101,6 +102,19 @@ export const MODULES: ModuleDef[] = [
     route: "/comunidades",
     status: "active",
     moduleKey: "comunidades",
+  },
+  {
+    slug: "lekpis",
+    name: "LeKPIs",
+    tagline: "Meça o que importa.",
+    description: "ROI, CAC, LTV e engajamento com insights de IA.",
+    icon: BarChart3,
+    color: "var(--brand-lekpi)",
+    route: "/lekpis",
+    status: "active",
+    moduleKey: "lekpis",
+    platformUrl: "https://pla.lekpis.lefil.com.br",
+    suggestedMcpUrl: "https://pla.lekpis.lefil.com.br/mcp",
   },
   {
     slug: "ia",

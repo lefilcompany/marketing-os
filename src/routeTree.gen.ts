@@ -17,6 +17,7 @@ import { Route as AuthenticatedSomaRouteImport } from './routes/_authenticated/s
 import { Route as AuthenticatedSolicitacoesRouteImport } from './routes/_authenticated/solicitacoes'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
+import { Route as AuthenticatedLekpisRouteImport } from './routes/_authenticated/lekpis'
 import { Route as AuthenticatedIaRouteImport } from './routes/_authenticated/ia'
 import { Route as AuthenticatedEstrategiaRouteImport } from './routes/_authenticated/estrategia'
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
@@ -30,8 +31,11 @@ import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
 import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authenticated/aplicacoes'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedLekpisIndexRouteImport } from './routes/_authenticated/lekpis.index'
 import { Route as AuthenticatedDeepersonaIndexRouteImport } from './routes/_authenticated/deepersona.index'
 import { Route as ApiMcpCallbackRouteImport } from './routes/api/mcp/callback'
+import { Route as AuthenticatedLekpisPerfilRouteImport } from './routes/_authenticated/lekpis.perfil'
+import { Route as AuthenticatedLekpisIntegracoesRouteImport } from './routes/_authenticated/lekpis.integracoes'
 import { Route as AuthenticatedDeepersonaSegmentacaoRouteImport } from './routes/_authenticated/deepersona.segmentacao'
 import { Route as AuthenticatedDeepersonaPriorizacaoRouteImport } from './routes/_authenticated/deepersona.priorizacao'
 import { Route as AuthenticatedDeepersonaCsdRouteImport } from './routes/_authenticated/deepersona.csd'
@@ -42,6 +46,7 @@ import { Route as AuthenticatedAplicacoesSlugRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminEmpresasRouteImport } from './routes/_authenticated/admin.empresas'
 import { Route as AuthenticatedAdminComunicadosRouteImport } from './routes/_authenticated/admin.comunicados'
 import { Route as AuthenticatedAdminAplicacoesRouteImport } from './routes/_authenticated/admin.aplicacoes'
+import { Route as AuthenticatedLekpisCanalSlugRouteImport } from './routes/_authenticated/lekpis.canal.$slug'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -84,6 +89,11 @@ const AuthenticatedNotificacoesRoute =
     path: '/notificacoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLekpisRoute = AuthenticatedLekpisRouteImport.update({
+  id: '/lekpis',
+  path: '/lekpis',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedIaRoute = AuthenticatedIaRouteImport.update({
   id: '/ia',
   path: '/ia',
@@ -151,6 +161,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLekpisIndexRoute =
+  AuthenticatedLekpisIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedLekpisRoute,
+  } as any)
 const AuthenticatedDeepersonaIndexRoute =
   AuthenticatedDeepersonaIndexRouteImport.update({
     id: '/',
@@ -162,6 +178,18 @@ const ApiMcpCallbackRoute = ApiMcpCallbackRouteImport.update({
   path: '/api/mcp/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedLekpisPerfilRoute =
+  AuthenticatedLekpisPerfilRouteImport.update({
+    id: '/perfil',
+    path: '/perfil',
+    getParentRoute: () => AuthenticatedLekpisRoute,
+  } as any)
+const AuthenticatedLekpisIntegracoesRoute =
+  AuthenticatedLekpisIntegracoesRouteImport.update({
+    id: '/integracoes',
+    path: '/integracoes',
+    getParentRoute: () => AuthenticatedLekpisRoute,
+  } as any)
 const AuthenticatedDeepersonaSegmentacaoRoute =
   AuthenticatedDeepersonaSegmentacaoRouteImport.update({
     id: '/segmentacao',
@@ -222,6 +250,12 @@ const AuthenticatedAdminAplicacoesRoute =
     path: '/aplicacoes',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedLekpisCanalSlugRoute =
+  AuthenticatedLekpisCanalSlugRouteImport.update({
+    id: '/canal/$slug',
+    path: '/canal/$slug',
+    getParentRoute: () => AuthenticatedLekpisRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -240,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/equipe': typeof AuthenticatedEquipeRoute
   '/estrategia': typeof AuthenticatedEstrategiaRoute
   '/ia': typeof AuthenticatedIaRoute
+  '/lekpis': typeof AuthenticatedLekpisRouteWithChildren
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/solicitacoes': typeof AuthenticatedSolicitacoesRoute
@@ -254,8 +289,12 @@ export interface FileRoutesByFullPath {
   '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
+  '/lekpis/integracoes': typeof AuthenticatedLekpisIntegracoesRoute
+  '/lekpis/perfil': typeof AuthenticatedLekpisPerfilRoute
   '/api/mcp/callback': typeof ApiMcpCallbackRoute
   '/deepersona/': typeof AuthenticatedDeepersonaIndexRoute
+  '/lekpis/': typeof AuthenticatedLekpisIndexRoute
+  '/lekpis/canal/$slug': typeof AuthenticatedLekpisCanalSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -287,8 +326,12 @@ export interface FileRoutesByTo {
   '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
+  '/lekpis/integracoes': typeof AuthenticatedLekpisIntegracoesRoute
+  '/lekpis/perfil': typeof AuthenticatedLekpisPerfilRoute
   '/api/mcp/callback': typeof ApiMcpCallbackRoute
   '/deepersona': typeof AuthenticatedDeepersonaIndexRoute
+  '/lekpis': typeof AuthenticatedLekpisIndexRoute
+  '/lekpis/canal/$slug': typeof AuthenticatedLekpisCanalSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -309,6 +352,7 @@ export interface FileRoutesById {
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/estrategia': typeof AuthenticatedEstrategiaRoute
   '/_authenticated/ia': typeof AuthenticatedIaRoute
+  '/_authenticated/lekpis': typeof AuthenticatedLekpisRouteWithChildren
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/solicitacoes': typeof AuthenticatedSolicitacoesRoute
@@ -323,8 +367,12 @@ export interface FileRoutesById {
   '/_authenticated/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/_authenticated/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/_authenticated/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
+  '/_authenticated/lekpis/integracoes': typeof AuthenticatedLekpisIntegracoesRoute
+  '/_authenticated/lekpis/perfil': typeof AuthenticatedLekpisPerfilRoute
   '/api/mcp/callback': typeof ApiMcpCallbackRoute
   '/_authenticated/deepersona/': typeof AuthenticatedDeepersonaIndexRoute
+  '/_authenticated/lekpis/': typeof AuthenticatedLekpisIndexRoute
+  '/_authenticated/lekpis/canal/$slug': typeof AuthenticatedLekpisCanalSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -345,6 +393,7 @@ export interface FileRouteTypes {
     | '/equipe'
     | '/estrategia'
     | '/ia'
+    | '/lekpis'
     | '/notificacoes'
     | '/perfil'
     | '/solicitacoes'
@@ -359,8 +408,12 @@ export interface FileRouteTypes {
     | '/deepersona/csd'
     | '/deepersona/priorizacao'
     | '/deepersona/segmentacao'
+    | '/lekpis/integracoes'
+    | '/lekpis/perfil'
     | '/api/mcp/callback'
     | '/deepersona/'
+    | '/lekpis/'
+    | '/lekpis/canal/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -392,8 +445,12 @@ export interface FileRouteTypes {
     | '/deepersona/csd'
     | '/deepersona/priorizacao'
     | '/deepersona/segmentacao'
+    | '/lekpis/integracoes'
+    | '/lekpis/perfil'
     | '/api/mcp/callback'
     | '/deepersona'
+    | '/lekpis'
+    | '/lekpis/canal/$slug'
   id:
     | '__root__'
     | '/'
@@ -413,6 +470,7 @@ export interface FileRouteTypes {
     | '/_authenticated/equipe'
     | '/_authenticated/estrategia'
     | '/_authenticated/ia'
+    | '/_authenticated/lekpis'
     | '/_authenticated/notificacoes'
     | '/_authenticated/perfil'
     | '/_authenticated/solicitacoes'
@@ -427,8 +485,12 @@ export interface FileRouteTypes {
     | '/_authenticated/deepersona/csd'
     | '/_authenticated/deepersona/priorizacao'
     | '/_authenticated/deepersona/segmentacao'
+    | '/_authenticated/lekpis/integracoes'
+    | '/_authenticated/lekpis/perfil'
     | '/api/mcp/callback'
     | '/_authenticated/deepersona/'
+    | '/_authenticated/lekpis/'
+    | '/_authenticated/lekpis/canal/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -495,6 +557,13 @@ declare module '@tanstack/react-router' {
       path: '/notificacoes'
       fullPath: '/notificacoes'
       preLoaderRoute: typeof AuthenticatedNotificacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/lekpis': {
+      id: '/_authenticated/lekpis'
+      path: '/lekpis'
+      fullPath: '/lekpis'
+      preLoaderRoute: typeof AuthenticatedLekpisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/ia': {
@@ -588,6 +657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/lekpis/': {
+      id: '/_authenticated/lekpis/'
+      path: '/'
+      fullPath: '/lekpis/'
+      preLoaderRoute: typeof AuthenticatedLekpisIndexRouteImport
+      parentRoute: typeof AuthenticatedLekpisRoute
+    }
     '/_authenticated/deepersona/': {
       id: '/_authenticated/deepersona/'
       path: '/'
@@ -601,6 +677,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/mcp/callback'
       preLoaderRoute: typeof ApiMcpCallbackRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/lekpis/perfil': {
+      id: '/_authenticated/lekpis/perfil'
+      path: '/perfil'
+      fullPath: '/lekpis/perfil'
+      preLoaderRoute: typeof AuthenticatedLekpisPerfilRouteImport
+      parentRoute: typeof AuthenticatedLekpisRoute
+    }
+    '/_authenticated/lekpis/integracoes': {
+      id: '/_authenticated/lekpis/integracoes'
+      path: '/integracoes'
+      fullPath: '/lekpis/integracoes'
+      preLoaderRoute: typeof AuthenticatedLekpisIntegracoesRouteImport
+      parentRoute: typeof AuthenticatedLekpisRoute
     }
     '/_authenticated/deepersona/segmentacao': {
       id: '/_authenticated/deepersona/segmentacao'
@@ -672,6 +762,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAplicacoesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/lekpis/canal/$slug': {
+      id: '/_authenticated/lekpis/canal/$slug'
+      path: '/canal/$slug'
+      fullPath: '/lekpis/canal/$slug'
+      preLoaderRoute: typeof AuthenticatedLekpisCanalSlugRouteImport
+      parentRoute: typeof AuthenticatedLekpisRoute
+    }
   }
 }
 
@@ -732,6 +829,23 @@ const AuthenticatedDeepersonaRouteWithChildren =
     AuthenticatedDeepersonaRouteChildren,
   )
 
+interface AuthenticatedLekpisRouteChildren {
+  AuthenticatedLekpisIntegracoesRoute: typeof AuthenticatedLekpisIntegracoesRoute
+  AuthenticatedLekpisPerfilRoute: typeof AuthenticatedLekpisPerfilRoute
+  AuthenticatedLekpisIndexRoute: typeof AuthenticatedLekpisIndexRoute
+  AuthenticatedLekpisCanalSlugRoute: typeof AuthenticatedLekpisCanalSlugRoute
+}
+
+const AuthenticatedLekpisRouteChildren: AuthenticatedLekpisRouteChildren = {
+  AuthenticatedLekpisIntegracoesRoute: AuthenticatedLekpisIntegracoesRoute,
+  AuthenticatedLekpisPerfilRoute: AuthenticatedLekpisPerfilRoute,
+  AuthenticatedLekpisIndexRoute: AuthenticatedLekpisIndexRoute,
+  AuthenticatedLekpisCanalSlugRoute: AuthenticatedLekpisCanalSlugRoute,
+}
+
+const AuthenticatedLekpisRouteWithChildren =
+  AuthenticatedLekpisRoute._addFileChildren(AuthenticatedLekpisRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAplicacoesRoute: typeof AuthenticatedAplicacoesRouteWithChildren
@@ -746,6 +860,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedEstrategiaRoute: typeof AuthenticatedEstrategiaRoute
   AuthenticatedIaRoute: typeof AuthenticatedIaRoute
+  AuthenticatedLekpisRoute: typeof AuthenticatedLekpisRouteWithChildren
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedSolicitacoesRoute: typeof AuthenticatedSolicitacoesRoute
@@ -766,6 +881,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
   AuthenticatedEstrategiaRoute: AuthenticatedEstrategiaRoute,
   AuthenticatedIaRoute: AuthenticatedIaRoute,
+  AuthenticatedLekpisRoute: AuthenticatedLekpisRouteWithChildren,
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedSolicitacoesRoute: AuthenticatedSolicitacoesRoute,
