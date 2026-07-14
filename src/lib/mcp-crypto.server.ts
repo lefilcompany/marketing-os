@@ -7,7 +7,16 @@ const VERSION = 1;
 
 let cachedKey: Promise<CryptoKey> | null = null;
 
+function hexToBytes(hex: string): Uint8Array {
+  const clean = hex.startsWith("\\x") || hex.startsWith("\\X") ? hex.slice(2) : hex;
+  const out = new Uint8Array(clean.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(clean.substr(i * 2, 2), 16);
+  return out;
+}
+
 function b64ToBytes(b64: string): Uint8Array {
+  // PostgREST serializes bytea columns as `\xDEADBEEF` hex strings.
+  if (b64.startsWith("\\x") || b64.startsWith("\\X")) return hexToBytes(b64);
   const s = b64.replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(s);
   const out = new Uint8Array(bin.length);
@@ -73,7 +82,18 @@ export async function encryptToken(plaintext: string): Promise<string> {
 /** Decrypts a base64 payload produced by encryptToken. */
 export async function decryptToken(b64: string): Promise<string> {
   const key = await getKey();
-  const raw = b64ToBytes(b64);
+  let raw = b64ToBytes(b64);
+  // If bytea column was written with a base64 STRING that PostgREST stored
+  // as raw ASCII bytes, the first byte won't match VERSION — re-decode as b64.
+  if (raw[0] !== VERSION) {
+    try {
+      const asStr = new TextDecoder().decode(raw);
+      const retry = b64ToBytes(asStr);
+      if (retry[0] === VERSION) raw = retry;
+    } catch {
+      /* ignore */
+    }
+  }
   if (raw.length < 1 + 12 + 16) throw new Error("Payload de token inválido");
   if (raw[0] !== VERSION) throw new Error("Versão de criptografia desconhecida");
   const nonce = raw.slice(1, 13);
