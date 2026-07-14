@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { callLekpis } from "@/lib/lekpis-client";
+import { callLekpis, isLekpisToolUnavailable } from "@/lib/lekpis-client";
 
 const STORAGE_KEY = "lekpis:cliente-id";
 
