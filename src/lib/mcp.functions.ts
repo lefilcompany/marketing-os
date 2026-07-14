@@ -24,15 +24,9 @@ function sanitizeReturnTo(input: string | undefined, fallback: string): string {
   return RETURN_TO_ALLOWLIST.test(input) ? input : fallback;
 }
 
-type SbLike = {
-  rpc: (
-    name: "is_org_member",
-    args: { _user_id: string; _org_id: string },
-  ) => Promise<{ data: boolean | null; error: { message: string } | null }>;
-};
-
 async function assertWorkspaceMembership(
-  supabase: SbLike,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   userId: string,
   workspaceId: string | null,
 ): Promise<void> {
@@ -44,6 +38,7 @@ async function assertWorkspaceMembership(
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Você não é membro deste workspace.");
 }
+
 
 
 /** Starts OAuth: DCR + PKCE + persist state, returns authorize URL. */
