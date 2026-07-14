@@ -4,8 +4,8 @@ import { z } from "zod";
 
 export type SearchHit = {
   id: string;
-  module: "deepersona" | "creator" | "soma" | "lekpis";
-  kind: string; // e.g. "persona", "campaign", "task", "project", "kpi", "insight"
+  module: "deepersona" | "creator" | "soma";
+  kind: string; // e.g. "persona", "campaign", "task", "project", "insight"
   title: string;
   subtitle?: string | null;
   route: string;
@@ -34,7 +34,7 @@ export const globalSearch = createServerFn({ method: "POST" })
     const like = `%${escapeLike(q)}%`;
     const limit = data.limit ?? 6;
 
-    const [personasR, campaignsR, projectsR, tasksR, kpisR] = await Promise.all([
+    const [personasR, campaignsR, projectsR, tasksR] = await Promise.all([
       supabase
         .from("personas")
         .select("id, name, role, stage, insights")
@@ -58,12 +58,6 @@ export const globalSearch = createServerFn({ method: "POST" })
         .select("id, title, status, project_id, projects:project_id(name)")
         .eq("organization_id", orgId)
         .ilike("title", like)
-        .limit(limit),
-      supabase
-        .from("kpi_snapshots")
-        .select("id, label, metric_key, module, value, unit")
-        .eq("organization_id", orgId)
-        .or(`label.ilike.${like},metric_key.ilike.${like}`)
         .limit(limit),
     ]);
 
@@ -138,19 +132,6 @@ export const globalSearch = createServerFn({ method: "POST" })
       });
     }
 
-    // KPIs → LeKPIs
-    for (const k of kpisR.data ?? []) {
-      hits.push({
-        id: k.id,
-        module: "lekpis",
-        kind: "kpi",
-        title: k.label || k.metric_key,
-        subtitle: [k.module, k.value != null ? `${k.value}${k.unit ?? ""}` : null]
-          .filter(Boolean)
-          .join(" · ") || null,
-        route: `/lekpis`,
-      });
-    }
 
     return { hits, query: q };
   });

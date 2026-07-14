@@ -74,7 +74,7 @@ function ModuleTile({ module: mod, count, loading }: { module: ModuleDef; count:
       case "creator": return "campanhas";
       case "soma": return "projetos & tarefas";
       case "comunidades": return "comunidades";
-      case "lekpis": return "indicadores";
+      
       case "biblioteca": return "itens";
       case "ia": return "copiloto";
     }

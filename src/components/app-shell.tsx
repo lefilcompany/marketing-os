@@ -25,7 +25,7 @@ import { MODULES } from "@/lib/modules";
 import deePersonaLogo from "@/assets/deepersona-logo.png.asset.json";
 import creatorLogo from "@/assets/creator-logo.png.asset.json";
 import somaLogo from "@/assets/soma-logo.png.asset.json";
-import lekpisLogo from "@/assets/lekpis-logo.png.asset.json";
+
 import { CommandPalette } from "@/components/command-palette";
 import { NotificationBell } from "@/components/notification-bell";
 import { GuidedFlowBar } from "@/components/guided-flow-bar";
@@ -82,7 +82,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
     { to: "/dashboard", label: "Home", icon: Home },
     { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
   ];
-  const moduleSlugs = ["deepersona", "estrategia", "creator", "soma", "comunidades", "lekpis"];
+  const moduleSlugs = ["deepersona", "estrategia", "creator", "soma", "comunidades"];
   const modules = MODULES
     .filter((m) => moduleSlugs.includes(m.slug))
     .map((m) => ({ to: m.route, label: m.name, icon: m.icon, color: m.color }));
@@ -145,12 +145,6 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                           src={somaLogo.url}
                           alt="SoMA"
                           className="h-7 w-auto object-contain dark:invert"
-                        />
-                      ) : it.to === "/lekpis" ? (
-                        <img
-                          src={lekpisLogo.url}
-                          alt="LeKPIs"
-                          className="h-6 w-auto object-contain dark:invert"
                         />
                       ) : (
                         <>
