@@ -22,7 +22,6 @@ export const getModulesOverview = createServerFn({ method: "POST" })
       projects,
       tasks,
       communities,
-      kpis,
       library,
     ] = await Promise.all([
       supabase.from("personas").select("id", head).eq("organization_id", org),
@@ -31,7 +30,6 @@ export const getModulesOverview = createServerFn({ method: "POST" })
       supabase.from("projects").select("id", head).eq("organization_id", org),
       supabase.from("tasks").select("id", head).eq("organization_id", org),
       supabase.from("communities").select("id", head).eq("organization_id", org),
-      supabase.from("kpi_snapshots").select("id", head).eq("organization_id", org),
       supabase.from("library_items").select("id", head).eq("organization_id", org),
     ]);
 
@@ -42,7 +40,6 @@ export const getModulesOverview = createServerFn({ method: "POST" })
         creator: campaigns.count ?? 0,
         soma: (projects.count ?? 0) + (tasks.count ?? 0),
         comunidades: communities.count ?? 0,
-        lekpis: kpis.count ?? 0,
         biblioteca: library.count ?? 0,
         ia: 0,
       },
