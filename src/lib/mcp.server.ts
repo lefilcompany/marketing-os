@@ -277,12 +277,14 @@ export async function mcpInitializeAndListTools(
 
   // Send notifications/initialized (best effort, ignore result).
   try {
+    const apiKey = apiKeyForResource(resource);
     await fetch(resource, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${accessToken}`,
+        ...(apiKey ? { apikey: apiKey } : {}),
         "Mcp-Protocol-Version": PROTOCOL_VERSION,
         ...(sessionId ? { "Mcp-Session-Id": sessionId } : {}),
       },
