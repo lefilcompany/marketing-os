@@ -1,44 +1,28 @@
-# Remover integração LeKPIs MCP
+## Objetivo
 
-Você vai reformular o MCP do LeKPIs do zero, então o app precisa voltar a um estado sem essa integração — sem rotas, sem hooks, sem contexto de cliente ativo e sem entradas na navegação apontando pra LeKPIs.
+Reestruturar a navegação em torno dos 5 módulos A · E · I · O · U:
 
-## O que vai ser removido
+1. **Home (`/dashboard`)** — mostrar apenas 5 cards (um por módulo), com letra, nome e descrição do que aquele módulo faz. Sem listar ferramentas.
+2. **Menu lateral** — substituir a seção "Módulos" atual (DeePersona, Estrategia, Creator, Soma, Comunidades, LeKPIs) por 5 itens: **A – Ambiente**, **E – Estratégia**, **I – Interações**, **O – Operações**, **U – Unificação**.
+3. **Página de módulo (`/modulo/$letra`)** — ao clicar em um item do menu (ou em um card da home), abre uma página que lista as ferramentas daquele módulo (usando o `ToolCard` já existente, com marca por ferramenta e status ready/coming_soon).
 
-**Rotas (`src/routes/_authenticated/`)**
-- `lekpis.tsx` (layout + gate de conexão)
-- `lekpis.index.tsx`
-- `lekpis.integracoes.tsx`
-- `lekpis.perfil.tsx`
-- `lekpis.canal.$slug.tsx`
+## Arquivos afetados
 
-**Hooks e contexto**
-- `src/hooks/use-lekpis-queries.ts`
-- `src/hooks/use-lekpis-connect.ts`
-- `src/contexts/cliente-ativo-context.tsx`
-- `src/lib/lekpis-client.ts`
+**Novos**
+- `src/routes/_authenticated/modulo.$letra.tsx` — rota dinâmica que resolve a letra (A/E/I/O/U), lê `AEIOU_MODULES` e renderiza cabeçalho do módulo + grade de `ToolCard`. Redireciona para `/dashboard` se a letra for inválida.
 
-**Componentes**
-- `src/components/lekpis/` inteiro (top-bar, canal-card, integracao-card, cliente-selector)
+**Editados**
+- `src/routes/_authenticated/dashboard.tsx` — remove os blocos com ferramentas; renderiza 5 cards grandes (letra gigante + nome + tagline) que linkam para `/modulo/A`… `/modulo/U`. Mantém o header/ambiente atual.
+- `src/components/app-shell.tsx` — na `SidebarGroup` "Módulos", troca a lista atual por 5 itens A/E/I/O/U (ícone = letra em círculo colorido, `to="/modulo/A"` etc.). Remove imports de logos que ficarem sem uso.
+- `src/lib/aeiou-modules.ts` — adiciona helper `getModuleByLetter(letter)` para reuso.
 
-**Dados persistidos no navegador**
-- A chave `CLIENTE_STORAGE_KEY` (cliente ativo salvo) deixa de ser lida quando o contexto some. Não faço limpeza automática — é lixo inofensivo no `localStorage` do usuário.
+## Fora do escopo
 
-**Banco / conexões OAuth MCP**
-- Não removo linhas de `mcp_connections` nem `mcp_oauth_states`. A infra genérica de MCP (`src/lib/mcp.functions.ts`, `mcp.server.ts`, rota `api/mcp/callback`) continua no projeto porque é usada por outros conectores e pelo painel MCP. Só o provider `lekpis` deixa de ter UI que o acione. Quando o novo MCP for ligado, se quiser zerar a linha antiga do provider `lekpis`, faço isso num passo separado.
+- Não remover rotas antigas (`/deepersona`, `/creator`, `/soma`, `/lekpis`, `/estrategia`, `/comunidades`) — continuam funcionando; apenas deixam de aparecer no menu principal. Os `ToolCard`s da página de módulo continuam apontando para `platformUrl` externo como hoje.
+- Sem mudanças em backend, MCP ou tabela `tool_brand_settings`.
 
-**Navegação / menus**
-- Verifico `src/components/app-shell.tsx`, `command-palette.tsx`, `module-shell.tsx`, `modules.ts` e `flows.ts` e removo qualquer link/entrada apontando pra `/lekpis*`. Se o "módulo LeKPIs" estiver listado em `src/lib/modules.ts`, tiro dessa lista também.
+## Detalhes técnicos
 
-## O que fica intacto
-
-- Toda a infra genérica de MCP (OAuth start/callback, `getMcpConnection`, `listMcpTools`, `callMcpTool`, `disconnectMcp`, tabelas `mcp_connections` / `mcp_oauth_states`).
-- Painel `mcp-oauth-panel` / `mcp-status-card` / `mcp-resource-explorer` — servem outros providers.
-- Nenhuma migração de banco.
-
-## Verificação depois de aplicar
-
-1. `rg -l lekpis src/` deve voltar vazio (fora de comentários irrelevantes, se houver).
-2. Build passa sem erro de import.
-3. Home e demais rotas continuam abrindo normalmente; `/lekpis` passa a dar 404 (comportamento esperado).
-
-Quando o novo MCP estiver pronto, a gente reintroduz as rotas/hook com base no novo schema de tools.
+- Rota dinâmica: `createFileRoute('/_authenticated/modulo/$letra')` com `params: { letra: string }`; normaliza para maiúscula e valida contra `["A","E","I","O","U"]`.
+- Home: grid `sm:grid-cols-2 lg:grid-cols-3` com o quinto card ocupando espaço central; cada card é um `<Link to="/modulo/$letra" params={{ letra: mod.letter }}>` estilizado com o `color` do módulo (mesmo tratamento visual usado em `dashboards.tsx`).
+- Sidebar: item usa um badge circular com a letra + label `Ambiente/Estratégia/…`; `isActive` casa com `pathname === "/modulo/A"` etc.
