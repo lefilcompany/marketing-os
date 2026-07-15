@@ -213,10 +213,12 @@ async function mcpFetch(
   sessionId?: string,
   protocolVersion?: string,
 ): Promise<{ body: JsonRpcResponse; sessionId?: string }> {
+  const apiKey = apiKeyForResource(resource);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json, text/event-stream",
     Authorization: `Bearer ${accessToken}`,
+    ...(apiKey ? { apikey: apiKey } : {}),
   };
   if (sessionId) headers["Mcp-Session-Id"] = sessionId;
   if (protocolVersion) headers["Mcp-Protocol-Version"] = protocolVersion;
@@ -239,6 +241,13 @@ async function mcpFetch(
 }
 
 const PROTOCOL_VERSION = "2025-06-18";
+
+function apiKeyForResource(resource: string): string | undefined {
+  for (const p of Object.values(MCP_PROVIDERS)) {
+    if (resource.startsWith(new URL(p.resource).origin)) return providerApiKey(p);
+  }
+  return undefined;
+}
 
 /**
  * Initialize + list tools in the same session. Returns tools + session for reuse.
@@ -268,12 +277,14 @@ export async function mcpInitializeAndListTools(
 
   // Send notifications/initialized (best effort, ignore result).
   try {
+    const apiKey = apiKeyForResource(resource);
     await fetch(resource, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${accessToken}`,
+        ...(apiKey ? { apikey: apiKey } : {}),
         "Mcp-Protocol-Version": PROTOCOL_VERSION,
         ...(sessionId ? { "Mcp-Session-Id": sessionId } : {}),
       },
