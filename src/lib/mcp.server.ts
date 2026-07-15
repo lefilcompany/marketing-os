@@ -242,6 +242,13 @@ async function mcpFetch(
 
 const PROTOCOL_VERSION = "2025-06-18";
 
+function apiKeyForResource(resource: string): string | undefined {
+  for (const p of Object.values(MCP_PROVIDERS)) {
+    if (resource.startsWith(new URL(p.resource).origin)) return providerApiKey(p);
+  }
+  return undefined;
+}
+
 /**
  * Initialize + list tools in the same session. Returns tools + session for reuse.
  */
