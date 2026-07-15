@@ -22,10 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
 import { MODULES } from "@/lib/modules";
-import deePersonaLogo from "@/assets/deepersona-logo.png.asset.json";
-import creatorLogo from "@/assets/creator-logo.png.asset.json";
-import somaLogo from "@/assets/soma-logo.png.asset.json";
-import lekpisLogo from "@/assets/lekpis-logo.png.asset.json";
+import { AEIOU_MODULES } from "@/lib/aeiou-modules";
 import { CommandPalette } from "@/components/command-palette";
 import { NotificationBell } from "@/components/notification-bell";
 import { GuidedFlowBar } from "@/components/guided-flow-bar";
@@ -82,10 +79,6 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
     { to: "/dashboard", label: "Home", icon: Home },
     { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
   ];
-  const moduleSlugs = ["deepersona", "estrategia", "creator", "soma", "comunidades", "lekpis"];
-  const modules = MODULES
-    .filter((m) => moduleSlugs.includes(m.slug))
-    .map((m) => ({ to: m.route, label: m.name, icon: m.icon, color: m.color }));
   const bibliotecaModule = MODULES.find((m) => m.slug === "biblioteca");
 
   return (
@@ -121,50 +114,32 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Módulos</SidebarGroupLabel>
+          <SidebarGroupLabel>Módulos A · E · I · O · U</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {modules.map((it) => (
-                <SidebarMenuItem key={it.to}>
-                  <SidebarMenuButton asChild isActive={pathname === it.to}>
-                    <Link to={it.to}>
-                      {it.to === "/deepersona" ? (
-                        <img
-                          src={deePersonaLogo.url}
-                          alt="DeePersona"
-                          className="h-3 w-auto object-contain"
-                        />
-                      ) : it.to === "/creator" ? (
-                        <img
-                          src={creatorLogo.url}
-                          alt="Creator"
-                          className="h-5 w-auto object-contain dark:invert"
-                        />
-                      ) : it.to === "/soma" ? (
-                        <img
-                          src={somaLogo.url}
-                          alt="SoMA"
-                          className="h-7 w-auto object-contain dark:invert"
-                        />
-                      ) : it.to === "/lekpis" ? (
-                        <img
-                          src={lekpisLogo.url}
-                          alt="LeKPIs"
-                          className="h-6 w-auto object-contain dark:invert"
-                        />
-                      ) : (
-                        <>
-                          <it.icon className="h-4 w-4" style={{ color: it.color }} />
-                          <span>{it.label}</span>
-                        </>
-                      )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {AEIOU_MODULES.map((mod) => {
+                const to = `/modulo/${mod.letter}`;
+                return (
+                  <SidebarMenuItem key={mod.letter}>
+                    <SidebarMenuButton asChild isActive={pathname === to}>
+                      <Link to="/modulo/$letra" params={{ letra: mod.letter }}>
+                        <span
+                          className="grid h-5 w-5 place-items-center rounded-md text-[10px] font-semibold text-white shrink-0"
+                          style={{ background: mod.color }}
+                          aria-hidden
+                        >
+                          {mod.letter}
+                        </span>
+                        <span>{mod.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
 
         {bibliotecaModule && (
           <SidebarGroup>
