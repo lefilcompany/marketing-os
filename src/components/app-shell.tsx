@@ -83,10 +83,6 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
     { to: "/dashboard", label: "Home", icon: Home },
     { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
   ];
-  const moduleSlugs = ["deepersona", "estrategia", "creator", "soma", "comunidades", "lekpis"];
-  const modules = MODULES
-    .filter((m) => moduleSlugs.includes(m.slug))
-    .map((m) => ({ to: m.route, label: m.name, icon: m.icon, color: m.color }));
   const bibliotecaModule = MODULES.find((m) => m.slug === "biblioteca");
 
   return (
