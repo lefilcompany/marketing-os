@@ -213,10 +213,12 @@ async function mcpFetch(
   sessionId?: string,
   protocolVersion?: string,
 ): Promise<{ body: JsonRpcResponse; sessionId?: string }> {
+  const apiKey = apiKeyForResource(resource);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json, text/event-stream",
     Authorization: `Bearer ${accessToken}`,
+    ...(apiKey ? { apikey: apiKey } : {}),
   };
   if (sessionId) headers["Mcp-Session-Id"] = sessionId;
   if (protocolVersion) headers["Mcp-Protocol-Version"] = protocolVersion;
