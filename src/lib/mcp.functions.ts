@@ -59,14 +59,15 @@ export const getMcpConnection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { provider: string }) => input)
   .handler(async ({ data, context }) => {
-    const { data: row, error } = await context.supabase
+    const { data: rows, error } = await context.supabase
       .from("mcp_connections")
       .select("provider, authorization_server, resource, expires_at, scope, created_at, updated_at")
       .eq("user_id", context.userId)
       .eq("provider", data.provider)
-      .maybeSingle();
+      .order("updated_at", { ascending: false })
+      .limit(1);
     if (error) throw new Error(error.message);
-    return { connection: row };
+    return { connection: rows?.[0] ?? null };
   });
 
 async function loadAccessToken(userId: string, providerSlug: string): Promise<{
@@ -76,13 +77,15 @@ async function loadAccessToken(userId: string, providerSlug: string): Promise<{
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { getProvider, refreshTokens } = await import("./mcp.server");
 
-  const { data: row, error } = await supabaseAdmin
+  const { data: rows, error } = await supabaseAdmin
     .from("mcp_connections")
     .select("*")
     .eq("user_id", userId)
     .eq("provider", providerSlug)
-    .maybeSingle();
+    .order("updated_at", { ascending: false })
+    .limit(1);
   if (error) throw new Error(error.message);
+  const row = rows?.[0];
   if (!row) throw new Error("MCP não conectado — clique em Conectar.");
 
   const now = Date.now();
