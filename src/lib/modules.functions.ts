@@ -2,6 +2,111 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+export type PlatformStat = { label: string; value: string };
+export type PlatformSummary = {
+  toolId: "deepersona" | "creator" | "soma" | "lekpis";
+  stats: PlatformStat[];
+  updatedAt: string | null;
+};
+
+/**
+ * Resumo por plataforma integrada (status "ready" no catálogo AEIOU).
+ * Retorna 3 métricas curtas por plataforma + updatedAt do registro mais recente.
+ */
+export const getPlatformSummaries = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { organizationId: string }) =>
+    z.object({ organizationId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }): Promise<{ summaries: PlatformSummary[] }> => {
+    const { supabase } = context;
+    const org = data.organizationId;
+    const head = { count: "exact" as const, head: true };
+    const since30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const today = new Date().toISOString().slice(0, 10);
+
+    const [
+      personasTotal,
+      personasPrio,
+      personasRecent,
+      personasLast,
+      campaignsTotal,
+      campaignsActive,
+      campaignsUpcoming,
+      campaignsLast,
+      projectsActive,
+      tasksOpen,
+      tasksDone,
+      tasksLast,
+      kpisTotal,
+      kpisAll,
+      kpisLast,
+    ] = await Promise.all([
+      supabase.from("personas").select("id", head).eq("organization_id", org),
+      supabase.from("personas").select("id", head).eq("organization_id", org).not("importance", "is", null).not("urgency", "is", null),
+      supabase.from("personas").select("id", head).eq("organization_id", org).gte("updated_at", since30),
+      supabase.from("personas").select("updated_at").eq("organization_id", org).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("campaigns").select("id", head).eq("organization_id", org),
+      supabase.from("campaigns").select("id", head).eq("organization_id", org).eq("status", "active"),
+      supabase.from("campaigns").select("id", head).eq("organization_id", org).gte("starts_at", today),
+      supabase.from("campaigns").select("updated_at").eq("organization_id", org).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("projects").select("id", head).eq("organization_id", org).neq("status", "done"),
+      supabase.from("tasks").select("id", head).eq("organization_id", org).in("status", ["todo", "doing"]),
+      supabase.from("tasks").select("id", head).eq("organization_id", org).eq("status", "done"),
+      supabase.from("tasks").select("updated_at").eq("organization_id", org).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("kpi_snapshots").select("id", head).eq("organization_id", org),
+      supabase.from("kpi_snapshots").select("value, target").eq("organization_id", org),
+      supabase.from("kpi_snapshots").select("updated_at").eq("organization_id", org).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+
+    const kpiRows = (kpisAll.data ?? []) as Array<{ value: number | null; target: number | null }>;
+    const kpiWithTarget = kpiRows.filter((r) => r.target != null && r.value != null);
+    const kpiHit = kpiWithTarget.filter((r) => (r.value ?? 0) >= (r.target ?? 0)).length;
+    const kpiPct = kpiWithTarget.length ? Math.round((kpiHit / kpiWithTarget.length) * 100) : 0;
+
+    const summaries: PlatformSummary[] = [
+      {
+        toolId: "deepersona",
+        stats: [
+          { label: "Personas", value: String(personasTotal.count ?? 0) },
+          { label: "Priorizadas", value: String(personasPrio.count ?? 0) },
+          { label: "Atualiz. 30d", value: String(personasRecent.count ?? 0) },
+        ],
+        updatedAt: (personasLast.data as { updated_at?: string } | null)?.updated_at ?? null,
+      },
+      {
+        toolId: "creator",
+        stats: [
+          { label: "Campanhas", value: String(campaignsTotal.count ?? 0) },
+          { label: "Ativas", value: String(campaignsActive.count ?? 0) },
+          { label: "Próximas", value: String(campaignsUpcoming.count ?? 0) },
+        ],
+        updatedAt: (campaignsLast.data as { updated_at?: string } | null)?.updated_at ?? null,
+      },
+      {
+        toolId: "soma",
+        stats: [
+          { label: "Projetos ativos", value: String(projectsActive.count ?? 0) },
+          { label: "Tarefas abertas", value: String(tasksOpen.count ?? 0) },
+          { label: "Concluídas", value: String(tasksDone.count ?? 0) },
+        ],
+        updatedAt: (tasksLast.data as { updated_at?: string } | null)?.updated_at ?? null,
+      },
+      {
+        toolId: "lekpis",
+        stats: [
+          { label: "Indicadores", value: String(kpisTotal.count ?? 0) },
+          { label: "Atingindo meta", value: `${kpiPct}%` },
+          { label: "Com meta", value: String(kpiWithTarget.length) },
+        ],
+        updatedAt: (kpisLast.data as { updated_at?: string } | null)?.updated_at ?? null,
+      },
+    ];
+
+    return { summaries };
+  });
+
+
 /**
  * Contagens agregadas por módulo para o dashboard Marketing OS.
  */
