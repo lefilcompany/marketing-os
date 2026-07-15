@@ -1,59 +1,75 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getSessionBootstrap } from "@/lib/workspace.functions";
-import { getModulesOverview } from "@/lib/modules.functions";
+import {
+  getPlatformSummaries,
+  type PlatformSummary,
+} from "@/lib/modules.functions";
 import { useWorkspace } from "@/lib/workspace-context";
-import { MODULES, type ModuleDef } from "@/lib/modules";
+import { AEIOU_MODULES, type AeiouModule, type AeiouTool } from "@/lib/aeiou-modules";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowUpRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowUpRight, Clock3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboards")({
   head: () => ({ meta: [{ title: "Dashboards — Marketing OS" }] }),
   component: Dashboards,
 });
 
+type Entry = {
+  tool: AeiouTool;
+  module: AeiouModule;
+};
+
 function Dashboards() {
   const { currentOrgId } = useWorkspace();
-  const boot = useQuery({ queryKey: ["session-bootstrap"], queryFn: () => getSessionBootstrap() });
+  const boot = useQuery({
+    queryKey: ["session-bootstrap"],
+    queryFn: () => getSessionBootstrap(),
+  });
   const overview = useQuery({
-    queryKey: ["modules-overview", currentOrgId],
-    queryFn: () => getModulesOverview({ data: { organizationId: currentOrgId! } }),
+    queryKey: ["platform-summaries", currentOrgId],
+    queryFn: () =>
+      getPlatformSummaries({ data: { organizationId: currentOrgId! } }),
     enabled: !!currentOrgId,
   });
 
-  const orgName = boot.data?.memberships.find((m) => m.organization?.id === currentOrgId)?.organization?.name;
+  const orgName = boot.data?.memberships.find(
+    (m) => m.organization?.id === currentOrgId,
+  )?.organization?.name;
+
+  const entries: Entry[] = AEIOU_MODULES.flatMap((m) =>
+    m.tools.map((t) => ({ tool: t, module: m })),
+  );
+  const summaryMap = new Map<string, PlatformSummary>(
+    (overview.data?.summaries ?? []).map((s) => [s.toolId, s]),
+  );
 
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
-      {/* Ambient background */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
-             style={{ background: "radial-gradient(circle, var(--brand-creator), transparent 60%)" }} />
-        <div className="absolute top-20 -right-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
-             style={{ background: "radial-gradient(circle, var(--brand-deepersona), transparent 60%)" }} />
-        <div className="absolute -bottom-40 left-1/3 h-[520px] w-[520px] rounded-full blur-3xl opacity-40"
-             style={{ background: "radial-gradient(circle, var(--brand-lekpi), transparent 60%)" }} />
-      </div>
-
-      <div className="mx-auto max-w-7xl px-6 py-8 lg:py-10">
+    <div className="min-h-[calc(100vh-3.5rem)] bg-[#F6F9FC]">
+      <div className="mx-auto max-w-7xl px-6 lg:px-10 py-8 lg:py-12">
         <header className="mb-8 flex flex-col gap-1">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold">
             Marketing OS · LeFil{orgName ? ` · ${orgName}` : ""}
           </p>
-          <h1 className="font-display text-2xl font-semibold tracking-tight lg:text-3xl">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground lg:text-4xl">
             Dashboards
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl">
-            Panorama de todos os módulos e seus indicadores.
+            Resumo de dados das plataformas integradas ao Marketing OS.
           </p>
         </header>
 
-        <section aria-label="Módulos" className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {MODULES.map((mod) => (
-            <ModuleTile
-              key={mod.slug}
+        <section
+          aria-label="Plataformas"
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3"
+        >
+          {entries.map(({ tool, module: mod }) => (
+            <PlatformCard
+              key={tool.id}
+              tool={tool}
               module={mod}
-              count={overview.data?.counts[mod.slug] ?? 0}
+              summary={summaryMap.get(tool.id)}
               loading={overview.isLoading}
             />
           ))}
@@ -63,68 +79,109 @@ function Dashboards() {
   );
 }
 
-function ModuleTile({ module: mod, count, loading }: { module: ModuleDef; count: number; loading: boolean }) {
-  const Icon = mod.icon;
-  const color = mod.color;
-
-  const countLabel = (() => {
-    switch (mod.slug) {
-      case "deepersona": return "personas";
-      case "estrategia": return "estratégias";
-      case "creator": return "campanhas";
-      case "soma": return "projetos & tarefas";
-      case "comunidades": return "comunidades";
-      case "lekpis": return "indicadores";
-      case "biblioteca": return "itens";
-      case "ia": return "copiloto";
-    }
-  })();
+function PlatformCard({
+  tool,
+  module: mod,
+  summary,
+  loading,
+}: {
+  tool: AeiouTool;
+  module: AeiouModule;
+  summary: PlatformSummary | undefined;
+  loading: boolean;
+}) {
+  const Icon = tool.icon;
+  const isReady = tool.status === "ready";
 
   return (
     <Link
-      to={mod.route}
-      className="group relative block h-56 overflow-hidden rounded-2xl text-left transition-all duration-500 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      style={{
-        background: `linear-gradient(135deg, color-mix(in oklab, ${color} 24%, transparent), color-mix(in oklab, ${color} 4%, transparent))`,
-        boxShadow: `0 20px 60px -20px color-mix(in oklab, ${color} 45%, transparent), inset 0 1px 0 0 rgba(255,255,255,0.15)`,
-      }}
+      to="/modulo/$letra"
+      params={{ letra: mod.letter }}
+      className={`group relative block overflow-hidden rounded-2xl bg-white border border-border/70 text-left shadow-sm transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        isReady ? "hover:-translate-y-0.5 hover:shadow-lg" : "opacity-90"
+      }`}
     >
-      <div className="absolute inset-0 backdrop-blur-2xl" style={{ background: "rgba(255,255,255,0.04)" }} />
-      <div className="absolute inset-0 rounded-2xl border border-white/15" />
-      <div className="absolute inset-x-0 top-0 h-1/2 rounded-t-2xl opacity-70"
-           style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.18), transparent)" }} />
-      <div className="absolute -top-24 -right-24 h-52 w-52 rounded-full blur-3xl opacity-60 transition-opacity duration-500 group-hover:opacity-90"
-           style={{ background: color }} />
-      <div className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-1000 ease-out group-hover:translate-x-full"
-           style={{ background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%)" }} />
+      <div
+        className="absolute inset-x-0 top-0 h-1.5"
+        style={{ background: mod.color }}
+      />
 
-      <div className="relative z-10 flex h-full flex-col justify-between p-5">
-        <div className="flex items-start justify-between">
-          <div
-            className="grid h-11 w-11 place-items-center rounded-xl border border-white/25 backdrop-blur-xl"
-            style={{ background: `color-mix(in oklab, ${color} 35%, rgba(255,255,255,0.08))` }}
-          >
-            <Icon className="h-5 w-5 text-white drop-shadow" />
+      <div className="relative z-10 flex h-full flex-col gap-5 p-6 pt-7">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div
+              className="grid h-11 w-11 place-items-center rounded-xl shrink-0"
+              style={{
+                background: `color-mix(in oklab, ${mod.color} 14%, white)`,
+                color: mod.color,
+              }}
+            >
+              <Icon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
+                Módulo {mod.letter} · {mod.name}
+              </p>
+              <h3 className="font-display text-lg font-semibold text-foreground leading-tight mt-0.5">
+                {tool.name}
+              </h3>
+              <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                {tool.description}
+              </p>
+            </div>
           </div>
-          <ArrowUpRight className="h-4 w-4 text-white/70 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <ArrowUpRight className="h-4 w-4 text-muted-foreground shrink-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-foreground" />
         </div>
 
-        <div className="space-y-1">
-          <h3 className="font-display text-xl font-semibold text-white leading-tight">{mod.name}</h3>
-          <p className="text-xs text-white/70 line-clamp-2">{mod.tagline}</p>
-          <div className="pt-2 flex items-baseline gap-1.5 text-white/90">
-            {loading ? (
-              <Skeleton className="h-5 w-10 bg-white/10" />
-            ) : (
-              <span className="font-display text-lg font-semibold">{count}</span>
-            )}
-            <span className="text-[11px] text-white/60">{countLabel}</span>
+        {isReady ? (
+          <div className="grid grid-cols-3 gap-3 pt-1 border-t border-border/60">
+            {loading || !summary
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="pt-3">
+                    <Skeleton className="h-7 w-12" />
+                    <Skeleton className="mt-1.5 h-3 w-16" />
+                  </div>
+                ))
+              : summary.stats.map((s) => (
+                  <div key={s.label} className="pt-3">
+                    <div className="font-display text-2xl font-semibold text-foreground leading-none">
+                      {s.value}
+                    </div>
+                    <div className="mt-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {s.label}
+                    </div>
+                  </div>
+                ))}
           </div>
-        </div>
+        ) : (
+          <div className="pt-3 border-t border-border/60">
+            <Badge
+              variant="outline"
+              className="gap-1.5 text-[10px] font-medium text-muted-foreground"
+            >
+              <Clock3 className="h-3 w-3" />
+              Aguardando integração
+            </Badge>
+          </div>
+        )}
+
+        {isReady && summary?.updatedAt && (
+          <p className="text-[10px] text-muted-foreground -mt-2">
+            Atualizado {formatRelative(summary.updatedAt)}
+          </p>
+        )}
       </div>
-
-      <div className="pointer-events-none absolute inset-x-4 -bottom-2 h-8 rounded-full blur-2xl opacity-50"
-           style={{ background: color }} />
     </Link>
   );
+}
+
+function formatRelative(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const day = 24 * 60 * 60 * 1000;
+  const days = Math.floor(diff / day);
+  if (days <= 0) return "hoje";
+  if (days === 1) return "há 1 dia";
+  if (days < 30) return `há ${days} dias`;
+  const months = Math.floor(days / 30);
+  return months === 1 ? "há 1 mês" : `há ${months} meses`;
 }
