@@ -13,6 +13,8 @@ export type McpProviderConfig = {
   scope: string;
   /** Env var name whose value is sent as the Supabase `apikey` header on OAuth calls. */
   apiKeyEnv?: string;
+  /** Public anon key fallback for external MCP apps; safe to ship, required when env is absent. */
+  apiKeyFallback?: string;
 };
 
 export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
@@ -28,6 +30,38 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
       "https://poplveakypbszmltpjco.supabase.co/auth/v1/oauth/clients/register",
     scope: "openid profile email",
     apiKeyEnv: "DEEPERSONA_SUPABASE_ANON_KEY",
+    apiKeyFallback:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvcGx2ZWFreXBic3ptbHRwamNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDQyNjgsImV4cCI6MjA5MzU4MDI2OH0.inJXTr9w8DWjSS4-TE7ntfSywRY2Gts9tlYd6U0CraI",
+  },
+  creator: {
+    slug: "creator",
+    name: "Creator",
+    authorizationServer: "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1",
+    resource: "https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp",
+    authorizationEndpoint:
+      "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/authorize",
+    tokenEndpoint: "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/token",
+    registrationEndpoint:
+      "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/clients/register",
+    scope: "openid profile email",
+    apiKeyEnv: "CREATOR_SUPABASE_ANON_KEY",
+    apiKeyFallback:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmeHdxa3JuZXJhYXRnb3ZocGtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTU1MzEsImV4cCI6MjA3NDczMTUzMX0.qrf2s983At_PQ3qsJtcmQuzjlP3uEzXHFK588hJpyTM",
+  },
+  soma: {
+    slug: "soma",
+    name: "Soma",
+    authorizationServer: "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1",
+    resource: "https://erxhxmetrvkigjwxchbj.supabase.co/functions/v1/mcp",
+    authorizationEndpoint:
+      "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/authorize",
+    tokenEndpoint: "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/token",
+    registrationEndpoint:
+      "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/clients/register",
+    scope: "openid profile email",
+    apiKeyEnv: "SOMA_SUPABASE_ANON_KEY",
+    apiKeyFallback:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyeGh4bWV0cnZraWdqd3hjaGJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzcyMjksImV4cCI6MjA5NzIxMzIyOX0.v-2CmWC1n9fRTnvC8YNIMdvE-tidObfLSTdta-VYh2w",
   },
   lekpis: {
     slug: "lekpis",
@@ -41,11 +75,13 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
       "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/clients/register",
     scope: "openid profile email",
     apiKeyEnv: "LEKPIS_SUPABASE_ANON_KEY",
+    apiKeyFallback:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoc3FiZ2Rqc29obWpqb2VlcXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MTU3NzgsImV4cCI6MjA4NDM5MTc3OH0.7y4x_PWfpJZuz_Pbb7SkDk6GEqrcHu5C4zavNC-GKXw",
   },
 };
 
 function providerApiKey(provider: McpProviderConfig): string | undefined {
-  return provider.apiKeyEnv ? process.env[provider.apiKeyEnv] : undefined;
+  return provider.apiKeyEnv ? process.env[provider.apiKeyEnv] ?? provider.apiKeyFallback : provider.apiKeyFallback;
 }
 
 function withApiKey(
