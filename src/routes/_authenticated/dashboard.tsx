@@ -57,47 +57,44 @@ function ModuleCard({ module: mod }: { module: AeiouModule }) {
     <Link
       to="/modulo/$letra"
       params={{ letra: mod.letter }}
-      className="group relative block h-56 overflow-hidden rounded-2xl text-left transition-all duration-500 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group relative block h-56 overflow-hidden rounded-2xl bg-white border border-border/70 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       style={{
-        background: `linear-gradient(135deg, color-mix(in oklab, ${mod.color} 26%, transparent), color-mix(in oklab, ${mod.color} 6%, transparent))`,
-        boxShadow: `0 20px 60px -20px color-mix(in oklab, ${mod.color} 45%, transparent), inset 0 1px 0 0 rgba(255,255,255,0.15)`,
+        ["--mod-color" as string]: mod.color,
       }}
     >
+      {/* Top accent bar */}
       <div
-        className="absolute inset-0 backdrop-blur-2xl"
-        style={{ background: "rgba(255,255,255,0.04)" }}
-      />
-      <div className="absolute inset-0 rounded-2xl border border-white/15" />
-      <div
-        className="absolute -top-24 -right-24 h-52 w-52 rounded-full blur-3xl opacity-60 transition-opacity duration-500 group-hover:opacity-90"
+        className="absolute inset-x-0 top-0 h-1.5"
         style={{ background: mod.color }}
       />
+      {/* Soft color halo */}
       <div
-        className="pointer-events-none absolute inset-0 -translate-x-full transition-transform duration-1000 ease-out group-hover:translate-x-full"
-        style={{
-          background:
-            "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%)",
-        }}
+        className="absolute -top-20 -right-20 h-44 w-44 rounded-full blur-3xl opacity-20 transition-opacity duration-300 group-hover:opacity-30"
+        style={{ background: mod.color }}
+      />
+      {/* Hover border tint */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-2xl border border-transparent transition-colors duration-300 group-hover:border-[color:var(--mod-color)]/40"
       />
 
       <div className="relative z-10 flex h-full flex-col justify-between p-6">
         <div className="flex items-start justify-between">
           <div
-            className="grid h-14 w-14 place-items-center rounded-2xl border border-white/25 backdrop-blur-xl font-display text-2xl font-semibold text-white drop-shadow"
-            style={{
-              background: `color-mix(in oklab, ${mod.color} 45%, rgba(255,255,255,0.08))`,
-            }}
+            className="grid h-14 w-14 place-items-center rounded-2xl font-display text-2xl font-semibold text-white shadow-sm"
+            style={{ background: mod.color }}
           >
             {mod.letter}
           </div>
-          <ArrowUpRight className="h-4 w-4 text-white/70 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[color:var(--mod-color)]" />
         </div>
 
-        <div className="space-y-1">
-          <h3 className="font-display text-xl font-semibold text-white leading-tight">
+        <div className="space-y-1.5">
+          <h3 className="font-display text-xl font-semibold text-foreground leading-tight">
             Módulo {mod.letter} — {mod.name}
           </h3>
-          <p className="text-xs text-white/80 line-clamp-3">{mod.tagline}</p>
+          <p className="text-sm text-muted-foreground line-clamp-3">
+            {mod.tagline}
+          </p>
         </div>
       </div>
     </Link>
