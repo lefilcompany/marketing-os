@@ -33,6 +33,7 @@ import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDeepersonaIndexRouteImport } from './routes/_authenticated/deepersona.index'
 import { Route as ApiMcpCallbackRouteImport } from './routes/api/mcp/callback'
+import { Route as AuthenticatedModuloLetraRouteImport } from './routes/_authenticated/modulo.$letra'
 import { Route as AuthenticatedDeepersonaSegmentacaoRouteImport } from './routes/_authenticated/deepersona.segmentacao'
 import { Route as AuthenticatedDeepersonaPriorizacaoRouteImport } from './routes/_authenticated/deepersona.priorizacao'
 import { Route as AuthenticatedDeepersonaCsdRouteImport } from './routes/_authenticated/deepersona.csd'
@@ -168,6 +169,12 @@ const ApiMcpCallbackRoute = ApiMcpCallbackRouteImport.update({
   path: '/api/mcp/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedModuloLetraRoute =
+  AuthenticatedModuloLetraRouteImport.update({
+    id: '/modulo/$letra',
+    path: '/modulo/$letra',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDeepersonaSegmentacaoRoute =
   AuthenticatedDeepersonaSegmentacaoRouteImport.update({
     id: '/segmentacao',
@@ -261,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
+  '/modulo/$letra': typeof AuthenticatedModuloLetraRoute
   '/api/mcp/callback': typeof ApiMcpCallbackRoute
   '/deepersona/': typeof AuthenticatedDeepersonaIndexRoute
 }
@@ -295,6 +303,7 @@ export interface FileRoutesByTo {
   '/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
+  '/modulo/$letra': typeof AuthenticatedModuloLetraRoute
   '/api/mcp/callback': typeof ApiMcpCallbackRoute
   '/deepersona': typeof AuthenticatedDeepersonaIndexRoute
 }
@@ -332,6 +341,7 @@ export interface FileRoutesById {
   '/_authenticated/deepersona/csd': typeof AuthenticatedDeepersonaCsdRoute
   '/_authenticated/deepersona/priorizacao': typeof AuthenticatedDeepersonaPriorizacaoRoute
   '/_authenticated/deepersona/segmentacao': typeof AuthenticatedDeepersonaSegmentacaoRoute
+  '/_authenticated/modulo/$letra': typeof AuthenticatedModuloLetraRoute
   '/api/mcp/callback': typeof ApiMcpCallbackRoute
   '/_authenticated/deepersona/': typeof AuthenticatedDeepersonaIndexRoute
 }
@@ -369,6 +379,7 @@ export interface FileRouteTypes {
     | '/deepersona/csd'
     | '/deepersona/priorizacao'
     | '/deepersona/segmentacao'
+    | '/modulo/$letra'
     | '/api/mcp/callback'
     | '/deepersona/'
   fileRoutesByTo: FileRoutesByTo
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/deepersona/csd'
     | '/deepersona/priorizacao'
     | '/deepersona/segmentacao'
+    | '/modulo/$letra'
     | '/api/mcp/callback'
     | '/deepersona'
   id:
@@ -439,6 +451,7 @@ export interface FileRouteTypes {
     | '/_authenticated/deepersona/csd'
     | '/_authenticated/deepersona/priorizacao'
     | '/_authenticated/deepersona/segmentacao'
+    | '/_authenticated/modulo/$letra'
     | '/api/mcp/callback'
     | '/_authenticated/deepersona/'
   fileRoutesById: FileRoutesById
@@ -621,6 +634,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMcpCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/modulo/$letra': {
+      id: '/_authenticated/modulo/$letra'
+      path: '/modulo/$letra'
+      fullPath: '/modulo/$letra'
+      preLoaderRoute: typeof AuthenticatedModuloLetraRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/deepersona/segmentacao': {
       id: '/_authenticated/deepersona/segmentacao'
       path: '/segmentacao'
@@ -770,6 +790,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedSolicitacoesRoute: typeof AuthenticatedSolicitacoesRoute
   AuthenticatedSomaRoute: typeof AuthenticatedSomaRoute
+  AuthenticatedModuloLetraRoute: typeof AuthenticatedModuloLetraRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -791,6 +812,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedSolicitacoesRoute: AuthenticatedSolicitacoesRoute,
   AuthenticatedSomaRoute: AuthenticatedSomaRoute,
+  AuthenticatedModuloLetraRoute: AuthenticatedModuloLetraRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

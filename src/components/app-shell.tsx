@@ -22,6 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
 import { MODULES } from "@/lib/modules";
+import { AEIOU_MODULES } from "@/lib/aeiou-modules";
 import deePersonaLogo from "@/assets/deepersona-logo.png.asset.json";
 import creatorLogo from "@/assets/creator-logo.png.asset.json";
 import somaLogo from "@/assets/soma-logo.png.asset.json";
