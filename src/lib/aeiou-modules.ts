@@ -49,7 +49,7 @@ export const AEIOU_MODULES: AeiouModule[] = [
     letter: "A",
     name: "Ambiente",
     tagline: "Compreender contexto da marca, mercado e clientes.",
-    color: "var(--brand-deepersona, oklch(0.68 0.16 260))",
+    color: "#E27D74",
     tools: [
       {
         id: "deepersona",
@@ -77,7 +77,7 @@ export const AEIOU_MODULES: AeiouModule[] = [
     letter: "E",
     name: "Estratégia",
     tagline: "Transformar conhecimento em decisões e planos.",
-    color: "oklch(0.62 0.19 25)",
+    color: "#E5B34B",
     tools: [
       {
         id: "strateegia",
@@ -94,7 +94,7 @@ export const AEIOU_MODULES: AeiouModule[] = [
     letter: "I",
     name: "Interações",
     tagline: "Criar conteúdos, campanhas e experiências.",
-    color: "var(--brand-creator, oklch(0.7 0.17 60))",
+    color: "#5FA8D3",
     tools: [
       {
         id: "creator",
@@ -122,7 +122,7 @@ export const AEIOU_MODULES: AeiouModule[] = [
     letter: "O",
     name: "Operações",
     tagline: "Transformar planos em tarefas, processos e entregas.",
-    color: "var(--brand-soma, oklch(0.66 0.15 155))",
+    color: "#6FB56A",
     tools: [
       {
         id: "soma",
@@ -161,7 +161,7 @@ export const AEIOU_MODULES: AeiouModule[] = [
     letter: "U",
     name: "Unificação",
     tagline: "Consolidar resultados, gerar aprendizado, orientar o próximo ciclo.",
-    color: "oklch(0.7 0.18 300)",
+    color: "#B87A9E",
     tools: [
       {
         id: "agentu",
