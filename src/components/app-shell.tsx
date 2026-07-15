@@ -118,50 +118,32 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Módulos</SidebarGroupLabel>
+          <SidebarGroupLabel>Módulos A · E · I · O · U</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {modules.map((it) => (
-                <SidebarMenuItem key={it.to}>
-                  <SidebarMenuButton asChild isActive={pathname === it.to}>
-                    <Link to={it.to}>
-                      {it.to === "/deepersona" ? (
-                        <img
-                          src={deePersonaLogo.url}
-                          alt="DeePersona"
-                          className="h-3 w-auto object-contain"
-                        />
-                      ) : it.to === "/creator" ? (
-                        <img
-                          src={creatorLogo.url}
-                          alt="Creator"
-                          className="h-5 w-auto object-contain dark:invert"
-                        />
-                      ) : it.to === "/soma" ? (
-                        <img
-                          src={somaLogo.url}
-                          alt="SoMA"
-                          className="h-7 w-auto object-contain dark:invert"
-                        />
-                      ) : it.to === "/lekpis" ? (
-                        <img
-                          src={lekpisLogo.url}
-                          alt="LeKPIs"
-                          className="h-6 w-auto object-contain dark:invert"
-                        />
-                      ) : (
-                        <>
-                          <it.icon className="h-4 w-4" style={{ color: it.color }} />
-                          <span>{it.label}</span>
-                        </>
-                      )}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {AEIOU_MODULES.map((mod) => {
+                const to = `/modulo/${mod.letter}`;
+                return (
+                  <SidebarMenuItem key={mod.letter}>
+                    <SidebarMenuButton asChild isActive={pathname === to}>
+                      <Link to="/modulo/$letra" params={{ letra: mod.letter }}>
+                        <span
+                          className="grid h-5 w-5 place-items-center rounded-md text-[10px] font-semibold text-white shrink-0"
+                          style={{ background: mod.color }}
+                          aria-hidden
+                        >
+                          {mod.letter}
+                        </span>
+                        <span>{mod.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
 
         {bibliotecaModule && (
           <SidebarGroup>
