@@ -25,7 +25,7 @@ import { MODULES } from "@/lib/modules";
 import { AEIOU_MODULES } from "@/lib/aeiou-modules";
 import { CommandPalette } from "@/components/command-palette";
 import { NotificationBell } from "@/components/notification-bell";
-import { GuidedFlowBar } from "@/components/guided-flow-bar";
+
 
 type Membership = {
   id: string;
@@ -58,7 +58,6 @@ export function AppShell({ children, profile, memberships, isSuperadmin }: Props
             onSwitch={(id) => setCurrentOrgId(id)}
             onOpenPalette={() => setPaletteOpen(true)}
           />
-          <GuidedFlowBar />
           <main className="flex-1 min-w-0">
             {children}
           </main>
