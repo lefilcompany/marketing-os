@@ -77,6 +77,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
   const nav = [
     { to: "/dashboard", label: "Home", icon: Home },
     { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
+    { to: "/orquestrador", label: "Orquestrador", icon: Sparkles },
   ];
   const bibliotecaModule = MODULES.find((m) => m.slug === "biblioteca");
 
