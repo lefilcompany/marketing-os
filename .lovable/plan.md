@@ -1,24 +1,26 @@
-# Remover MCP do Soma e remover card RD Marketing
+# Reconectar MCP do Soma
 
 ## Objetivo
-- Retirar completamente a integração MCP do módulo **Soma** (começar do zero).
-- **Remover** o card do **RD Marketing** do módulo O.
+Registrar novamente o provider **soma** no MCP genérico, apontando para
+`https://erxhxmetrvkigjwxchbj.supabase.co/functions/v1/mcp`.
 
 ## Alterações
 
 ### 1. `src/lib/mcp.server.ts`
-Remover o bloco `soma: { ... }` do objeto `MCP_PROVIDERS` (linhas 36–50), incluindo `apiKeyEnv` e fallback.
+Adicionar novamente o bloco `soma` em `MCP_PROVIDERS` (mesmo padrão dos demais providers Supabase):
+
+- `authorizationServer`, `authorizationEndpoint`, `tokenEndpoint`, `registrationEndpoint` → base `https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/...`
+- `resource` → `https://erxhxmetrvkigjwxchbj.supabase.co/functions/v1/mcp`
+- `scope: "openid profile email"` (Soma já suporta OIDC — mesmo padrão de DeePersona/LeKPIs)
+- `apiKeyEnv: "SOMA_SUPABASE_ANON_KEY"` (secret já existe? — se não, pedimos abaixo)
 
 ### 2. `src/lib/aeiou-modules.ts`
-- **Soma**: remover `mcpProvider: "soma"` e trocar `status` para `"coming_soon"`.
-- **RD Marketing**: remover o objeto inteiro `{ id: "rd-marketing", ... }` da lista de tools do módulo O.
+No card do Soma no módulo O:
+- Voltar `status` para `"ready"`
+- Adicionar `mcpProvider: "soma"`
 
-### 3. Limpar conexões existentes no banco
-Migration com `DELETE FROM mcp_connections WHERE provider = 'soma'` e `DELETE FROM mcp_oauth_states WHERE provider = 'soma'`.
+### 3. Secret
+Verificar se `SOMA_SUPABASE_ANON_KEY` já está salvo. Se não estiver, pedir com `add_secret` (mesmo formato dos outros: JWT ou `sb_publishable_...`).
 
 ## Verificação
-- Módulo O mostra apenas: Soma (em breve) e LeKPIs (MCP ativo). Sem RD Marketing.
-- Configurações → MCP: Soma não aparece mais.
-
-## Observação
-Secret `SOMA_SUPABASE_ANON_KEY` fica ocioso — confirme se quer deletá-lo depois.
+Configurações → MCP → tile "Soma" → conectar → deve completar OAuth e listar tools.
