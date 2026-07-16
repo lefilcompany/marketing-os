@@ -15,7 +15,7 @@ import {
   PenTool,
   MessagesSquare,
   Layers,
-  Megaphone,
+  
   BarChart3,
   Sparkles,
   type LucideIcon,
