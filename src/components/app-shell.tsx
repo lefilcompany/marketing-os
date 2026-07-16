@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, Home, BookMarked, Users,
   Settings, Shield, ChevronDown, LogOut, User as UserIcon,
-  Sparkles, Search, Menu, Bell,
+  Sparkles, Search, Menu, Bell, BarChart3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
