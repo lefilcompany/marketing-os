@@ -1,64 +1,76 @@
-# Integração MCP Creator V4 — Conexão + Tela dedicada `/creator-mcp`
+## Objetivo
 
-Provider `creator` já configurado em `src/lib/mcp.server.ts` apontando para `https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp`, com OAuth (authorize/token/DCR), refresh e ponte MCP prontos. Reutilizo toda a infra existente.
+Corrigir `MCP_VALIDATION_ERROR: Resposta de marketing_os_list_clients fora do schema esperado` sem depender de adivinhar o shape exato — e capturar o payload real para ajustes futuros.
 
-Observação: já existe `src/routes/_authenticated/creator.tsx` (página do módulo Creator antigo). Para não colidir, a nova tela vive em **`/creator-mcp`**.
+## Diagnóstico
 
-## Escopo
+- `resolveTools()` já casa `marketing_os_list_clients` (fix anterior).
+- A chamada chega ao servidor, mas `ClientSchema` (`{ id: string|number → string, name: string }`) via `ListWrap` (`array | {items} | {data} | {results}`) rejeita a resposta.
+- Pela descrição da tool no `tools/list`, o payload agora carrega metadados de integração (Meta Ads, Instagram, Facebook, LinkedIn, Google Ads, Discourse) por cliente, e provavelmente usa nomes em pt-BR (`cliente_id`, `nome`) ou um envelope diferente (`clients`, `clientes`).
 
-1. **Conectar Creator** — via `McpOauthPanel` já montado no dashboard. Se o card do provider `creator` não estiver visível hoje, garantir que apareça (a lista lê `MCP_PROVIDERS`, então provavelmente já aparece; só verifico).
+## Alterações
 
-2. **Nova tela `/creator-mcp`** (`src/routes/_authenticated/creator-mcp.tsx`) — dedicada a listar e executar tools do Creator via UI, sem chat.
+### 1. `src/lib/mcp-client/providers/lekpis.server.ts` — schema tolerante para clientes
 
-Layout:
-- **Header**: título "Creator MCP" + badge de status (Conectado / Expirando / Desconectado). Botão "Conectar" / "Reconectar" (chama o mesmo fluxo OAuth que o painel do dashboard).
-- **Sidebar esquerda** (~320px): lista de tools, com busca por nome/descrição. Cada item mostra `title`, `name`, badges (read-only / destructive) via `annotations`.
-- **Painel direito**: ao selecionar uma tool:
-  - Descrição + hints de anotação.
-  - **Formulário auto-gerado** a partir do `inputSchema` (JSON Schema) da tool — campos: string (input/textarea), number, boolean (switch), enum (select), array/objeto (JSON textarea com validação). Required marcado. Fallback: editor JSON puro (Monaco-ish com textarea) para schemas complexos.
-  - Botão "Executar" — se `destructiveHint`, exige confirmação (AlertDialog).
-  - Painel de **Resultado**: JSON com syntax-highlight simples + botão copiar; se `content[].type === "text"`, renderiza texto legível também.
-  - **Histórico da sessão** (últimas 10 chamadas em memória, não persistido): timestamp, tool, status, tempo.
-- **Estados de erro**: 
-  - Sem conexão → CTA "Conectar Creator".
-  - Token expirado → auto-refresh (já implementado no transport); se falhar, CTA reconectar preservando a tool selecionada.
-  - Erro de execução → toast + card de erro com mensagem, sem perder inputs.
+Trocar o `ClientSchema` estrito por uma normalização que aceite variantes comuns e preserve metadados úteis:
 
-3. **Server functions** em `src/lib/creator-mcp.functions.ts`:
-   - `listCreatorTools()` — autenticado, retorna `McpToolDescriptor[]` do Creator (usa `getMcpCredentials("creator")` + `mcpInitializeAndListTools`). Retorna shape `{ ok, data? , error?: { code, message } }` com códigos `MCP_NOT_CONNECTED`, `MCP_UNAVAILABLE`.
-   - `runCreatorTool({ name, args })` — autenticado, chama `callMcpTool` do `mcp-client/transport.server.ts` com timeout 60s (sem schema — a UI mostra o raw). Retorna `{ ok, result?, error? }`.
-   - Ambas usam `requireSupabaseAuth`; nenhuma toca `supabaseAdmin` no top-level.
+```ts
+const ClientRawSchema = z
+  .object({
+    // aceita id / cliente_id / clientId
+    id: z.union([z.string(), z.number()]).optional(),
+    cliente_id: z.union([z.string(), z.number()]).optional(),
+    clientId: z.union([z.string(), z.number()]).optional(),
+    // aceita name / nome / cliente_nome
+    name: z.string().optional(),
+    nome: z.string().optional(),
+    cliente_nome: z.string().optional(),
+    // integrações — passa adiante como flag booleana ou objeto
+    integrations: z.unknown().optional(),
+  })
+  .passthrough()
+  .transform((c) => {
+    const id = c.id ?? c.cliente_id ?? c.clientId;
+    const name = c.name ?? c.nome ?? c.cliente_nome;
+    if (id == null || !name) return null;
+    return {
+      id: String(id),
+      name: String(name),
+      integrations: c.integrations,
+    };
+  })
+  .refine((v): v is NonNullable<typeof v> => v !== null, {
+    message: "Cliente sem id/nome",
+  });
+```
 
-4. **Menu lateral** (`src/components/app-shell.tsx`): novo item "Creator MCP" apontando para `/creator-mcp` (ícone Sparkles/Bot — decido no build). Mantenho o item "Creator" existente separado.
+Ampliar `ListWrap` para incluir mais envelopes: `clients`, `clientes`, `content` (formato MCP tool-result quando `structuredContent` está ausente).
 
-5. **Reuso**:
-   - Transporte, OAuth, refresh: `src/lib/mcp.server.ts` e `mcp-client/transport.server.ts` (nada novo).
-   - Erros tipados: `mcp-client/errors.ts`.
-   - UI primitives shadcn já no projeto (Card, Button, Input, Textarea, Select, Switch, Badge, AlertDialog, ScrollArea, Skeleton, Tabs).
+Atualizar `LeKpisClient` para incluir `integrations?: unknown`.
 
-## Não faz parte
+### 2. Log defensivo do payload cru quando validação falha
 
-- Não altera Orquestrador nem Análise de Campanhas.
-- Não persiste histórico de execuções em banco (só sessão). Se quiser log persistente depois, adiciono tabela `mcp_tool_runs`.
-- Não cria wrapper de "análises consolidadas" para Creator — é execução crua de tools.
-- Não mexe em `/creator` existente.
+Em `transport.server.ts` → `callMcpTool`, quando `outputSchema.safeParse` falhar, logar (server-side) uma amostra truncada do payload cru para acelerar diagnóstico futuro:
 
-## Arquivos
+```ts
+console.warn(
+  `[mcp:${opts.provider}] validation failed for ${opts.tool}`,
+  { sample: JSON.stringify(parsed).slice(0, 800), issues: check.error.issues },
+);
+```
 
-**Novos:**
-- `src/routes/_authenticated/creator-mcp.tsx`
-- `src/lib/creator-mcp.functions.ts`
-- `src/components/creator-mcp/tool-list.tsx`
-- `src/components/creator-mcp/tool-runner.tsx`
-- `src/components/creator-mcp/schema-form.tsx` (renderer JSON Schema → campos)
-- `src/components/creator-mcp/result-view.tsx`
+Sem vazar dados na resposta HTTP; apenas no log do worker (visível via dev-server logs).
 
-**Editados:**
-- `src/components/app-shell.tsx` (item de menu)
-- `src/routeTree.gen.ts` (auto pelo plugin)
+### 3. Passar `integrations` para a UI (opcional, escopo mínimo)
 
-## Riscos
+Sem mudança agora — o campo é preservado no tipo mas a página `analise-campanhas` continua exibindo só `name`. Um follow-up pode mostrar badges de integrações ativas.
 
-- **JSON Schemas complexos/aninhados**: o form auto-gerado cobre casos comuns; para schemas exóticos, o fallback "JSON raw" garante que qualquer tool ainda seja executável.
-- **Tools destrutivas**: bloqueadas por confirmação explícita.
-- **Timeout**: 60s no server-fn; UI mostra estado "executando…" com cancelamento client-side (aborta o request, mas o server continua — documentado no toast).
+## O que NÃO está no escopo
+
+- Refatorar `Listar campanhas` e `Gerar análise` para as novas tools (`marketing_os_get_kpi_summary`, `compare_periods`, `get_timeseries`, `get_campaign_ranking`, `get_alerts`). Fica para o próximo turno depois que a listagem estiver estável.
+
+## Verificação
+
+1. Recarregar `/analise-campanhas`.
+2. Se validação passar → dropdown de clientes preenchido.
+3. Se ainda falhar → checar log do worker (`sqlite3 /tmp/sandbox-state.db …` ou `/tmp/dev-server-logs/dev-server.log`) pelo warning `[mcp:lekpis] validation failed for marketing_os_list_clients` com a amostra crua, e ajustar o schema com base no shape real.

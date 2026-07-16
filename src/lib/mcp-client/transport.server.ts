@@ -134,6 +134,17 @@ export async function callMcpTool<TOut = unknown>(
       if (!opts.outputSchema) return parsed as TOut;
       const check = opts.outputSchema.safeParse(parsed);
       if (!check.success) {
+        try {
+          console.warn(
+            `[mcp:${opts.provider}] validation failed for ${opts.tool}`,
+            {
+              sample: JSON.stringify(parsed)?.slice(0, 800),
+              issues: check.error.issues.slice(0, 5),
+            },
+          );
+        } catch {
+          // ignore log errors
+        }
         throw new McpClientError(
           "MCP_VALIDATION_ERROR",
           `Resposta de ${opts.tool} fora do schema esperado.`,
