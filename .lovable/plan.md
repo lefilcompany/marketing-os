@@ -1,32 +1,42 @@
 ## Objetivo
 
-Remover completamente a integração MCP do LeKPIs (código, rota, provider, conexão salva). Manter intacto o módulo de negócio "LeKPIs" mais amplo (search, flows, KPIs, seed templates, estilos, command palette, `modules.ts` etc.) — esse não é MCP.
+Reintroduzir apenas a entrada `lekpis` em `MCP_PROVIDERS`, apontando para o novo servidor MCP publicado do LeKPIs, e testar conexão + tool `ping` pelo painel MCP genérico existente. Sem rota `/analise-campanhas`, sem tools específicas.
 
-## Escopo — apagar
+## Alterações
 
-Arquivos deletados:
-- `src/lib/mcp-client/providers/lekpis.server.ts`
-- `src/lib/campaign-analysis.functions.ts`
-- `src/lib/campaign-analysis.schemas.ts`
-- `src/routes/_authenticated/analise-campanhas.tsx`
+### 1. `src/lib/mcp.server.ts`
+Adicionar `lekpis` ao `MCP_PROVIDERS` (o project ref é `phsqbgdjsohmjjoeeqqc`):
 
-Edições:
-- `src/lib/mcp.server.ts` — remover a entrada `lekpis: { ... }` de `MCP_PROVIDERS`.
-- `src/lib/aeiou-modules.ts` — no bloco do LeKPIs (linha 148–157), remover `mcpProvider: "lekpis"` e trocar `status: "ready"` por `status: "coming_soon"` (ou manter `ready` sem MCP, à sua escolha — proponho `coming_soon` já que a nova abordagem virá).
-- `src/components/app-shell.tsx` — remover o item de nav `{ to: "/analise-campanhas", label: "Análise de Campanhas", icon: BarChart3 }`.
+```ts
+lekpis: {
+  slug: "lekpis",
+  name: "LeKPIs",
+  authorizationServer: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1",
+  resource: "https://phsqbgdjsohmjjoeeqqc.supabase.co/functions/v1/mcp",
+  authorizationEndpoint: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/authorize",
+  tokenEndpoint:         "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/token",
+  registrationEndpoint:  "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/clients/register",
+  scope: "openid profile email",
+  apiKeyEnv: "LEKPIS_SUPABASE_ANON_KEY",
+},
+```
 
-Banco:
-- `DELETE FROM mcp_connections WHERE provider = 'lekpis'` — remove a única conexão salva (usuário `658622e5-…`).
+Uso do secret `LEKPIS_SUPABASE_ANON_KEY` já existente no projeto (sem `apiKeyFallback` — se você quiser fallback público como nos outros providers, me passe o anon key JWT do LeKPIs e eu adiciono).
 
-## Fora de escopo (mantido)
+### 2. `src/lib/aeiou-modules.ts`
+Reverter o módulo LeKPIs para `status: "ready"` e `mcpProvider: "lekpis"`, para que o painel de MCP em `/configuracoes` (ou onde estiver o generic `McpOAuthPanel`) volte a listá-lo.
 
-- `src/routes/_authenticated/lekpis.tsx` (placeholder "em reformulação") — mantém.
-- `src/lib/modules.ts`, `flows.ts`, `search.functions.ts`, `modules.functions.ts`, `command-palette.tsx`, `module-shell.tsx`, `edit-kpi-dialog.tsx`, `seed-template-button.tsx`, tokens `.lekpis-*` em `styles.css`, asset `lekpis-logo.png` — são do módulo de negócio LeKPIs, não da integração MCP.
-- Secret `LEKPIS_SUPABASE_ANON_KEY` — deixo para você decidir; se quiser eu removo em seguida.
+## Sem alteração
+- Nenhuma nova rota criada. `/analise-campanhas` permanece removida.
+- Nenhuma tool nova; a discovery via `tools/list` retornará `ping` diretamente do MCP do LeKPIs.
+- Nenhum arquivo em `src/lib/mcp-client/providers/` recriado.
+- Nada de mudança em `src/components/app-shell.tsx`.
 
 ## Verificação
+1. Build ok.
+2. Abrir a UI onde `<McpOAuthPanel provider="lekpis" />` é renderizado, clicar **Conectar**, autorizar via OAuth do Supabase do LeKPIs.
+3. Após retorno, `tools/list` deve mostrar 1 tool `ping`.
+4. Executar `ping` sem argumentos → resposta com `ok: true`, `authenticated: true`, `userId`, `timestamp`.
 
-1. Build passa (typecheck).
-2. `/analise-campanhas` retorna 404 (rota removida).
-3. `mcp_connections` sem linhas com `provider='lekpis'`.
-4. Página `/configuracoes` (MCP) não lista mais LeKPIs.
+## Pendências para você confirmar
+- Confirmar que o secret `LEKPIS_SUPABASE_ANON_KEY` no ambiente atual corresponde ao projeto `phsqbgdjsohmjjoeeqqc` (o anterior era de outro ref). Se não, atualize via `secrets--update_secret` antes do teste — senão o OAuth (`register`/`authorize`) falha com 401 no header `apikey`.
