@@ -122,12 +122,23 @@ export const listMcpTools = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { mcpInitializeAndListTools } = await import("./mcp.server");
     const { accessToken, resource } = await loadAccessToken(context.userId, data.provider);
-    const { tools, serverInfo } = await mcpInitializeAndListTools(resource, accessToken);
-    return JSON.parse(JSON.stringify({ tools, serverInfo })) as {
-      tools: Array<{ name: string; title?: string; description?: string; inputSchema?: JsonValue }>;
-      serverInfo?: JsonValue;
-    };
+    try {
+      const { tools, serverInfo } = await mcpInitializeAndListTools(resource, accessToken);
+      return JSON.parse(JSON.stringify({ tools, serverInfo })) as {
+        tools: Array<{ name: string; title?: string; description?: string; inputSchema?: JsonValue }>;
+        serverInfo?: JsonValue;
+      };
+    } catch (err) {
+      const msg = (err as Error).message ?? "";
+      if (msg.includes("MCP HTTP 401") || msg.includes("MCP HTTP 403")) {
+        throw new Error(
+          `Sessão MCP expirada para "${data.provider}". Reconecte em Configurações → MCP.`,
+        );
+      }
+      throw err;
+    }
   });
+
 
 export const callMcpTool = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
