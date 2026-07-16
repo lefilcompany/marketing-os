@@ -121,8 +121,10 @@ export const listMcpTools = createServerFn({ method: "POST" })
   .inputValidator((input: { provider: string }) => input)
   .handler(async ({ data, context }) => {
     const { mcpInitializeAndListTools } = await import("./mcp.server");
+    let tokenClaims: Record<string, unknown> | null = null;
     try {
       const { accessToken, resource } = await loadAccessToken(context.userId, data.provider);
+      tokenClaims = decodeJwtClaims(accessToken);
       const { tools, serverInfo } = await mcpInitializeAndListTools(resource, accessToken);
       return JSON.parse(JSON.stringify({ tools, serverInfo, error: null })) as {
         tools: Array<{ name: string; title?: string; description?: string; inputSchema?: JsonValue }>;
@@ -131,14 +133,49 @@ export const listMcpTools = createServerFn({ method: "POST" })
       };
     } catch (err) {
       const msg = (err as Error).message ?? "";
-      const friendly =
-        msg.includes("MCP HTTP 401") || msg.includes("MCP HTTP 403")
-          ? `Sessão MCP expirada para "${data.provider}". Reconecte em Configurações → MCP.`
-          : msg || "Falha ao listar tools MCP.";
-      console.warn(`[listMcpTools] ${data.provider}:`, msg);
+      const is401 = msg.includes("MCP HTTP 401") || msg.includes("MCP HTTP 403");
+      // Token com iat recente sendo rejeitado ⇒ não é expiração, é autorização de app.
+      const iat = typeof tokenClaims?.iat === "number" ? (tokenClaims.iat as number) : null;
+      const freshRejection = is401 && iat !== null && Date.now() / 1000 - iat < 300;
+      const friendly = freshRejection
+        ? `Sem permissão no "${data.provider}". Seu usuário pode não estar provisionado no app. Solicite acesso ao administrador.`
+        : is401
+        ? `Sessão MCP expirada para "${data.provider}". Reconecte em Configurações → MCP.`
+        : msg || "Falha ao listar tools MCP.";
+      console.warn(
+        `[listMcpTools] ${data.provider} ${is401 ? "401" : "err"}:`,
+        msg,
+        tokenClaims
+          ? {
+              sub: tokenClaims.sub,
+              email: tokenClaims.email,
+              client_id: tokenClaims.client_id,
+              scope: tokenClaims.scope,
+              aud: tokenClaims.aud,
+              iss: tokenClaims.iss,
+              iat: tokenClaims.iat,
+              exp: tokenClaims.exp,
+            }
+          : null,
+      );
       return { tools: [], serverInfo: undefined, error: friendly };
     }
   });
+
+function decodeJwtClaims(token: string): Record<string, unknown> | null {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const json = typeof atob === "function"
+      ? atob(padded)
+      : Buffer.from(padded, "base64").toString("utf8");
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
 
 
 
