@@ -83,16 +83,38 @@ function sanitizeSchema(schema: unknown): JsonObj {
   if (!schema || typeof schema !== "object") {
     return { type: "object", properties: {}, additionalProperties: true };
   }
-  const s = { ...(schema as JsonObj) };
+  const cleaned = stripUndefined(schema) as JsonObj;
+  const s = { ...cleaned };
   // Strip fields that Gemini often rejects.
   delete s.$schema;
   delete s.$id;
   delete s.definitions;
   delete s.$defs;
-  if (!s.type) s.type = "object";
+  if (!s.type || s.type === "undefined" || s.type === "void") s.type = "object";
   if (s.type === "object" && !s.properties) s.properties = {};
   return s;
 }
+
+/** Recursively remove nodes whose type is "undefined" or "void" — they crash Zod v4's JSON Schema. */
+function stripUndefined(node: unknown): unknown {
+  if (Array.isArray(node)) {
+    return node
+      .map(stripUndefined)
+      .filter((n) => n !== undefined && !(typeof n === "object" && n !== null && (n as JsonObj).type === "undefined"));
+  }
+  if (node && typeof node === "object") {
+    const out: JsonObj = {};
+    for (const [k, v] of Object.entries(node as JsonObj)) {
+      if (v === undefined) continue;
+      if (v && typeof v === "object" && ((v as JsonObj).type === "undefined" || (v as JsonObj).type === "void")) continue;
+      out[k] = stripUndefined(v) as JsonValue;
+    }
+    return out;
+  }
+  return node;
+}
+
+type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
 
 function safeToolName(providerSlug: string, name: string): string {
   const clean = name.replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 40);
