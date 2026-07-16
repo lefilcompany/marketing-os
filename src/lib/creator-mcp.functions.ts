@@ -5,18 +5,24 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { toMcpErrorPayload } from "./mcp-client/errors";
 
-type Ok<T> = { ok: true; data: T };
-type Err = { ok: false; error: { code: string; message: string } };
-type Result<T> = Ok<T> | Err;
-
 const PROVIDER = "creator";
 
-function safe<T>(fn: () => Promise<T>): Promise<Result<T>> {
+function safe<T>(fn: () => Promise<T>) {
   return fn().then(
     (data) => ({ ok: true as const, data }),
     (err) => ({ ok: false as const, error: toMcpErrorPayload(err) }),
   );
 }
+
+export type CreatorToolDescriptor = {
+  name: string;
+  title?: string;
+  description?: string;
+  /** JSON-serialized JSON Schema (kept as string to remain wire-serializable). */
+  inputSchemaJson?: string;
+  /** JSON-serialized annotations. */
+  annotationsJson?: string;
+};
 
 export const creatorConnectionStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -39,42 +45,49 @@ export const creatorConnectionStatus = createServerFn({ method: "POST" })
     };
   });
 
-export type CreatorToolDescriptor = {
-  name: string;
-  title?: string;
-  description?: string;
-  inputSchema?: Record<string, unknown>;
-  annotations?: Record<string, unknown>;
-};
-
 export const listCreatorTools = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<Result<CreatorToolDescriptor[]>> => {
+  .handler(async ({ context }) => {
     return safe(async () => {
       const { getMcpCredentials, listAvailableTools } = await import(
         "./mcp-client/transport.server"
       );
       const creds = await getMcpCredentials(context.userId, PROVIDER);
       const tools = await listAvailableTools(creds);
-      return tools as CreatorToolDescriptor[];
+      const serialized: CreatorToolDescriptor[] = tools.map((t) => ({
+        name: t.name,
+        title: t.title,
+        description: t.description,
+        inputSchemaJson: t.inputSchema ? JSON.stringify(t.inputSchema) : undefined,
+        annotationsJson: t.annotations ? JSON.stringify(t.annotations) : undefined,
+      }));
+      return serialized;
     });
   });
 
 export const runCreatorTool = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { name: string; args: Record<string, unknown> }) => input,
-  )
-  .handler(async ({ data, context }): Promise<Result<unknown>> => {
+  .inputValidator((input: { name: string; argsJson: string }) => input)
+  .handler(async ({ data, context }) => {
     return safe(async () => {
       const { callMcpTool } = await import("./mcp-client/transport.server");
-      return callMcpTool({
+      let args: Record<string, unknown> = {};
+      if (data.argsJson && data.argsJson.trim()) {
+        try {
+          args = JSON.parse(data.argsJson);
+        } catch {
+          throw new Error("Argumentos inválidos: JSON malformado.");
+        }
+      }
+      const result = await callMcpTool({
         provider: PROVIDER,
         tool: data.name,
-        args: data.args ?? {},
+        args,
         userId: context.userId,
         timeoutMs: 60_000,
         retries: 0,
       });
+      // Serialize to string for a stable wire shape.
+      return JSON.stringify(result ?? null);
     });
   });
