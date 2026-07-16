@@ -48,21 +48,6 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     apiKeyFallback:
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyeGh4bWV0cnZraWdqd3hjaGJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzcyMjksImV4cCI6MjA5NzIxMzIyOX0.v-2CmWC1n9fRTnvC8YNIMdvE-tidObfLSTdta-VYh2w",
   },
-  lekpis: {
-    slug: "lekpis",
-    name: "LeKPIs",
-    authorizationServer: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1",
-    resource: "https://phsqbgdjsohmjjoeeqqc.supabase.co/functions/v1/mcp",
-    authorizationEndpoint:
-      "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/authorize",
-    tokenEndpoint: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/token",
-    registrationEndpoint:
-      "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
-    apiKeyEnv: "LEKPIS_SUPABASE_ANON_KEY",
-    apiKeyFallback:
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoc3FiZ2Rqc29obWpqb2VlcXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4MTU3NzgsImV4cCI6MjA4NDM5MTc3OH0.7y4x_PWfpJZuz_Pbb7SkDk6GEqrcHu5C4zavNC-GKXw",
-  },
 };
 
 function providerApiKey(provider: McpProviderConfig): string | undefined {

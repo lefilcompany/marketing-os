@@ -1,0 +1,1 @@
+DELETE FROM public.mcp_connections WHERE provider = 'lekpis';
