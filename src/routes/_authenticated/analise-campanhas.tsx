@@ -11,6 +11,7 @@ import {
   lekpisListCampaigns,
   runCampaignAnalysis,
 } from "@/lib/campaign-analysis.functions";
+import type { AnalysisReport } from "@/lib/campaign-analysis.schemas";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/analise-campanhas")({
 
 type Client = { id: string; name: string };
 type Campaign = { id: string; name: string; status?: string; channel?: string };
-type Report = Awaited<ReturnType<typeof runCampaignAnalysis>> extends { ok: true; data: infer R } ? R : never;
+type Report = AnalysisReport;
 
 function AnaliseCampanhasPage() {
   const statusFn = useServerFn(lekpisConnectionStatus);
