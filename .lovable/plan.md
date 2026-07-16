@@ -1,122 +1,133 @@
+# Análise de Campanhas — Integração MCP LeKPIs
 
-## Objetivo
+Nova funcionalidade dentro do Marketing OS que consome o MCP Server do LeKPIs (já configurado em `mcp.server.ts` como provider `lekpis`) para gerar análises de campanhas com layout pré-definido, sem prompts do usuário.
 
-Transformar o Marketing OS Shell no **agente orquestrador** definido em `CONTEXT.md §5`: um chat único que usa **`google/gemini-3.5-flash`** (via Lovable AI Gateway) para entender a intenção do usuário, decidir quais **tools MCP** de quais aplicações especializadas acionar (DeePersona, Creator, Soma, LeKPIs, MonitorNews) e consolidar a resposta com evidência.
+## Fluxo do usuário
 
-## O que é MCP e por que usar
+1. Entra em `/analise-campanhas` (novo item no menu, dentro de "LeKPIs").
+2. Passo 1: seleciona **cliente** (dropdown carregado do MCP LeKPIs).
+3. Passo 2: seleciona **uma ou várias campanhas** (multi-select, dependente do cliente).
+4. Passo 3: escolhe **data inicial e final** (shadcn date range picker).
+5. Clica **"Gerar análise"** → estado de loading com skeleton dos cards.
+6. Recebe resposta estruturada → layout é montado automaticamente.
+7. Em erro: mensagem clara + botão "Tentar novamente" mantendo filtros.
 
-**MCP (Model Context Protocol)** é um protocolo padrão que expõe capacidades de um app externo como **tools** tipadas (`name`, `description`, `inputSchema`) e **resources** para um LLM. Vantagens versus REST direto:
-
-- O LLM recebe o catálogo dinâmico via `tools/list` — sem colar OpenAPI no prompt.
-- Cada tool tem semântica de leitura/escrita/destrutiva → o Shell aplica confirmação (RN §4).
-- Autenticação padronizada (aqui: OAuth2 PKCE + DCR contra o Supabase Auth de cada app).
-- Adicionar um app novo = adicionar 1 provider config; zero mudança no cliente.
-
-Fluxo em runtime:
+## Camadas (modular, extensível)
 
 ```text
-Usuário → Chat (Shell) → streamText(gemini-3.5-flash) ⇄ tools MCP
-                                    │
-                                    ├─ tools/list dos MCPs conectados (cache /request)
-                                    ├─ modelo escolhe tool(s) + args
-                                    ├─ tools/call via HTTP Streamable (já pronto)
-                                    └─ consolida saída + evidência
+UI (route)                     src/routes/_authenticated/analise-campanhas.tsx
+  │
+  ▼
+Hooks/State (React Query)      src/features/campaign-analysis/hooks.ts
+  │
+  ▼
+Server Functions (RPC)         src/lib/campaign-analysis.functions.ts
+  │  (requireSupabaseAuth)
+  ▼
+MCP Client Service             src/lib/mcp-client/                (NOVO — genérico)
+  ├─ index.ts                  callTool(providerSlug, toolName, args, opts)
+  ├─ transport.ts              usa mcpCallTool + credentials do usuário
+  ├─ errors.ts                 McpTimeoutError, McpToolError, McpValidationError
+  └─ providers/lekpis.ts       schemas Zod + wrappers tipados por tool
 ```
 
-## Modelo e chave
+O `mcp-client` é independente de qualquer feature. Adicionar novo provider = novo arquivo em `providers/`. Adicionar nova análise = nova feature consumindo o client.
 
-Usar **`google/gemini-3.5-flash`** através do **Lovable AI Gateway** (`LOVABLE_API_KEY`, já provisionado). Motivos:
+## MCP Client (serviço isolado)
 
-- É o id suportado no catálogo do gateway (o "gemini 3.5" que o usuário pediu bate exatamente aqui).
-- Elimina uma chave a gerenciar; o gateway já cuida de billing, rate-limit e retry.
-- A chave própria do Gemini que o usuário mencionou fica reservada para caso o gateway indisponibilize o modelo — não é usada no caminho padrão.
+`src/lib/mcp-client/index.ts` expõe:
 
-Se, ainda assim, quiser plugar a chave própria do Gemini como fallback, entra numa fatia posterior (provider `@ai-sdk/google` direto), sem alterar a API interna.
+- `getMcpCredentials(userId, providerSlug)` — lê `mcp_connections`, valida `status='ready'`, retorna `{ resource, accessToken }`.
+- `callMcpTool<TIn, TOut>({ provider, tool, args, inputSchema, outputSchema, timeoutMs = 45000, retries = 1 })`:
+  - valida input com Zod;
+  - chama `mcpCallTool` (já existente em `mcp.server.ts`);
+  - envolve em `Promise.race` com timeout;
+  - retry apenas em erro de rede/timeout (não em erro semântico);
+  - parseia `content[0].text` como JSON e valida com `outputSchema`;
+  - erros tipados: `McpTimeoutError | McpToolError | McpValidationError | McpAuthError`.
 
-## Estado atual (já pronto)
+`providers/lekpis.ts` expõe wrappers tipados: `listClients()`, `listCampaigns(clientId)`, `runCampaignAnalysis({ clientId, campaignIds, startDate, endDate, timezone })`. Cada um com schemas Zod de entrada/saída — se o LeKPIs responder fora do schema, a UI recebe `McpValidationError` (não monta cards a partir de texto livre).
 
-- Providers MCP para `deepersona`, `creator`, `soma`, `lekpis` em `src/lib/mcp.server.ts` (OAuth PKCE + DCR + refresh + `tools/list` + `tools/call`).
-- Server fns `startMcpAuth`, `listMcpTools`, `callMcpTool`, `disconnectMcp` em `src/lib/mcp.functions.ts`.
-- Tabelas `mcp_connections` e `mcp_oauth_states` com RLS por `user_id`.
-- Callback OAuth em `src/routes/api/mcp/callback.ts`.
+## Server Functions
 
-Falta: (1) MonitorNews como 5º provider, (2) camada de tools MCP → AI SDK, (3) rota de chat streaming, (4) UI de chat.
+`src/lib/campaign-analysis.functions.ts`:
 
-## Plano
+- `lekpisListClients()` — GET, `requireSupabaseAuth`.
+- `lekpisListCampaigns({ clientId })` — POST, `requireSupabaseAuth`.
+- `runCampaignAnalysis({ clientId, campaignIds, startDate, endDate, timezone })` — POST, `requireSupabaseAuth`, timeout 60s, retorna `AnalysisReport` validado.
 
-### 1. MonitorNews como 5º provider MCP
+Todas leem credenciais via `mcp-client`. Se o usuário não tiver o LeKPIs conectado, retornam erro tipado `{ code: 'MCP_NOT_CONNECTED' }` → UI mostra CTA "Conectar LeKPIs" apontando para `/dashboard`.
 
-Adicionar entry `monitornews` em `MCP_PROVIDERS` (`src/lib/mcp.server.ts`) com `authorizationServer`, `resource`, `tokenEndpoint`, `registrationEndpoint`, `apiKeyFallback` (anon key do projeto MonitorNews). Marcar `status: "ready"` + `mcpProvider: "monitornews"` em `aeiou-modules.ts`. Zero mudança de código no cliente MCP.
+## Contrato de resposta (AnalysisReport)
 
-Pré-req: confirmar que MonitorNews expõe `/functions/v1/mcp` no mesmo padrão dos outros 4. Se não expuser, entrego os 4 e MonitorNews vem numa 2ª iteração.
+JSON estruturado, validado por Zod antes de renderizar:
 
-### 2. Ponte MCP → AI SDK tools
+```ts
+{
+  generatedAt: string,           // ISO
+  period: { start, end, timezone, previousStart, previousEnd },
+  client: { id, name },
+  campaigns: [{ id, name }],
+  kpis: [{ key, label, value, unit, delta, deltaPct, direction }],
+  timeseries: [{ metric, points: [{ date, value, previousValue }] }],
+  topCampaigns: [{ id, name, metric, value, deltaPct }],
+  attentionPoints: [{ severity, title, description, campaignId? }],
+  executiveSummary: string,      // parágrafo curto pronto (não é prompt)
+  recommendations: [{ title, description, priority }],
+}
+```
 
-Novo `src/lib/mcp-tools.server.ts` com `loadMcpToolsForUser(userId)`:
+Se o MCP do LeKPIs ainda não expõe uma tool única `run_campaign_analysis` com essa forma, o wrapper `providers/lekpis.ts` orquestra chamadas às tools disponíveis (métricas + série temporal + comparação) e consolida no schema acima. Descoberta das tools reais será feita na fase de implementação via `listMcpTools` — o schema-alvo acima é o contrato que a UI consome.
 
-1. Lê `mcp_connections` do usuário sob RLS.
-2. Para cada conexão viva: chama `mcpInitializeAndListTools(resource, accessToken)` (já existente) — resultado em cache por request.
-3. Converte cada `McpToolDescriptor` num `tool()` do AI SDK, namespaced (`deepersona__get_persona`, `creator__create_brief`, …) para evitar colisão.
-4. `inputSchema` do MCP (JSON Schema) → Zod via `json-schema-to-zod` runtime (fatia mínima; sem `.min/.max/format` para não travar o modelo — regra do `ai-sdk-lovable-gateway`).
-5. `execute()` do tool chama `mcpCallTool(...)`; erros MCP viram texto de erro do tool (não crash).
-6. Tools com `annotations.destructiveHint: true` recebem `needsApproval: true` (loop-control do AI SDK) — o modelo pede confirmação antes; o cliente mostra botão "Confirmar" e reenvia.
+## UI
 
-### 3. Rota de chat streaming
+Rota `src/routes/_authenticated/analise-campanhas.tsx`:
 
-Novo `src/routes/api/chat.ts` (server route TanStack — precisa `Response` streaming; não `createServerFn`):
+- Componentes em `src/features/campaign-analysis/components/`:
+  - `AnalysisFilters` (client select, campaign multi-select, date range, botão).
+  - `AnalysisLoading` (skeletons dos cards).
+  - `AnalysisError` (mensagem + "Tentar novamente" — filtros ficam em estado da rota, nunca são perdidos).
+  - `AnalysisReport` composto por: `KpiCards`, `PeriodComparison`, `MetricsEvolution` (recharts), `TopCampaigns`, `AttentionPoints`, `ExecutiveSummary`, `Recommendations`, `LastUpdatedFooter`.
+- Estado dos filtros em `useState` local + `useMutation` para a geração; React Query cacheia clientes/campanhas por `queryKey`.
+- Botão desabilitado até cliente + ≥1 campanha + range válido.
+- `Intl.DateTimeFormat().resolvedOptions().timeZone` para fuso.
 
-- Autentica manualmente via bearer Supabase (`context.supabase.auth.getUser` na `client.server` ou verificação do JWT); rejeita 401.
-- Recebe `{ messages }` do `useChat` (AI SDK UI).
-- Constrói provider via `createLovableAiGatewayProvider(process.env.LOVABLE_API_KEY!, initialRunId)` (helper do `ai-sdk-lovable-gateway`).
-- `model = gateway("google/gemini-3.5-flash")`.
-- Carrega tools MCP do usuário (passo 2).
-- `streamText({ model, system, messages: convertToModelMessages(messages), tools, stopWhen: stepCountIs(50) })`.
-- System prompt fiel ao `CONTEXT.md`: papel de orquestrador AEIOU, "sempre perguntar antes de decidir", regra de evidência, regra de confirmação para tools destrutivas, referência aos pilares/estágios.
-- Retorna `result.toUIMessageStreamResponse({ originalMessages: messages })` embrulhado em `withLovableAiGatewayRunIdHeader(response, gateway)` para telemetria.
+## Item de menu
 
-Tratamento de erro: 429 → toast "muitas requisições, tente em instantes"; 402 → toast "créditos Lovable AI esgotados, adicione no workspace"; demais → mensagem genérica com o `message` do erro.
+Adicionar entrada "Análise de Campanhas" no `app-shell.tsx` sob a seção LeKPIs, apontando para `/analise-campanhas`.
 
-### 4. UI do orquestrador
+## Tratamento de erros (uniforme)
 
-Nova rota `/_authenticated/orquestrador.tsx` + item no menu lateral (`app-shell.tsx`):
+| Situação | UI |
+|---|---|
+| LeKPIs não conectado | Card com CTA "Conectar LeKPIs" |
+| Timeout (>60s) | Erro "A análise demorou mais que o esperado" + Retry |
+| Erro de tool MCP | Mensagem do servidor + Retry |
+| Resposta fora do schema | "Recebemos dados inesperados do LeKPIs" + Retry, log server-side |
+| Rede | "Sem conexão" + Retry |
 
-- `useChat({ transport: new DefaultChatTransport({ api: "/api/chat" }) })`.
-- Renderiza `message.parts` (texto com `react-markdown`, tool-call, tool-result colapsável com botão "Ver evidência").
-- Banner topo listando MCPs conectados/faltantes (link para `/dashboard` ou `/modulo/$letra` para conectar).
-- Estado `submitted`/`streaming` desabilita o input; auto-scroll ao final.
-- Sem persistência de thread nesta fatia (só memória local do `useChat`).
-
-### 5. Guardrails
-
-- Sem `service_role` no caminho do chat — leituras de `mcp_connections` via server fn autenticada; tokens OAuth ficam no servidor.
-- `LOVABLE_API_KEY` só em `process.env` dentro do handler.
-- Tools MCP com `destructiveHint` sempre passam por `needsApproval`.
-- Log por request: `user_id`, ids das tools invocadas, latência, `X-Lovable-AIG-Run-ID`. Sem body de tools.
+Retry re-executa apenas `runCampaignAnalysis` mantendo os filtros do state.
 
 ## Arquivos
 
 **Novos**
-- `src/lib/mcp-tools.server.ts`
-- `src/routes/api/chat.ts`
-- `src/routes/_authenticated/orquestrador.tsx`
+- `src/lib/mcp-client/index.ts`, `transport.ts`, `errors.ts`, `providers/lekpis.ts`
+- `src/lib/campaign-analysis.functions.ts`
+- `src/routes/_authenticated/analise-campanhas.tsx`
+- `src/features/campaign-analysis/{hooks.ts, schemas.ts, components/*.tsx}`
 
 **Editados**
-- `src/lib/mcp.server.ts` — provider `monitornews`
-- `src/lib/aeiou-modules.ts` — MonitorNews `status: "ready"` + `mcpProvider: "monitornews"`
-- `src/components/app-shell.tsx` — item de menu "Orquestrador"
-- `src/lib/ai-gateway.server.ts` — trocar helper mínimo atual pelo helper canônico do `ai-sdk-lovable-gateway` (com `runIdFetch` e `withLovableAiGatewayRunIdHeader`)
+- `src/components/app-shell.tsx` (novo item de menu)
 
-**Dependências novas**
-- `@ai-sdk/react`, `ai` (se ainda não presentes), `json-schema-to-zod`, `react-markdown`
+**Sem mudanças**
+- `mcp.server.ts`, `mcp.functions.ts`, `mcp-tools.server.ts` (orquestrador continua funcionando)
 
-## Fora de escopo desta fatia
+## Fora deste escopo
 
-- Sub-agentes paralelos (§5): a próxima fatia; começamos com um loop único Gemini + tools.
-- Persistência de conversas no Cloud: próxima fatia.
-- OAuth2 modo `oauth2` para servidores MCP de terceiros: PRD marca como planejado.
-- Fallback para chave própria do Gemini via `@ai-sdk/google`.
+- Prompts/chat do orquestrador Gemini (feature separada).
+- Persistência de análises anteriores (pode virar tabela `campaign_analyses` numa próxima fatia).
+- Outros providers MCP para análise — a arquitetura já suporta, mas só LeKPIs entra agora.
 
-## Perguntas antes de implementar
+## Pergunta única antes de implementar
 
-1. **MonitorNews** já expõe `/functions/v1/mcp` no mesmo padrão dos outros 4 apps? Se ainda não, entrego a fatia com os 4 e MonitorNews numa 2ª iteração — sem bloquear.
-2. Confirmo o caminho pelo **Lovable AI Gateway** (`google/gemini-3.5-flash`, sem sua chave própria por enquanto)? A chave própria fica documentada para um fallback opcional numa próxima fatia.
+O LeKPIs MCP hoje já expõe tools no formato `list_clients` / `list_campaigns` / uma tool de análise consolidada, ou preciso que o wrapper `providers/lekpis.ts` combine várias tools atômicas (métricas, série temporal, comparação período anterior) para montar o `AnalysisReport`? Se não souber, sigo com descoberta via `listMcpTools` na implementação e adapto o wrapper — sem mudar o contrato que a UI consome.
