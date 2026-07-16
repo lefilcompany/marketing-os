@@ -105,7 +105,7 @@ export const AEIOU_MODULES: AeiouModule[] = [
         icon: PenTool,
         color: "var(--brand-creator, oklch(0.7 0.17 60))",
         brandable: true,
-        
+        mcpProvider: "creator",
         status: "ready",
         platformUrl: "https://pla.creator.lefil.com.br",
       },
