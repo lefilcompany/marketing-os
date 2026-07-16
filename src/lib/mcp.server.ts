@@ -71,7 +71,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     tokenEndpoint: "https://dvuaudcncwzferlagmck.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
       "https://dvuaudcncwzferlagmck.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
+    scope: "profile email",
     apiKeyEnv: "MONITORNEWS_SUPABASE_ANON_KEY",
   },
   creator: {
@@ -84,7 +84,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     tokenEndpoint: "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
       "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
+    scope: "profile email",
     apiKeyEnv: "CREATOR_SUPABASE_ANON_KEY",
   },
 };
