@@ -1,43 +1,43 @@
-# Por que o card do Creator mostra "0 ferramentas"
+# Erro para enviar ao time do Creator
 
-## Diagnóstico (log real, últimos minutos)
+O erro continua sendo o mesmo — HTTP 401, mas agora com o token do usuário `emanuel.rodrigues@lefil.com.br`.
 
-O servidor de MCP do Creator está rejeitando o `tools/list` com **HTTP 401 `{"error":"unauthorized"}`**, mesmo com um token de acesso perfeitamente válido:
+## Resposta bruta do endpoint MCP do Creator
 
+**Endpoint chamado:**
 ```
-[listMcpTools] creator 401: MCP HTTP 401
-sub:        ecb55ace-66b9-4f69-92fe-977aaa5c7d30
-email:      emanuel.rodrigues@lefil.com.br
-client_id:  d1883e4f-cc9d-46b5-bfa5-70ced814cd77
-scope:      profile email
-aud:        authenticated
-iss:        https://afxwqkrneraatgovhpkb.supabase.co/auth/v1
-iat:        1784231808   (recente)
-exp:        1784235408   (futuro)
+POST https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp
 ```
 
-O JWT está bem formado, com issuer correto do próprio Creator, `aud=authenticated`, expiração futura e emitido pelo servidor OAuth do Creator (foi ele que assinou). Ou seja: **o token é legítimo — quem está negando é a edge function `mcp` do projeto Creator**.
+**Resposta:**
+```
+HTTP/1.1 401 Unauthorized
+{"error":"unauthorized"}
+```
 
-Como `listMcpTools` agora retorna `{ tools: [], error: ... }` em vez de lançar, a UI simplesmente conta 0 e mostra "0 ferramenta(s) MCP". Não há bug no nosso lado da pilha (auth-middleware, refresh de token, apikey do Supabase, envelope JSON-RPC) — a chamada chega ao servidor do Creator e é recusada lá.
+## Token JWT que o Creator rejeitou (válido, emitido pelo próprio Supabase do Creator)
 
-## Por que 401 com token válido?
+```
+iss:       https://afxwqkrneraatgovhpkb.supabase.co/auth/v1
+aud:       authenticated
+sub:       ecb55ace-66b9-4f69-92fe-977aaa5c7d30
+email:     emanuel.rodrigues@lefil.com.br
+client_id: 6f5a7496-f3b5-4641-9acf-0f741e3f7ac7
+scope:     profile email
+iat:       1784234149  (recente)
+exp:       1784237749  (futuro, ~1h de validade)
+```
 
-O único ator que pode responder isso é a edge function `mcp` do projeto Creator. As causas típicas (a decidir por eles nos logs do próprio Creator):
+O JWT está bem formado, assinado pelo Auth do Creator, com `aud: authenticated`, `iat` recente e `exp` no futuro. Ainda assim a edge function `mcp` retorna `401 {"error":"unauthorized"}` já na chamada `initialize` do MCP.
 
-1. **Usuário não provisionado no Creator** — a função valida o JWT, extrai `sub`/`email` e checa se existe uma linha em alguma tabela de membros/permissões. Se não existir, devolve 401.
-2. **Client OAuth revogado/bloqueado** — o `client_id` `d188…cd77` foi registrado via DCR mas o Creator marcou como inválido.
-3. **Regra de escopo** — a edge function exige um scope adicional (além de `profile email`) e nega quando falta.
-4. **Bug de leitura do header** — a função pode estar procurando `apikey` do Creator OU `Authorization` numa ordem que rejeita mesmo com bearer certo (menos provável, dado que outros usuários funcionam).
+## O que pedir ao time do Creator
 
-## Passos para resolver (a executar em build)
+Com esses campos (principalmente `sub`, `email`, `client_id`, `iat`) eles conseguem localizar nos logs da edge function `mcp` do projeto `afxwqkrneraatgovhpkb` **exatamente onde a autorização está negando** — provavelmente:
 
-1. **Não** mexer em `mcp.server.ts`, `mcp.functions.ts` nem no card — a pilha está correta.
-2. **Reconectar** o Creator em `Configurações → MCP` (Disconnect → Connect). Se a causa for token/refresh corrompido no lado deles, isso resolve.
-3. Se persistir o 401, **enviar aos administradores do Creator** os campos acima (`sub`, `email`, `client_id`, `iat`, `exp`) para eles localizarem a rejeição nos logs da edge function `mcp` do projeto `afxwqkrneraatgovhpkb`. É lá que o motivo real está gravado — nós não temos acesso a esses logs a partir deste projeto.
-4. Opcional (melhora só de UX): exibir no card a mensagem retornada em `probe.data.error` quando `tools.length === 0` e conectado — assim aparece "Sem permissão no Creator…" no lugar de "0 ferramenta(s)". Trocar em `src/components/tool-card.tsx` apenas o rótulo — nenhuma outra alteração.
+1. O usuário `ecb55ace-66b9-4f69-92fe-977aaa5c7d30` (`emanuel.rodrigues@lefil.com.br`) não está provisionado / não tem membership no app Creator; ou
+2. O `client_id` `6f5a7496-...` (registrado via DCR) está marcado como inválido/revogado; ou
+3. A função exige um scope adicional além de `profile email`.
 
-## Arquivos que seriam tocados apenas se você aprovar o item 4
+## Nenhuma alteração no nosso lado
 
-- `src/components/tool-card.tsx` — trocar o span de contagem por: se `probe.data?.error` → mostrar erro curto; senão → contagem.
-
-Nada mais.
+Nada muda em `mcp.server.ts`, `mcp.functions.ts` ou no card — o handshake OAuth está correto, o token é válido, quem nega é o Creator.
