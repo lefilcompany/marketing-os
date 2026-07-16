@@ -83,22 +83,33 @@ export const Route = createFileRoute("/api/mcp/callback")({
           ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
           : null;
 
-        const { error: upErr } = await supabaseAdmin.from("mcp_connections").upsert(
-          {
-            user_id: pending.user_id,
-            provider: pending.provider,
-            authorization_server: provider.authorizationServer,
-            resource: provider.resource,
-            client_id: pending.client_id,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token ?? null,
-            token_type: tokens.token_type ?? "Bearer",
-            expires_at: expiresAt,
-            scope: tokens.scope ?? provider.scope,
-          },
-          { onConflict: "user_id,provider" },
-        );
-        if (upErr) return html(500, `<h1 class="err">Erro ao salvar</h1><p>${upErr.message}</p>`);
+        // The table only has partial unique indexes on (user_id, provider),
+        // so `.upsert({ onConflict: 'user_id,provider' })` fails with
+        // "no unique or exclusion constraint matching the ON CONFLICT specification".
+        // Use delete-then-insert for the user's rows with workspace_id IS NULL.
+        await supabaseAdmin
+          .from("mcp_connections")
+          .delete()
+          .eq("user_id", pending.user_id)
+          .eq("provider", pending.provider)
+          .is("workspace_id", null);
+
+        const { error: upErr } = await supabaseAdmin.from("mcp_connections").insert({
+          user_id: pending.user_id,
+          provider: pending.provider,
+          authorization_server: provider.authorizationServer,
+          resource: provider.resource,
+          client_id: pending.client_id,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token ?? null,
+          token_type: tokens.token_type ?? "Bearer",
+          expires_at: expiresAt,
+          scope: tokens.scope ?? provider.scope,
+        });
+        if (upErr) {
+          console.error("[mcp/callback] insert connection failed", upErr);
+          return html(500, `<h1 class="err">Erro ao salvar</h1><p>${upErr.message}</p>`);
+        }
 
         const returnTo = pending.return_to || `/${pending.provider}`;
         return html(
