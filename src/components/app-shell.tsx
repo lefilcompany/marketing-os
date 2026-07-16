@@ -79,7 +79,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
     { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
     { to: "/orquestrador", label: "Orquestrador", icon: Sparkles },
     { to: "/analise-campanhas", label: "Análise de Campanhas", icon: BarChart3 },
-    { to: "/creator-mcp", label: "Creator MCP", icon: Plug },
+    
   ];
   const bibliotecaModule = MODULES.find((m) => m.slug === "biblioteca");
 
