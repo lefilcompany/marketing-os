@@ -32,6 +32,7 @@ import { Route as AuthenticatedComunidadesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
 import { Route as AuthenticatedAplicacoesRouteImport } from './routes/_authenticated/aplicacoes'
+import { Route as AuthenticatedAnaliseCampanhasRouteImport } from './routes/_authenticated/analise-campanhas'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDeepersonaIndexRouteImport } from './routes/_authenticated/deepersona.index'
 import { Route as ApiMcpCallbackRouteImport } from './routes/api/mcp/callback'
@@ -166,6 +167,12 @@ const AuthenticatedAplicacoesRoute = AuthenticatedAplicacoesRouteImport.update({
   path: '/aplicacoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAnaliseCampanhasRoute =
+  AuthenticatedAnaliseCampanhasRouteImport.update({
+    id: '/analise-campanhas',
+    path: '/analise-campanhas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -254,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/analise-campanhas': typeof AuthenticatedAnaliseCampanhasRoute
   '/aplicacoes': typeof AuthenticatedAplicacoesRouteWithChildren
   '/atividades': typeof AuthenticatedAtividadesRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
@@ -292,6 +300,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/analise-campanhas': typeof AuthenticatedAnaliseCampanhasRoute
   '/aplicacoes': typeof AuthenticatedAplicacoesRouteWithChildren
   '/atividades': typeof AuthenticatedAtividadesRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
@@ -331,6 +340,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/analise-campanhas': typeof AuthenticatedAnaliseCampanhasRoute
   '/_authenticated/aplicacoes': typeof AuthenticatedAplicacoesRouteWithChildren
   '/_authenticated/atividades': typeof AuthenticatedAtividadesRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/admin'
+    | '/analise-campanhas'
     | '/aplicacoes'
     | '/atividades'
     | '/biblioteca'
@@ -409,6 +420,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/admin'
+    | '/analise-campanhas'
     | '/aplicacoes'
     | '/atividades'
     | '/biblioteca'
@@ -447,6 +459,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/admin'
+    | '/_authenticated/analise-campanhas'
     | '/_authenticated/aplicacoes'
     | '/_authenticated/atividades'
     | '/_authenticated/biblioteca'
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAplicacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/analise-campanhas': {
+      id: '/_authenticated/analise-campanhas'
+      path: '/analise-campanhas'
+      fullPath: '/analise-campanhas'
+      preLoaderRoute: typeof AuthenticatedAnaliseCampanhasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -813,6 +833,7 @@ const AuthenticatedDeepersonaRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedAnaliseCampanhasRoute: typeof AuthenticatedAnaliseCampanhasRoute
   AuthenticatedAplicacoesRoute: typeof AuthenticatedAplicacoesRouteWithChildren
   AuthenticatedAtividadesRoute: typeof AuthenticatedAtividadesRoute
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
@@ -836,6 +857,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedAnaliseCampanhasRoute: AuthenticatedAnaliseCampanhasRoute,
   AuthenticatedAplicacoesRoute: AuthenticatedAplicacoesRouteWithChildren,
   AuthenticatedAtividadesRoute: AuthenticatedAtividadesRoute,
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,

@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, Home, BookMarked, Users,
   Settings, Shield, ChevronDown, LogOut, User as UserIcon,
-  Sparkles, Search, Menu, Bell,
+  Sparkles, Search, Menu, Bell, BarChart3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
@@ -78,6 +78,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
     { to: "/dashboard", label: "Home", icon: Home },
     { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
     { to: "/orquestrador", label: "Orquestrador", icon: Sparkles },
+    { to: "/analise-campanhas", label: "Análise de Campanhas", icon: BarChart3 },
   ];
   const bibliotecaModule = MODULES.find((m) => m.slug === "biblioteca");
 
