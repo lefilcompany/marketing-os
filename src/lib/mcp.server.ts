@@ -63,21 +63,22 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
   creator: {
     slug: "creator",
     name: "Creator",
-    // The MCP resource lives on afxwqkrneraatgovhpkb, but its
-    // /.well-known/oauth-protected-resource declares the authorization
-    // server as lcpmqnkorcsclmpfbizr — tokens MUST be issued there.
-    authorizationServer: "https://lcpmqnkorcsclmpfbizr.supabase.co/auth/v1",
+    // O app do Creator (pla.creator.lefil.com.br) autentica usuários em
+    // afxwqkrneraatgovhpkb — a tela /.lovable/oauth/consent lê a autorização
+    // desse projeto. O oauth-protected-resource do MCP declara lcpm... como
+    // authorization_servers, mas consent lá não existe: alinhar issuer ao
+    // Supabase real da app. Enquanto o Creator não corrigir o metadata do
+    // MCP, o initialize continuará 401 (token de afxw ≠ issuer esperado).
+    authorizationServer: "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1",
     resource: "https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp",
     authorizationEndpoint:
-      "https://lcpmqnkorcsclmpfbizr.supabase.co/auth/v1/oauth/authorize",
-    tokenEndpoint: "https://lcpmqnkorcsclmpfbizr.supabase.co/auth/v1/oauth/token",
+      "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/authorize",
+    tokenEndpoint: "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
-      "https://lcpmqnkorcsclmpfbizr.supabase.co/auth/v1/oauth/clients/register",
+      "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/clients/register",
     scope: "openid profile email",
-    // No apiKeyEnv: OAuth server (lcpm...) and resource (afxw...) are
-    // different projects, and neither endpoint requires an apikey header —
-    // the MCP function validates the bearer JWT directly.
   },
+
 
   soma: {
     slug: "soma",
