@@ -133,19 +133,10 @@ export const AEIOU_MODULES: AeiouModule[] = [
         icon: Layers,
         color: "var(--brand-soma, oklch(0.66 0.15 155))",
         brandable: true,
-        mcpProvider: "soma",
-        status: "ready",
+        status: "coming_soon",
         platformUrl: "https://pla.soma.lefil.com.br",
       },
-      {
-        id: "rd-marketing",
-        name: "RD Marketing",
-        description: "Automação de marketing e nutrição.",
-        icon: Megaphone,
-        color: "oklch(0.68 0.19 35)",
-        brandable: false,
-        status: "coming_soon",
-      },
+
       {
         id: "lekpis",
         name: "LeKPIs",
