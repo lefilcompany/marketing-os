@@ -79,7 +79,8 @@ function fuzzyPick(names: Set<string>, suffixes: string[]): string | undefined {
 async function resolveTools(creds: McpCreds): Promise<ToolNames> {
   const tools = await listAvailableTools(creds);
   const names = new Set(tools.map((t) => t.name));
-  const pick = (list: string[]) => list.find((n) => names.has(n));
+  const pick = (list: string[]) =>
+    list.find((n) => names.has(n)) ?? fuzzyPick(names, list);
   return {
     listClients: pick(CANDIDATES.listClients),
     listCampaigns: pick(CANDIDATES.listCampaigns),
