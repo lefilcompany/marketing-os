@@ -21,11 +21,27 @@ export const PROVIDER_SLUG = "lekpis";
 
 // ---------- Schemas ----------
 
-export const ClientSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(String),
-  name: z.string(),
-});
-export type LeKpisClient = z.infer<typeof ClientSchema>;
+export const ClientSchema = z
+  .object({
+    id: z.union([z.string(), z.number()]).optional(),
+    cliente_id: z.union([z.string(), z.number()]).optional(),
+    clientId: z.union([z.string(), z.number()]).optional(),
+    name: z.string().optional(),
+    nome: z.string().optional(),
+    cliente_nome: z.string().optional(),
+    integrations: z.unknown().optional(),
+  })
+  .passthrough()
+  .transform((c) => {
+    const id = c.id ?? c.cliente_id ?? c.clientId;
+    const name = c.name ?? c.nome ?? c.cliente_nome;
+    if (id == null || !name) return null;
+    return { id: String(id), name: String(name), integrations: c.integrations };
+  })
+  .refine((v): v is { id: string; name: string; integrations?: unknown } => v !== null, {
+    message: "Cliente sem id/nome",
+  });
+export type LeKpisClient = { id: string; name: string; integrations?: unknown };
 
 export const CampaignSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
@@ -41,7 +57,12 @@ const ListWrap = <T extends z.ZodTypeAny>(item: T) =>
     z.object({ items: z.array(item) }).transform((o) => o.items),
     z.object({ data: z.array(item) }).transform((o) => o.data),
     z.object({ results: z.array(item) }).transform((o) => o.results),
+    z.object({ clients: z.array(item) }).transform((o) => o.clients),
+    z.object({ clientes: z.array(item) }).transform((o) => o.clientes),
+    z.object({ campaigns: z.array(item) }).transform((o) => o.campaigns),
+    z.object({ campanhas: z.array(item) }).transform((o) => o.campanhas),
   ]);
+
 
 // ---------- Tool resolution ----------
 
