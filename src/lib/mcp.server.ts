@@ -28,7 +28,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     tokenEndpoint: "https://poplveakypbszmltpjco.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
       "https://poplveakypbszmltpjco.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
+    scope: "profile email",
     apiKeyEnv: "DEEPERSONA_SUPABASE_ANON_KEY",
     apiKeyFallback:
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvcGx2ZWFreXBic3ptbHRwamNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDQyNjgsImV4cCI6MjA5MzU4MDI2OH0.inJXTr9w8DWjSS4-TE7ntfSywRY2Gts9tlYd6U0CraI",
@@ -43,7 +43,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     tokenEndpoint: "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
       "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
+    scope: "profile email",
     apiKeyEnv: "SOMA_SUPABASE_ANON_KEY",
     apiKeyFallback:
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyeGh4bWV0cnZraWdqd3hjaGJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MzcyMjksImV4cCI6MjA5NzIxMzIyOX0.v-2CmWC1n9fRTnvC8YNIMdvE-tidObfLSTdta-VYh2w",
@@ -58,7 +58,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     tokenEndpoint: "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
       "https://phsqbgdjsohmjjoeeqqc.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
+    scope: "profile email",
     apiKeyEnv: "LEKPIS_SUPABASE_ANON_KEY",
   },
   monitornews: {
@@ -71,7 +71,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     tokenEndpoint: "https://dvuaudcncwzferlagmck.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
       "https://dvuaudcncwzferlagmck.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
+    scope: "profile email",
     apiKeyEnv: "MONITORNEWS_SUPABASE_ANON_KEY",
   },
   creator: {
@@ -84,7 +84,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     tokenEndpoint: "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
       "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
+    scope: "profile email",
     apiKeyEnv: "CREATOR_SUPABASE_ANON_KEY",
   },
 };
