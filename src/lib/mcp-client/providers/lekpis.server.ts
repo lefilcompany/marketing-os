@@ -52,16 +52,25 @@ export const CampaignSchema = z.object({
 export type LeKpisCampaign = z.infer<typeof CampaignSchema>;
 
 const ListWrap = <T extends z.ZodTypeAny>(item: T) =>
-  z.union([
-    z.array(item),
-    z.object({ items: z.array(item) }).transform((o) => o.items),
-    z.object({ data: z.array(item) }).transform((o) => o.data),
-    z.object({ results: z.array(item) }).transform((o) => o.results),
-    z.object({ clients: z.array(item) }).transform((o) => o.clients),
-    z.object({ clientes: z.array(item) }).transform((o) => o.clientes),
-    z.object({ campaigns: z.array(item) }).transform((o) => o.campaigns),
-    z.object({ campanhas: z.array(item) }).transform((o) => o.campanhas),
-  ]);
+  z.preprocess((raw) => {
+    let cur: unknown = raw;
+    for (let i = 0; i < 4; i++) {
+      if (Array.isArray(cur)) return cur;
+      if (cur && typeof cur === "object") {
+        const o = cur as Record<string, unknown>;
+        for (const key of [
+          "clients", "clientes", "campaigns", "campanhas",
+          "items", "results", "list",
+        ]) {
+          if (Array.isArray(o[key])) return o[key];
+        }
+        if (o.data !== undefined) { cur = o.data; continue; }
+        if (o.result !== undefined) { cur = o.result; continue; }
+      }
+      break;
+    }
+    return cur;
+  }, z.array(item));
 
 
 // ---------- Tool resolution ----------
