@@ -29,19 +29,19 @@ export const ClientSchema = z
     name: z.string().optional(),
     nome: z.string().optional(),
     cliente_nome: z.string().optional(),
-    integrations: z.unknown().optional(),
   })
   .passthrough()
-  .transform((c) => {
+  .transform((c, ctx) => {
     const id = c.id ?? c.cliente_id ?? c.clientId;
     const name = c.name ?? c.nome ?? c.cliente_nome;
-    if (id == null || !name) return null;
-    return { id: String(id), name: String(name), integrations: c.integrations };
-  })
-  .refine((v): v is { id: string; name: string; integrations?: unknown } => v !== null, {
-    message: "Cliente sem id/nome",
+    if (id == null || !name) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Cliente sem id/nome" });
+      return z.NEVER;
+    }
+    return { id: String(id), name: String(name) };
   });
-export type LeKpisClient = { id: string; name: string; integrations?: unknown };
+export type LeKpisClient = { id: string; name: string };
+
 
 export const CampaignSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
