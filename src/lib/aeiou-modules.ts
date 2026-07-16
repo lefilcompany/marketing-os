@@ -69,8 +69,10 @@ export const AEIOU_MODULES: AeiouModule[] = [
         icon: Newspaper,
         color: "oklch(0.7 0.16 210)",
         brandable: true,
-        status: "coming_soon",
+        mcpProvider: "monitornews",
+        status: "ready",
       },
+
     ],
   },
   {
