@@ -202,11 +202,20 @@ export function ToolCard({ tool, initialBrand }: Props) {
               <Unplug className="h-3.5 w-3.5" />
               Desconectar
             </Button>
-            {probe.data?.tools && (
+            {probe.data?.error ? (
+              <span
+                className="text-[11px] text-amber-600"
+                title={probe.data.error}
+              >
+                {probe.data.error.length > 80
+                  ? probe.data.error.slice(0, 77) + "…"
+                  : probe.data.error}
+              </span>
+            ) : probe.data?.tools ? (
               <span className="text-[11px] text-muted-foreground">
                 {probe.data.tools.length} ferramenta(s) MCP
               </span>
-            )}
+            ) : null}
           </>
         )}
       </div>
