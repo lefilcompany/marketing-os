@@ -102,9 +102,11 @@ function safeToolName(providerSlug: string, name: string): string {
 export async function loadMcpToolsForUser(
   supabase: SupabaseClient,
   userId: string,
-): Promise<Record<string, ReturnType<typeof tool>>> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<Record<string, any>> {
   const providers = await listConnectedProviders(supabase, userId);
-  const tools: Record<string, ReturnType<typeof tool>> = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tools: Record<string, any> = {};
 
   await Promise.all(
     providers.map(async ({ slug, name }) => {

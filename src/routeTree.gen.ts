@@ -13,9 +13,11 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedSomaRouteImport } from './routes/_authenticated/soma'
 import { Route as AuthenticatedSolicitacoesRouteImport } from './routes/_authenticated/solicitacoes'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedOrquestradorRouteImport } from './routes/_authenticated/orquestrador'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
 import { Route as AuthenticatedLekpisRouteImport } from './routes/_authenticated/lekpis'
 import { Route as AuthenticatedIaRouteImport } from './routes/_authenticated/ia'
@@ -64,6 +66,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSomaRoute = AuthenticatedSomaRouteImport.update({
   id: '/soma',
   path: '/soma',
@@ -80,6 +87,12 @@ const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOrquestradorRoute =
+  AuthenticatedOrquestradorRouteImport.update({
+    id: '/orquestrador',
+    path: '/orquestrador',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNotificacoesRoute =
   AuthenticatedNotificacoesRouteImport.update({
     id: '/notificacoes',
@@ -255,9 +268,11 @@ export interface FileRoutesByFullPath {
   '/ia': typeof AuthenticatedIaRoute
   '/lekpis': typeof AuthenticatedLekpisRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
+  '/orquestrador': typeof AuthenticatedOrquestradorRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/solicitacoes': typeof AuthenticatedSolicitacoesRoute
   '/soma': typeof AuthenticatedSomaRoute
+  '/api/chat': typeof ApiChatRoute
   '/admin/aplicacoes': typeof AuthenticatedAdminAplicacoesRoute
   '/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
@@ -290,9 +305,11 @@ export interface FileRoutesByTo {
   '/ia': typeof AuthenticatedIaRoute
   '/lekpis': typeof AuthenticatedLekpisRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
+  '/orquestrador': typeof AuthenticatedOrquestradorRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/solicitacoes': typeof AuthenticatedSolicitacoesRoute
   '/soma': typeof AuthenticatedSomaRoute
+  '/api/chat': typeof ApiChatRoute
   '/admin/aplicacoes': typeof AuthenticatedAdminAplicacoesRoute
   '/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
   '/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
@@ -328,9 +345,11 @@ export interface FileRoutesById {
   '/_authenticated/ia': typeof AuthenticatedIaRoute
   '/_authenticated/lekpis': typeof AuthenticatedLekpisRoute
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
+  '/_authenticated/orquestrador': typeof AuthenticatedOrquestradorRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/solicitacoes': typeof AuthenticatedSolicitacoesRoute
   '/_authenticated/soma': typeof AuthenticatedSomaRoute
+  '/api/chat': typeof ApiChatRoute
   '/_authenticated/admin/aplicacoes': typeof AuthenticatedAdminAplicacoesRoute
   '/_authenticated/admin/comunicados': typeof AuthenticatedAdminComunicadosRoute
   '/_authenticated/admin/empresas': typeof AuthenticatedAdminEmpresasRoute
@@ -366,9 +385,11 @@ export interface FileRouteTypes {
     | '/ia'
     | '/lekpis'
     | '/notificacoes'
+    | '/orquestrador'
     | '/perfil'
     | '/solicitacoes'
     | '/soma'
+    | '/api/chat'
     | '/admin/aplicacoes'
     | '/admin/comunicados'
     | '/admin/empresas'
@@ -401,9 +422,11 @@ export interface FileRouteTypes {
     | '/ia'
     | '/lekpis'
     | '/notificacoes'
+    | '/orquestrador'
     | '/perfil'
     | '/solicitacoes'
     | '/soma'
+    | '/api/chat'
     | '/admin/aplicacoes'
     | '/admin/comunicados'
     | '/admin/empresas'
@@ -438,9 +461,11 @@ export interface FileRouteTypes {
     | '/_authenticated/ia'
     | '/_authenticated/lekpis'
     | '/_authenticated/notificacoes'
+    | '/_authenticated/orquestrador'
     | '/_authenticated/perfil'
     | '/_authenticated/solicitacoes'
     | '/_authenticated/soma'
+    | '/api/chat'
     | '/_authenticated/admin/aplicacoes'
     | '/_authenticated/admin/comunicados'
     | '/_authenticated/admin/empresas'
@@ -461,6 +486,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiChatRoute: typeof ApiChatRoute
   ApiMcpCallbackRoute: typeof ApiMcpCallbackRoute
 }
 
@@ -494,6 +520,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/soma': {
       id: '/_authenticated/soma'
       path: '/soma'
@@ -513,6 +546,13 @@ declare module '@tanstack/react-router' {
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orquestrador': {
+      id: '/_authenticated/orquestrador'
+      path: '/orquestrador'
+      fullPath: '/orquestrador'
+      preLoaderRoute: typeof AuthenticatedOrquestradorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notificacoes': {
@@ -787,6 +827,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIaRoute: typeof AuthenticatedIaRoute
   AuthenticatedLekpisRoute: typeof AuthenticatedLekpisRoute
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
+  AuthenticatedOrquestradorRoute: typeof AuthenticatedOrquestradorRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedSolicitacoesRoute: typeof AuthenticatedSolicitacoesRoute
   AuthenticatedSomaRoute: typeof AuthenticatedSomaRoute
@@ -809,6 +850,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIaRoute: AuthenticatedIaRoute,
   AuthenticatedLekpisRoute: AuthenticatedLekpisRoute,
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
+  AuthenticatedOrquestradorRoute: AuthenticatedOrquestradorRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedSolicitacoesRoute: AuthenticatedSolicitacoesRoute,
   AuthenticatedSomaRoute: AuthenticatedSomaRoute,
@@ -823,6 +865,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiChatRoute: ApiChatRoute,
   ApiMcpCallbackRoute: ApiMcpCallbackRoute,
 }
 export const routeTree = rootRouteImport
