@@ -133,8 +133,7 @@ export const AEIOU_MODULES: AeiouModule[] = [
         icon: Layers,
         color: "var(--brand-soma, oklch(0.66 0.15 155))",
         brandable: true,
-        mcpProvider: "soma",
-        status: "ready",
+        status: "coming_soon",
         platformUrl: "https://pla.soma.lefil.com.br",
       },
 
