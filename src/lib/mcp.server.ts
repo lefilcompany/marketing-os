@@ -61,6 +61,20 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     scope: "openid profile email",
     apiKeyEnv: "LEKPIS_SUPABASE_ANON_KEY",
   },
+  monitornews: {
+    slug: "monitornews",
+    name: "MonitorNews",
+    authorizationServer: "https://dvuaudcncwzferlagmck.supabase.co/auth/v1",
+    resource: "https://dvuaudcncwzferlagmck.supabase.co/functions/v1/mcp",
+    authorizationEndpoint:
+      "https://dvuaudcncwzferlagmck.supabase.co/auth/v1/oauth/authorize",
+    tokenEndpoint: "https://dvuaudcncwzferlagmck.supabase.co/auth/v1/oauth/token",
+    registrationEndpoint:
+      "https://dvuaudcncwzferlagmck.supabase.co/auth/v1/oauth/clients/register",
+    scope: "openid profile email",
+    apiKeyEnv: "MONITORNEWS_SUPABASE_ANON_KEY",
+  },
+
 };
 
 
