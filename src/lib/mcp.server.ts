@@ -74,7 +74,19 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     scope: "openid profile email",
     apiKeyEnv: "MONITORNEWS_SUPABASE_ANON_KEY",
   },
-
+  creator: {
+    slug: "creator",
+    name: "Creator",
+    authorizationServer: "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1",
+    resource: "https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp",
+    authorizationEndpoint:
+      "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/authorize",
+    tokenEndpoint: "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/token",
+    registrationEndpoint:
+      "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/clients/register",
+    scope: "openid profile email",
+    apiKeyEnv: "CREATOR_SUPABASE_ANON_KEY",
+  },
 };
 
 
