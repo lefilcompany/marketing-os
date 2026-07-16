@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard, Home, BookMarked, Users,
   Settings, Shield, ChevronDown, LogOut, User as UserIcon,
-  Sparkles, Search, Menu, Bell, BarChart3,
+  Sparkles, Search, Menu, Bell, BarChart3, Plug,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/lib/workspace-context";
@@ -79,6 +79,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
     { to: "/dashboards", label: "Dashboards", icon: LayoutDashboard },
     { to: "/orquestrador", label: "Orquestrador", icon: Sparkles },
     { to: "/analise-campanhas", label: "Análise de Campanhas", icon: BarChart3 },
+    { to: "/creator-mcp", label: "Creator MCP", icon: Plug },
   ];
   const bibliotecaModule = MODULES.find((m) => m.slug === "biblioteca");
 

@@ -1,133 +1,64 @@
-# Análise de Campanhas — Integração MCP LeKPIs
+# Integração MCP Creator V4 — Conexão + Tela dedicada `/creator-mcp`
 
-Nova funcionalidade dentro do Marketing OS que consome o MCP Server do LeKPIs (já configurado em `mcp.server.ts` como provider `lekpis`) para gerar análises de campanhas com layout pré-definido, sem prompts do usuário.
+Provider `creator` já configurado em `src/lib/mcp.server.ts` apontando para `https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp`, com OAuth (authorize/token/DCR), refresh e ponte MCP prontos. Reutilizo toda a infra existente.
 
-## Fluxo do usuário
+Observação: já existe `src/routes/_authenticated/creator.tsx` (página do módulo Creator antigo). Para não colidir, a nova tela vive em **`/creator-mcp`**.
 
-1. Entra em `/analise-campanhas` (novo item no menu, dentro de "LeKPIs").
-2. Passo 1: seleciona **cliente** (dropdown carregado do MCP LeKPIs).
-3. Passo 2: seleciona **uma ou várias campanhas** (multi-select, dependente do cliente).
-4. Passo 3: escolhe **data inicial e final** (shadcn date range picker).
-5. Clica **"Gerar análise"** → estado de loading com skeleton dos cards.
-6. Recebe resposta estruturada → layout é montado automaticamente.
-7. Em erro: mensagem clara + botão "Tentar novamente" mantendo filtros.
+## Escopo
 
-## Camadas (modular, extensível)
+1. **Conectar Creator** — via `McpOauthPanel` já montado no dashboard. Se o card do provider `creator` não estiver visível hoje, garantir que apareça (a lista lê `MCP_PROVIDERS`, então provavelmente já aparece; só verifico).
 
-```text
-UI (route)                     src/routes/_authenticated/analise-campanhas.tsx
-  │
-  ▼
-Hooks/State (React Query)      src/features/campaign-analysis/hooks.ts
-  │
-  ▼
-Server Functions (RPC)         src/lib/campaign-analysis.functions.ts
-  │  (requireSupabaseAuth)
-  ▼
-MCP Client Service             src/lib/mcp-client/                (NOVO — genérico)
-  ├─ index.ts                  callTool(providerSlug, toolName, args, opts)
-  ├─ transport.ts              usa mcpCallTool + credentials do usuário
-  ├─ errors.ts                 McpTimeoutError, McpToolError, McpValidationError
-  └─ providers/lekpis.ts       schemas Zod + wrappers tipados por tool
-```
+2. **Nova tela `/creator-mcp`** (`src/routes/_authenticated/creator-mcp.tsx`) — dedicada a listar e executar tools do Creator via UI, sem chat.
 
-O `mcp-client` é independente de qualquer feature. Adicionar novo provider = novo arquivo em `providers/`. Adicionar nova análise = nova feature consumindo o client.
+Layout:
+- **Header**: título "Creator MCP" + badge de status (Conectado / Expirando / Desconectado). Botão "Conectar" / "Reconectar" (chama o mesmo fluxo OAuth que o painel do dashboard).
+- **Sidebar esquerda** (~320px): lista de tools, com busca por nome/descrição. Cada item mostra `title`, `name`, badges (read-only / destructive) via `annotations`.
+- **Painel direito**: ao selecionar uma tool:
+  - Descrição + hints de anotação.
+  - **Formulário auto-gerado** a partir do `inputSchema` (JSON Schema) da tool — campos: string (input/textarea), number, boolean (switch), enum (select), array/objeto (JSON textarea com validação). Required marcado. Fallback: editor JSON puro (Monaco-ish com textarea) para schemas complexos.
+  - Botão "Executar" — se `destructiveHint`, exige confirmação (AlertDialog).
+  - Painel de **Resultado**: JSON com syntax-highlight simples + botão copiar; se `content[].type === "text"`, renderiza texto legível também.
+  - **Histórico da sessão** (últimas 10 chamadas em memória, não persistido): timestamp, tool, status, tempo.
+- **Estados de erro**: 
+  - Sem conexão → CTA "Conectar Creator".
+  - Token expirado → auto-refresh (já implementado no transport); se falhar, CTA reconectar preservando a tool selecionada.
+  - Erro de execução → toast + card de erro com mensagem, sem perder inputs.
 
-## MCP Client (serviço isolado)
+3. **Server functions** em `src/lib/creator-mcp.functions.ts`:
+   - `listCreatorTools()` — autenticado, retorna `McpToolDescriptor[]` do Creator (usa `getMcpCredentials("creator")` + `mcpInitializeAndListTools`). Retorna shape `{ ok, data? , error?: { code, message } }` com códigos `MCP_NOT_CONNECTED`, `MCP_UNAVAILABLE`.
+   - `runCreatorTool({ name, args })` — autenticado, chama `callMcpTool` do `mcp-client/transport.server.ts` com timeout 60s (sem schema — a UI mostra o raw). Retorna `{ ok, result?, error? }`.
+   - Ambas usam `requireSupabaseAuth`; nenhuma toca `supabaseAdmin` no top-level.
 
-`src/lib/mcp-client/index.ts` expõe:
+4. **Menu lateral** (`src/components/app-shell.tsx`): novo item "Creator MCP" apontando para `/creator-mcp` (ícone Sparkles/Bot — decido no build). Mantenho o item "Creator" existente separado.
 
-- `getMcpCredentials(userId, providerSlug)` — lê `mcp_connections`, valida `status='ready'`, retorna `{ resource, accessToken }`.
-- `callMcpTool<TIn, TOut>({ provider, tool, args, inputSchema, outputSchema, timeoutMs = 45000, retries = 1 })`:
-  - valida input com Zod;
-  - chama `mcpCallTool` (já existente em `mcp.server.ts`);
-  - envolve em `Promise.race` com timeout;
-  - retry apenas em erro de rede/timeout (não em erro semântico);
-  - parseia `content[0].text` como JSON e valida com `outputSchema`;
-  - erros tipados: `McpTimeoutError | McpToolError | McpValidationError | McpAuthError`.
+5. **Reuso**:
+   - Transporte, OAuth, refresh: `src/lib/mcp.server.ts` e `mcp-client/transport.server.ts` (nada novo).
+   - Erros tipados: `mcp-client/errors.ts`.
+   - UI primitives shadcn já no projeto (Card, Button, Input, Textarea, Select, Switch, Badge, AlertDialog, ScrollArea, Skeleton, Tabs).
 
-`providers/lekpis.ts` expõe wrappers tipados: `listClients()`, `listCampaigns(clientId)`, `runCampaignAnalysis({ clientId, campaignIds, startDate, endDate, timezone })`. Cada um com schemas Zod de entrada/saída — se o LeKPIs responder fora do schema, a UI recebe `McpValidationError` (não monta cards a partir de texto livre).
+## Não faz parte
 
-## Server Functions
-
-`src/lib/campaign-analysis.functions.ts`:
-
-- `lekpisListClients()` — GET, `requireSupabaseAuth`.
-- `lekpisListCampaigns({ clientId })` — POST, `requireSupabaseAuth`.
-- `runCampaignAnalysis({ clientId, campaignIds, startDate, endDate, timezone })` — POST, `requireSupabaseAuth`, timeout 60s, retorna `AnalysisReport` validado.
-
-Todas leem credenciais via `mcp-client`. Se o usuário não tiver o LeKPIs conectado, retornam erro tipado `{ code: 'MCP_NOT_CONNECTED' }` → UI mostra CTA "Conectar LeKPIs" apontando para `/dashboard`.
-
-## Contrato de resposta (AnalysisReport)
-
-JSON estruturado, validado por Zod antes de renderizar:
-
-```ts
-{
-  generatedAt: string,           // ISO
-  period: { start, end, timezone, previousStart, previousEnd },
-  client: { id, name },
-  campaigns: [{ id, name }],
-  kpis: [{ key, label, value, unit, delta, deltaPct, direction }],
-  timeseries: [{ metric, points: [{ date, value, previousValue }] }],
-  topCampaigns: [{ id, name, metric, value, deltaPct }],
-  attentionPoints: [{ severity, title, description, campaignId? }],
-  executiveSummary: string,      // parágrafo curto pronto (não é prompt)
-  recommendations: [{ title, description, priority }],
-}
-```
-
-Se o MCP do LeKPIs ainda não expõe uma tool única `run_campaign_analysis` com essa forma, o wrapper `providers/lekpis.ts` orquestra chamadas às tools disponíveis (métricas + série temporal + comparação) e consolida no schema acima. Descoberta das tools reais será feita na fase de implementação via `listMcpTools` — o schema-alvo acima é o contrato que a UI consome.
-
-## UI
-
-Rota `src/routes/_authenticated/analise-campanhas.tsx`:
-
-- Componentes em `src/features/campaign-analysis/components/`:
-  - `AnalysisFilters` (client select, campaign multi-select, date range, botão).
-  - `AnalysisLoading` (skeletons dos cards).
-  - `AnalysisError` (mensagem + "Tentar novamente" — filtros ficam em estado da rota, nunca são perdidos).
-  - `AnalysisReport` composto por: `KpiCards`, `PeriodComparison`, `MetricsEvolution` (recharts), `TopCampaigns`, `AttentionPoints`, `ExecutiveSummary`, `Recommendations`, `LastUpdatedFooter`.
-- Estado dos filtros em `useState` local + `useMutation` para a geração; React Query cacheia clientes/campanhas por `queryKey`.
-- Botão desabilitado até cliente + ≥1 campanha + range válido.
-- `Intl.DateTimeFormat().resolvedOptions().timeZone` para fuso.
-
-## Item de menu
-
-Adicionar entrada "Análise de Campanhas" no `app-shell.tsx` sob a seção LeKPIs, apontando para `/analise-campanhas`.
-
-## Tratamento de erros (uniforme)
-
-| Situação | UI |
-|---|---|
-| LeKPIs não conectado | Card com CTA "Conectar LeKPIs" |
-| Timeout (>60s) | Erro "A análise demorou mais que o esperado" + Retry |
-| Erro de tool MCP | Mensagem do servidor + Retry |
-| Resposta fora do schema | "Recebemos dados inesperados do LeKPIs" + Retry, log server-side |
-| Rede | "Sem conexão" + Retry |
-
-Retry re-executa apenas `runCampaignAnalysis` mantendo os filtros do state.
+- Não altera Orquestrador nem Análise de Campanhas.
+- Não persiste histórico de execuções em banco (só sessão). Se quiser log persistente depois, adiciono tabela `mcp_tool_runs`.
+- Não cria wrapper de "análises consolidadas" para Creator — é execução crua de tools.
+- Não mexe em `/creator` existente.
 
 ## Arquivos
 
-**Novos**
-- `src/lib/mcp-client/index.ts`, `transport.ts`, `errors.ts`, `providers/lekpis.ts`
-- `src/lib/campaign-analysis.functions.ts`
-- `src/routes/_authenticated/analise-campanhas.tsx`
-- `src/features/campaign-analysis/{hooks.ts, schemas.ts, components/*.tsx}`
+**Novos:**
+- `src/routes/_authenticated/creator-mcp.tsx`
+- `src/lib/creator-mcp.functions.ts`
+- `src/components/creator-mcp/tool-list.tsx`
+- `src/components/creator-mcp/tool-runner.tsx`
+- `src/components/creator-mcp/schema-form.tsx` (renderer JSON Schema → campos)
+- `src/components/creator-mcp/result-view.tsx`
 
-**Editados**
-- `src/components/app-shell.tsx` (novo item de menu)
+**Editados:**
+- `src/components/app-shell.tsx` (item de menu)
+- `src/routeTree.gen.ts` (auto pelo plugin)
 
-**Sem mudanças**
-- `mcp.server.ts`, `mcp.functions.ts`, `mcp-tools.server.ts` (orquestrador continua funcionando)
+## Riscos
 
-## Fora deste escopo
-
-- Prompts/chat do orquestrador Gemini (feature separada).
-- Persistência de análises anteriores (pode virar tabela `campaign_analyses` numa próxima fatia).
-- Outros providers MCP para análise — a arquitetura já suporta, mas só LeKPIs entra agora.
-
-## Pergunta única antes de implementar
-
-O LeKPIs MCP hoje já expõe tools no formato `list_clients` / `list_campaigns` / uma tool de análise consolidada, ou preciso que o wrapper `providers/lekpis.ts` combine várias tools atômicas (métricas, série temporal, comparação período anterior) para montar o `AnalysisReport`? Se não souber, sigo com descoberta via `listMcpTools` na implementação e adapto o wrapper — sem mudar o contrato que a UI consome.
+- **JSON Schemas complexos/aninhados**: o form auto-gerado cobre casos comuns; para schemas exóticos, o fallback "JSON raw" garante que qualquer tool ainda seja executável.
+- **Tools destrutivas**: bloqueadas por confirmação explícita.
+- **Timeout**: 60s no server-fn; UI mostra estado "executando…" com cancelamento client-side (aborta o request, mas o server continua — documentado no toast).

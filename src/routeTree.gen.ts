@@ -26,6 +26,7 @@ import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedDeepersonaRouteImport } from './routes/_authenticated/deepersona'
 import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCreatorMcpRouteImport } from './routes/_authenticated/creator-mcp'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedComunidadesRouteImport } from './routes/_authenticated/comunidades'
@@ -133,6 +134,11 @@ const AuthenticatedDashboardsRoute = AuthenticatedDashboardsRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCreatorMcpRoute = AuthenticatedCreatorMcpRouteImport.update({
+  id: '/creator-mcp',
+  path: '/creator-mcp',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCreatorRoute = AuthenticatedCreatorRouteImport.update({
@@ -268,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/comunidades': typeof AuthenticatedComunidadesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/creator': typeof AuthenticatedCreatorRoute
+  '/creator-mcp': typeof AuthenticatedCreatorMcpRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
@@ -307,6 +314,7 @@ export interface FileRoutesByTo {
   '/comunidades': typeof AuthenticatedComunidadesRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/creator': typeof AuthenticatedCreatorRoute
+  '/creator-mcp': typeof AuthenticatedCreatorMcpRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/equipe': typeof AuthenticatedEquipeRoute
@@ -347,6 +355,7 @@ export interface FileRoutesById {
   '/_authenticated/comunidades': typeof AuthenticatedComunidadesRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
+  '/_authenticated/creator-mcp': typeof AuthenticatedCreatorMcpRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
   '/_authenticated/deepersona': typeof AuthenticatedDeepersonaRouteWithChildren
@@ -388,6 +397,7 @@ export interface FileRouteTypes {
     | '/comunidades'
     | '/configuracoes'
     | '/creator'
+    | '/creator-mcp'
     | '/dashboard'
     | '/dashboards'
     | '/deepersona'
@@ -427,6 +437,7 @@ export interface FileRouteTypes {
     | '/comunidades'
     | '/configuracoes'
     | '/creator'
+    | '/creator-mcp'
     | '/dashboard'
     | '/dashboards'
     | '/equipe'
@@ -466,6 +477,7 @@ export interface FileRouteTypes {
     | '/_authenticated/comunidades'
     | '/_authenticated/configuracoes'
     | '/_authenticated/creator'
+    | '/_authenticated/creator-mcp'
     | '/_authenticated/dashboard'
     | '/_authenticated/dashboards'
     | '/_authenticated/deepersona'
@@ -622,6 +634,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/creator-mcp': {
+      id: '/_authenticated/creator-mcp'
+      path: '/creator-mcp'
+      fullPath: '/creator-mcp'
+      preLoaderRoute: typeof AuthenticatedCreatorMcpRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/creator': {
@@ -840,6 +859,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedComunidadesRoute: typeof AuthenticatedComunidadesRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
+  AuthenticatedCreatorMcpRoute: typeof AuthenticatedCreatorMcpRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
   AuthenticatedDeepersonaRoute: typeof AuthenticatedDeepersonaRouteWithChildren
@@ -864,6 +884,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedComunidadesRoute: AuthenticatedComunidadesRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
+  AuthenticatedCreatorMcpRoute: AuthenticatedCreatorMcpRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
   AuthenticatedDeepersonaRoute: AuthenticatedDeepersonaRouteWithChildren,
