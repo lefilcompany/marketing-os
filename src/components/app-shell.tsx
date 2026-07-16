@@ -123,7 +123,7 @@ function AppSidebar({ isSuperadmin }: { canAdmin: boolean; isSuperadmin: boolean
                     <SidebarMenuButton asChild isActive={pathname === to}>
                       <Link to="/modulo/$letra" params={{ letra: mod.letter }}>
                         <span
-                          className="grid h-5 w-5 place-items-center rounded-md text-[10px] font-semibold text-white shrink-0"
+                          className="inline-flex h-5 w-5 items-center justify-center rounded-md text-[10px] font-semibold leading-none text-white shrink-0"
                           style={{ background: mod.color }}
                           aria-hidden
                         >
