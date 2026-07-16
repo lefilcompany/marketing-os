@@ -53,21 +53,34 @@ type ToolNames = {
 
 const CANDIDATES = {
   listClients: [
+    "marketing_os_list_clients",
     "list_clients", "listClients", "clients_list", "get_clients", "clients",
   ],
   listCampaigns: [
+    "marketing_os_list_campaigns",
     "list_campaigns", "listCampaigns", "campaigns_list", "get_campaigns", "campaigns",
   ],
   runAnalysis: [
+    "marketing_os_run_campaign_analysis", "marketing_os_campaign_analysis",
     "run_campaign_analysis", "runCampaignAnalysis", "campaign_analysis",
     "analyze_campaigns", "generate_analysis", "campaigns_analysis", "analysis",
   ],
 };
 
+// Fallback: fuzzy match by suffix (strips known prefixes like `marketing_os_`).
+function fuzzyPick(names: Set<string>, suffixes: string[]): string | undefined {
+  for (const n of names) {
+    const bare = n.replace(/^(marketing_os_|lekpis_|mcp_)/, "").toLowerCase();
+    if (suffixes.some((s) => bare === s.toLowerCase())) return n;
+  }
+  return undefined;
+}
+
 async function resolveTools(creds: McpCreds): Promise<ToolNames> {
   const tools = await listAvailableTools(creds);
   const names = new Set(tools.map((t) => t.name));
-  const pick = (list: string[]) => list.find((n) => names.has(n));
+  const pick = (list: string[]) =>
+    list.find((n) => names.has(n)) ?? fuzzyPick(names, list);
   return {
     listClients: pick(CANDIDATES.listClients),
     listCampaigns: pick(CANDIDATES.listCampaigns),
