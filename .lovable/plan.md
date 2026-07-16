@@ -1,26 +1,16 @@
-# Reconectar MCP do Soma
-
 ## Objetivo
-Registrar novamente o provider **soma** no MCP genérico, apontando para
-`https://erxhxmetrvkigjwxchbj.supabase.co/functions/v1/mcp`.
 
-## Alterações
+Remover completamente a integração MCP do Soma para começar do zero.
 
-### 1. `src/lib/mcp.server.ts`
-Adicionar novamente o bloco `soma` em `MCP_PROVIDERS` (mesmo padrão dos demais providers Supabase):
+## Mudanças
 
-- `authorizationServer`, `authorizationEndpoint`, `tokenEndpoint`, `registrationEndpoint` → base `https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/...`
-- `resource` → `https://erxhxmetrvkigjwxchbj.supabase.co/functions/v1/mcp`
-- `scope: "openid profile email"` (Soma já suporta OIDC — mesmo padrão de DeePersona/LeKPIs)
-- `apiKeyEnv: "SOMA_SUPABASE_ANON_KEY"` (secret já existe? — se não, pedimos abaixo)
+1. **`src/lib/mcp.server.ts`** — Remover o bloco `soma` de `MCP_PROVIDERS`.
 
-### 2. `src/lib/aeiou-modules.ts`
-No card do Soma no módulo O:
-- Voltar `status` para `"ready"`
-- Adicionar `mcpProvider: "soma"`
+2. **`src/lib/aeiou-modules.ts`** — No card do Soma (módulo O): remover `mcpProvider: "soma"` e mudar `status` de `"ready"` para `"coming_soon"`.
 
-### 3. Secret
-Verificar se `SOMA_SUPABASE_ANON_KEY` já está salvo. Se não estiver, pedir com `add_secret` (mesmo formato dos outros: JWT ou `sb_publishable_...`).
+3. **Não mexer** em conexões existentes na tabela `mcp_connections` (caso o usuário queira preservar histórico). Se quiser limpar também, avisar.
 
 ## Verificação
-Configurações → MCP → tile "Soma" → conectar → deve completar OAuth e listar tools.
+
+- Configurações → MCP: tile "Soma" não aparece mais como provider.
+- Módulo O: card do Soma segue visível, mas sem botão de conectar MCP (status coming_soon).

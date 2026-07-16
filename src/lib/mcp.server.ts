@@ -33,19 +33,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     apiKeyFallback:
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvcGx2ZWFreXBic3ptbHRwamNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMDQyNjgsImV4cCI6MjA5MzU4MDI2OH0.inJXTr9w8DWjSS4-TE7ntfSywRY2Gts9tlYd6U0CraI",
   },
-  soma: {
-    slug: "soma",
-    name: "Soma",
-    authorizationServer: "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1",
-    resource: "https://erxhxmetrvkigjwxchbj.supabase.co/functions/v1/mcp",
-    authorizationEndpoint:
-      "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/authorize",
-    tokenEndpoint: "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/token",
-    registrationEndpoint:
-      "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
-    apiKeyEnv: "SOMA_SUPABASE_ANON_KEY",
-  },
+  
   lekpis: {
     slug: "lekpis",
     name: "LeKPIs",
