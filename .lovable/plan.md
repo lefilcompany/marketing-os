@@ -1,56 +1,32 @@
 ## Objetivo
 
-Fazer o `listClients` reconhecer o envelope `{ success, data: { clients: [...] } }` que o `marketing_os_list_clients` realmente retorna.
+Remover completamente a integração MCP do LeKPIs (código, rota, provider, conexão salva). Manter intacto o módulo de negócio "LeKPIs" mais amplo (search, flows, KPIs, seed templates, estilos, command palette, `modules.ts` etc.) — esse não é MCP.
 
-## Diagnóstico (confirmado pelo log)
+## Escopo — apagar
 
-Payload cru:
-```
-{ "success": true, "data": { "clients": [ {id, name, avatarUrl, createdAt, integrations}, ... ] } }
-```
+Arquivos deletados:
+- `src/lib/mcp-client/providers/lekpis.server.ts`
+- `src/lib/campaign-analysis.functions.ts`
+- `src/lib/campaign-analysis.schemas.ts`
+- `src/routes/_authenticated/analise-campanhas.tsx`
 
-O `ListWrap` atual tenta `array`, `{items}`, `{data:array}`, `{results}`, `{clients}`, etc. — todos no primeiro nível. O envelope real é aninhado (`data.clients`), então nenhuma variante casa e o `z.union` estoura `invalid_union`.
+Edições:
+- `src/lib/mcp.server.ts` — remover a entrada `lekpis: { ... }` de `MCP_PROVIDERS`.
+- `src/lib/aeiou-modules.ts` — no bloco do LeKPIs (linha 148–157), remover `mcpProvider: "lekpis"` e trocar `status: "ready"` por `status: "coming_soon"` (ou manter `ready` sem MCP, à sua escolha — proponho `coming_soon` já que a nova abordagem virá).
+- `src/components/app-shell.tsx` — remover o item de nav `{ to: "/analise-campanhas", label: "Análise de Campanhas", icon: BarChart3 }`.
 
-Cada cliente individual já casa com o `ClientSchema` tolerante (tem `id` e `name`).
+Banco:
+- `DELETE FROM mcp_connections WHERE provider = 'lekpis'` — remove a única conexão salva (usuário `658622e5-…`).
 
-## Alteração
+## Fora de escopo (mantido)
 
-`src/lib/mcp-client/providers/lekpis.server.ts` — trocar `ListWrap` por um pré-processador que desembrulha camadas comuns antes de validar o array:
-
-```ts
-const ListWrap = <T extends z.ZodTypeAny>(item: T) =>
-  z.preprocess((raw) => {
-    // 1. Desce em envelopes comuns: {success,data}, {data}, {result}
-    let cur: unknown = raw;
-    for (let i = 0; i < 3; i++) {
-      if (Array.isArray(cur)) return cur;
-      if (cur && typeof cur === "object") {
-        const o = cur as Record<string, unknown>;
-        // se algum campo top-level já é array, usa esse
-        for (const key of ["clients", "clientes", "campaigns", "campanhas", "items", "results", "list"]) {
-          if (Array.isArray(o[key])) return o[key];
-        }
-        // caso contrário, desce em {data} ou {result}
-        if (o.data !== undefined) { cur = o.data; continue; }
-        if (o.result !== undefined) { cur = o.result; continue; }
-      }
-      break;
-    }
-    return cur;
-  }, z.array(item));
-```
-
-Essa forma:
-- Aceita `[...]` direto.
-- Aceita `{items|results|clients|clientes|campaigns|campanhas|list: [...]}` em qualquer nível até 3 de profundidade.
-- Desce em `data` / `result` recursivamente (cobre `{success,data:{clients:[...]}}` que é o caso atual).
-- Mantém compatibilidade com todas as variantes que já funcionavam.
+- `src/routes/_authenticated/lekpis.tsx` (placeholder "em reformulação") — mantém.
+- `src/lib/modules.ts`, `flows.ts`, `search.functions.ts`, `modules.functions.ts`, `command-palette.tsx`, `module-shell.tsx`, `edit-kpi-dialog.tsx`, `seed-template-button.tsx`, tokens `.lekpis-*` em `styles.css`, asset `lekpis-logo.png` — são do módulo de negócio LeKPIs, não da integração MCP.
+- Secret `LEKPIS_SUPABASE_ANON_KEY` — deixo para você decidir; se quiser eu removo em seguida.
 
 ## Verificação
 
-1. Recarregar `/analise-campanhas` → dropdown de clientes deve mostrar "Creator", "Lefil Company", "Comunidade RDF", etc.
-2. Se ainda falhar, o warning `[mcp:lekpis] validation failed` no worker mostra novo shape.
-
-## Fora de escopo
-
-Refatoração das outras tools (`get_kpi_summary`, `compare_periods`, `get_timeseries`, `get_campaign_ranking`, `get_alerts`) — próximo turno, depois que a listagem estiver estável.
+1. Build passa (typecheck).
+2. `/analise-campanhas` retorna 404 (rota removida).
+3. `mcp_connections` sem linhas com `provider='lekpis'`.
+4. Página `/configuracoes` (MCP) não lista mais LeKPIs.
