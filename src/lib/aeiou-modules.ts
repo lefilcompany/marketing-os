@@ -151,8 +151,10 @@ export const AEIOU_MODULES: AeiouModule[] = [
         icon: BarChart3,
         color: "var(--brand-lekpi, oklch(0.7 0.17 195))",
         brandable: true,
-        status: "coming_soon",
+        mcpProvider: "lekpis",
+        status: "ready",
         platformUrl: "https://pla.lekpis.lefil.com.br",
+
       },
     ],
   },
