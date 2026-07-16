@@ -64,11 +64,17 @@ export const Route = createFileRoute("/api/mcp/callback")({
             pending.redirect_uri,
           );
         } catch (e) {
+          const msg = (e as Error).message ?? String(e);
+          console.error("[mcp/callback] token exchange failed", {
+            provider: pending.provider,
+            redirect_uri: pending.redirect_uri,
+            client_id: pending.client_id,
+            error: msg,
+          });
+          const returnTo = pending.return_to || `/${pending.provider}`;
           return html(
             502,
-            `<h1 class="err">Falha na troca de token</h1><pre>${
-              (e as Error).message
-            }</pre><p><a href="/deepersona">Voltar</a></p>`,
+            `<h1 class="err">Falha na troca de token</h1><p>Provider: <code>${pending.provider}</code></p><pre style="white-space:pre-wrap;word-break:break-word">${msg.replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]!))}</pre><p><a href="${returnTo}">Voltar</a></p>`,
           );
         }
 
