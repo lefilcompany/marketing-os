@@ -1,19 +1,24 @@
-# Integrar MCP do Creator
+# Remover MCP do Soma e remover card RD Marketing
 
-## Mudanças
+## Objetivo
+- Retirar completamente a integração MCP do módulo **Soma** (começar do zero).
+- **Remover** o card do **RD Marketing** do módulo O.
 
-1. **`src/lib/mcp.server.ts`** — adicionar entrada `creator` em `MCP_PROVIDERS`:
-   - `resource`: `https://afxwqkrneraatgovhpkb.supabase.co/functions/v1/mcp`
-   - `authorizationServer` / endpoints OAuth em `https://afxwqkrneraatgovhpkb.supabase.co/auth/v1` (authorize, token, register)
-   - `scope`: `openid profile email`
-   - `apiKeyEnv`: `CREATOR_SUPABASE_ANON_KEY`
+## Alterações
 
-2. **`src/lib/aeiou-modules.ts`** — na ferramenta `creator` (módulo I):
-   - adicionar `mcpProvider: "creator"` (hoje está sem)
-   - manter `status: "ready"` e `brandable: true`
+### 1. `src/lib/mcp.server.ts`
+Remover o bloco `soma: { ... }` do objeto `MCP_PROVIDERS` (linhas 36–50), incluindo `apiKeyEnv` e fallback.
 
-3. **Secret** — solicitar `CREATOR_SUPABASE_ANON_KEY` via `add_secret` (padrão `^(eyJ|sb_publishable_)`), mesmo fluxo usado no MonitorNews.
+### 2. `src/lib/aeiou-modules.ts`
+- **Soma**: remover `mcpProvider: "soma"` e trocar `status` para `"coming_soon"`.
+- **RD Marketing**: remover o objeto inteiro `{ id: "rd-marketing", ... }` da lista de tools do módulo O.
 
-## Depois de aprovado
+### 3. Limpar conexões existentes no banco
+Migration com `DELETE FROM mcp_connections WHERE provider = 'soma'` e `DELETE FROM mcp_oauth_states WHERE provider = 'soma'`.
 
-Testar em Configurações → MCP conectando na tile do Creator e verificando descoberta de tools.
+## Verificação
+- Módulo O mostra apenas: Soma (em breve) e LeKPIs (MCP ativo). Sem RD Marketing.
+- Configurações → MCP: Soma não aparece mais.
+
+## Observação
+Secret `SOMA_SUPABASE_ANON_KEY` fica ocioso — confirme se quer deletá-lo depois.
