@@ -43,7 +43,7 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     tokenEndpoint: "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/token",
     registrationEndpoint:
       "https://afxwqkrneraatgovhpkb.supabase.co/auth/v1/oauth/clients/register",
-    scope: "openid profile email",
+    scope: "profile email",
     apiKeyEnv: "CREATOR_SUPABASE_ANON_KEY",
     apiKeyFallback:
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmeHdxa3JuZXJhYXRnb3ZocGtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNTU1MzEsImV4cCI6MjA3NDczMTUzMX0.qrf2s983At_PQ3qsJtcmQuzjlP3uEzXHFK588hJpyTM",
