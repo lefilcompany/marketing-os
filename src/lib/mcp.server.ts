@@ -73,6 +73,19 @@ export const MCP_PROVIDERS: Record<string, McpProviderConfig> = {
     scope: "profile email",
     apiKeyEnv: "CREATOR_SUPABASE_ANON_KEY",
   },
+  soma: {
+    slug: "soma",
+    name: "Soma",
+    authorizationServer: "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1",
+    resource: "https://erxhxmetrvkigjwxchbj.supabase.co/functions/v1/mcp",
+    authorizationEndpoint:
+      "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/authorize",
+    tokenEndpoint: "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/token",
+    registrationEndpoint:
+      "https://erxhxmetrvkigjwxchbj.supabase.co/auth/v1/oauth/clients/register",
+    scope: "profile email",
+    apiKeyEnv: "SOMA_SUPABASE_ANON_KEY",
+  },
 };
 
 
